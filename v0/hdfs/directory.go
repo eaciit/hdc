@@ -78,7 +78,7 @@ func (h *Hdfs) Rename(path string, destination string) error {
 	return e
 }
 
-func (h *Hdfs) Delete(path string, recursive bool) error {
+func (h *Hdfs) deleteObject(path string, recursive bool) error {
 	r, e := h.call("DELETE", path, OP_DELETE, map[string]string{"recursive": strconv.FormatBool(recursive)})
 	if e != nil {
 		return e
@@ -87,11 +87,14 @@ func (h *Hdfs) Delete(path string, recursive bool) error {
 	return e
 }
 
-func (h *Hdfs) Deletes(paths []string, recursive bool) map[string]error {
+func (h *Hdfs) Delete(recursive bool, paths ...string) map[string]error {
 	var es map[string]error
 	for _, path := range paths {
-		e := h.Delete(path, recursive)
+		e := h.deleteObject(path, recursive)
 		if e != nil {
+			if es == nil {
+				es = map[string]error{}
+			}
 			es[path] = e
 		}
 	}
