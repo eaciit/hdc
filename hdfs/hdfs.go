@@ -1,4 +1,3 @@
-// Provide HDFS WebApi wrapper to connect to Hadoop cluster. This package was written on 2.5.1 but should be work on other version that has same signature
 package hdfs
 
 import (
@@ -38,7 +37,7 @@ const (
 	OP_CANCELDELEGATIONTOKEN = "CANCELDELEGATIONTOKEN"
 )
 
-type HdfsConfig struct {
+type WebHdfsConfig struct {
 	Host     string
 	UserId   string
 	Password string
@@ -48,13 +47,13 @@ type HdfsConfig struct {
 	PoolSize int
 }
 
-type Hdfs struct {
-	Config *HdfsConfig
+type WebHdfs struct {
+	Config *WebHdfsConfig
 	client *http.Client
 }
 
-func NewHdfsConfig(host, userid string) *HdfsConfig {
-	cfg := HdfsConfig{}
+func NewHdfsConfig(host, userid string) *WebHdfsConfig {
+	cfg := WebHdfsConfig{}
 	cfg.TimeOut = time.Second * 15
 	cfg.Host = host
 
@@ -69,8 +68,8 @@ func NewHdfsConfig(host, userid string) *HdfsConfig {
 	return &cfg
 }
 
-func NewHdfs(config *HdfsConfig) (*Hdfs, error) {
-	hdfs := new(Hdfs)
+func NewWebHdfs(config *WebHdfsConfig) (*WebHdfs, error) {
+	hdfs := new(WebHdfs)
 	hdfs.Config = config
 
 	hdfs.client = &http.Client{
@@ -87,7 +86,7 @@ func NewHdfs(config *HdfsConfig) (*Hdfs, error) {
 	return hdfs, nil
 }
 
-func (h *Hdfs) makePath(path string, op string, parms map[string]string) string {
+func (h *WebHdfs) makePath(path string, op string, parms map[string]string) string {
 	s := h.Config.Host
 	s = s + WebHdfsApi
 	if path[0] == '/' {
@@ -104,7 +103,7 @@ func (h *Hdfs) makePath(path string, op string, parms map[string]string) string 
 	return s
 }
 
-func (h *Hdfs) call(calltype, path, op string, parms map[string]string) (*http.Response, error) {
+func (h *WebHdfs) call(calltype, path, op string, parms map[string]string) (*http.Response, error) {
 	url := ""
 	if strings.HasPrefix(path, "http") == false {
 		url = h.makePath(path, op, parms)
@@ -120,7 +119,7 @@ func (h *Hdfs) call(calltype, path, op string, parms map[string]string) (*http.R
 	return h.client.Do(req)
 }
 
-func (h *Hdfs) callPayload(calltype, path, op string, filename string, parms map[string]string) (*http.Response, error) {
+func (h *WebHdfs) callPayload(calltype, path, op string, filename string, parms map[string]string) (*http.Response, error) {
 	url := ""
 	if strings.HasPrefix(path, "http") == false {
 		url = h.makePath(path, op, parms)

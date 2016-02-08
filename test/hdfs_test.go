@@ -2,7 +2,7 @@ package hdfs
 
 import (
 	"fmt"
-	. "github.com/eaciit/hdc/v0/hdfs"
+	. "github.com/eaciit/hdc/hdfs"
 	"os"
 	"testing"
 	"time"
@@ -12,11 +12,11 @@ func killApp(code int) {
 	os.Exit(code)
 }
 
-var h *Hdfs
+var h *WebHdfs
 var e error
 
 func TestConnect(t *testing.T) {
-	h, e = NewHdfs(NewHdfsConfig("http://awshdc01:50070", "hdfs"))
+	h, e = NewWebHdfs(NewHdfsConfig("http://awshdc01:50070", "hdfs"))
 	if e != nil {
 		t.Fatalf(e.Error())
 		defer killApp(1000)

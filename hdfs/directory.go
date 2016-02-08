@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func (h *Hdfs) List(path string) (*HdfsData, error) {
+func (h *WebHdfs) List(path string) (*HdfsData, error) {
 	r, e := h.call("GET", path, OP_LISTSTATUS, nil)
 	if e != nil {
 		return nil, e
@@ -20,7 +20,7 @@ func (h *Hdfs) List(path string) (*HdfsData, error) {
 	return hdata, e
 }
 
-func (h *Hdfs) MakeDir(path string, permission string) error {
+func (h *WebHdfs) MakeDir(path string, permission string) error {
 	if permission == "" {
 		permission = "755"
 	}
@@ -32,7 +32,7 @@ func (h *Hdfs) MakeDir(path string, permission string) error {
 	return e
 }
 
-func (h *Hdfs) MakeDirs(paths []string, permission string) map[string]error {
+func (h *WebHdfs) MakeDirs(paths []string, permission string) map[string]error {
 	if permission == "" {
 		permission = "755"
 	}
@@ -49,7 +49,7 @@ func (h *Hdfs) MakeDirs(paths []string, permission string) map[string]error {
 	return es
 }
 
-func (h *Hdfs) PutDir(dirname string, destination string) (error, map[string]error) {
+func (h *WebHdfs) PutDir(dirname string, destination string) (error, map[string]error) {
 	fileinfos, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		return err, nil
@@ -69,7 +69,7 @@ func (h *Hdfs) PutDir(dirname string, destination string) (error, map[string]err
 	return nil, nil
 }
 
-func (h *Hdfs) Rename(path string, destination string) error {
+func (h *WebHdfs) Rename(path string, destination string) error {
 	r, e := h.call("PUT", path, OP_RENAME, map[string]string{"destination": destination})
 	if e != nil {
 		return e
@@ -78,7 +78,7 @@ func (h *Hdfs) Rename(path string, destination string) error {
 	return e
 }
 
-func (h *Hdfs) deleteObject(path string, recursive bool) error {
+func (h *WebHdfs) deleteObject(path string, recursive bool) error {
 	r, e := h.call("DELETE", path, OP_DELETE, map[string]string{"recursive": strconv.FormatBool(recursive)})
 	if e != nil {
 		return e
@@ -87,7 +87,7 @@ func (h *Hdfs) deleteObject(path string, recursive bool) error {
 	return e
 }
 
-func (h *Hdfs) Delete(recursive bool, paths ...string) map[string]error {
+func (h *WebHdfs) Delete(recursive bool, paths ...string) map[string]error {
 	var es map[string]error
 	for _, path := range paths {
 		e := h.deleteObject(path, recursive)

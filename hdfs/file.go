@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func (h *Hdfs) GetToLocal(path string, destination string, permission string) error {
+func (h *WebHdfs) GetToLocal(path string, destination string, permission string) error {
 	d, err := h.Get(path)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func (h *Hdfs) GetToLocal(path string, destination string, permission string) er
 	return nil
 }
 
-func (h *Hdfs) Get(path string) ([]byte, error) {
+func (h *WebHdfs) Get(path string) ([]byte, error) {
 	r, err := h.call("GET", path, OP_OPEN, nil)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func mergeMapString(source map[string]string, adds map[string]string) map[string
 	return source
 }
 
-func (h *Hdfs) Put(localfile string, destination string, permission string, parms map[string]string) error {
+func (h *WebHdfs) Put(localfile string, destination string, permission string, parms map[string]string) error {
 	if permission == "" {
 		permission = "755"
 	}
@@ -89,7 +89,7 @@ func (h *Hdfs) Put(localfile string, destination string, permission string, parm
 	return nil
 }
 
-func (h *Hdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string) map[string]error {
+func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string) map[string]error {
 	var es map[string]error
 	if permission == "" {
 		permission = "755"
@@ -139,7 +139,7 @@ func (h *Hdfs) Puts(paths []string, destinationFolder string, permission string,
 	return es
 }
 
-func (h *Hdfs) Append(localfile string, destination string) error {
+func (h *WebHdfs) Append(localfile string, destination string) error {
 	r, err := h.call("POST", destination, OP_APPEND, nil)
 	if err != nil {
 		return err
@@ -160,7 +160,7 @@ func (h *Hdfs) Append(localfile string, destination string) error {
 	return nil
 }
 
-func (h *Hdfs) SetOwner(path string, owner string, group string) error {
+func (h *WebHdfs) SetOwner(path string, owner string, group string) error {
 	ownerInfo := map[string]string{}
 	if owner != "" {
 		ownerInfo["owner"] = owner
@@ -178,6 +178,6 @@ func (h *Hdfs) SetOwner(path string, owner string, group string) error {
 	return nil
 }
 
-func (h *Hdfs) SetPermission(path string, user string) error {
+func (h *WebHdfs) SetPermission(path string, user string) error {
 	return nil
 }
