@@ -16,7 +16,7 @@ var h *WebHdfs
 var e error
 
 func TestConnect(t *testing.T) {
-	h, e = NewWebHdfs(NewHdfsConfig("http://awshdc01:50070", "hdfs"))
+	h, e = NewWebHdfs(NewHdfsConfig("http://192.168.0.222:50070", "hdfs"))
 	if e != nil {
 		t.Fatalf(e.Error())
 		defer killApp(1000)
