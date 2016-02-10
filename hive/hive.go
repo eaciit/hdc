@@ -3,6 +3,8 @@ package hive
 import (
 	"fmt"
 	// "log"
+	"bufio"
+	"os"
 	"os/exec"
 	"os/user"
 )
@@ -60,6 +62,21 @@ func (h *Hive) Exec(query string, fn FnHiveReceive) (hs *HiveSession, e error) {
 }
 
 func (h *Hive) ExecFile(filepath string, fn FnHiveReceive) (hs *HiveSession, e error) {
+	file, err := os.Open(filepath)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fmt.Println(scanner.Text())
+		h.Exec(scanner.Text(), nil)
+	}
+
+	if err := scanner.Err(); err != nil {
+		fmt.Println(err)
+	}
 
 	return nil, nil
 }
