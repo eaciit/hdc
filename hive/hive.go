@@ -49,6 +49,19 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
+func (h *Hive) ExecNonQuery(query string) (e error) {
+	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
+
+	cmd := exec.Command("sh", "-c", cmdStr)
+	out, err := cmd.Output()
+	if err == nil{
+		fmt.Printf("result: %s\n", out)
+	}else{
+		fmt.Printf("result: %s\n", err)
+	}
+	return err
+}
+
 func (h *Hive) Exec(query string, fn FnHiveReceive) (hs *HiveSession, e error) {
 	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
 
