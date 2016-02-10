@@ -51,6 +51,11 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
+func (h *Hive) ParseOutput(stdout string) (out interface{},e error) {
+	// to parse string std out to respective model
+	return nil,nil
+}
+
 func (h *Hive) ExecNonQuery(query string) (e error) {
 	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
 
