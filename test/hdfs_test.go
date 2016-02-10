@@ -16,7 +16,7 @@ var h *WebHdfs
 var e error
 
 func TestConnect(t *testing.T) {
-	h, e = NewWebHdfs(NewHdfsConfig("http://awshdc01:50070", "hdfs"))
+	h, e = NewWebHdfs(NewHdfsConfig("http://192.168.0.223:50070", "hdfs"))
 	if e != nil {
 		t.Fatalf(e.Error())
 		defer killApp(1000)
@@ -63,7 +63,7 @@ func TestChangeOwner(t *testing.T) {
 */
 
 func TestPutFile(t *testing.T) {
-	e = h.Put("/Users/ariefdarmawan/Temp/BHPWellReport.pdf", "/user/ariefdarmawan/inbox/wellreport.pdf", "", nil)
+	e = h.Put("d://test.txt", "/user/ariefdarmawan/inbox/test.txt", "", nil)
 	if e != nil {
 		t.Error(e.Error())
 	}
