@@ -40,14 +40,14 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return &hv
 }
 
-func (h *Hive) Connect() error {
+/*func (h *Hive) Connect() error {
 	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password
 	cmd := exec.Command("sh", "-c", cmdStr)
 	out, err := cmd.Output()
 	_ = out
 	_ = err
 	return nil
-}
+}*/
 
 func (h *Hive) Exec(query string, fn FnHiveReceive) (hs *HiveSession, e error) {
 	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
