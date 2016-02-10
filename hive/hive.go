@@ -51,7 +51,7 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
-func (h *Hive) ParseOutput(stdout string) (out interface{},e error) {
+func (h *Hive) ParseOutput(stdout string,m interface{}) (out interface{},e error) {
 	// to parse string std out to respective model
 	return nil,nil
 }
