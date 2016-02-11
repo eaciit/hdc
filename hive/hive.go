@@ -15,8 +15,6 @@ import (
 
 type FnHiveReceive func(string) (interface{}, error)
 
-type test func(string) (interface{}, error)
-
 type Hive struct {
 	Server      string
 	User        string
