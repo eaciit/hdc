@@ -132,7 +132,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 
 func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr())
+	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -233,40 +233,38 @@ func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) 
 	return nil
 }
 
-func (h *Hive) ParseOutput(stdout []string, m interface{}) (out []interface{}, e error) {
+func (h *Hive) ParseOutput(in string, m interface{}) (out []interface{}, e error) {
 	// to parse string std out to respective model
 	s := reflect.ValueOf(m).Elem()
-	for _, value := range stdout {
-		//fmt.Printf("line: %v | %s\n", key, value)
-		reader := csv.NewReader(strings.NewReader(value))
-		record, e := reader.Read()
+	//fmt.Printf("line: %v | %s\n", key, value)
+	reader := csv.NewReader(strings.NewReader(in))
+	record, e := reader.Read()
 
-		if e != nil {
-			return nil, e
-		}
-
-		if s.NumField() != len(record) {
-			return nil, &FieldMismatch{s.NumField(), len(record)}
-		}
-
-		for i := 0; i < s.NumField(); i++ {
-			f := s.Field(i)
-			switch f.Type().String() {
-			case "string":
-				f.SetString(record[i])
-			case "int":
-				ival, err := strconv.ParseInt(record[i], 10, 0)
-				if err != nil {
-					return nil, err
-				}
-				f.SetInt(ival)
-			default:
-				return nil, &UnsupportedType{f.Type().String()}
-			}
-		}
-
-		out = append(out, s)
+	if e != nil {
+		return nil, e
 	}
+
+	if s.NumField() != len(record) {
+		return nil, &FieldMismatch{s.NumField(), len(record)}
+	}
+
+	for i := 0; i < s.NumField(); i++ {
+		f := s.Field(i)
+		switch f.Type().String() {
+		case "string":
+			f.SetString(record[i])
+		case "int":
+			ival, err := strconv.ParseInt(record[i], 10, 0)
+			if err != nil {
+				return nil, err
+			}
+			f.SetInt(ival)
+		default:
+			return nil, &UnsupportedType{f.Type().String()}
+		}
+	}
+
+	out = append(out, s)
 	return
 }
 
