@@ -130,7 +130,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	return nil
 }
 
-func (h *Hive) ExecLine(query string) (out []byte, e error) {
+func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr())
 	cmdReader, e := cmd.StdoutPipe()
@@ -143,7 +143,8 @@ func (h *Hive) ExecLine(query string) (out []byte, e error) {
 
 	go func() {
 		for scanner.Scan() {
-			fmt.Printf("out | %s\n", scanner.Text())
+			DoResult(scanner.Text())
+			//fmt.Printf("out | %s\n", scanner.Text())
 		}
 	}()
 
