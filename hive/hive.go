@@ -20,7 +20,6 @@ type Hive struct {
 	Password    string
 	DBName      string
 	HiveCommand string
-	Optional    string
 }
 
 func HiveConfig(server, dbName, userid, password string) *Hive {
@@ -56,17 +55,26 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 }*/
 
 const (
-	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s %s -e \"%s\" | tail -n +2 -f | head -n -1"
-	SHOW_HEADER  = "--showHeader=true"
-	HIDE_HEADER  = "--showHeader=false"
+	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s"
+	BEE_QUERY    = " -e \"%s\""
+	SHOW_HEADER  = " --showHeader=true"
+	HIDE_HEADER  = " --showHeader=false"
+	CSV_FORMAT   = " --outputFormat=csv2"
 )
 
 func ParseOut(s string) {
 	fmt.Println(s)
 }
 
-func (h *Hive) cmdStr() string {
-	return fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password, h.Optional, h.HiveCommand)
+func (h *Hive) cmdStr(arg ...string) (out string) {
+	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
+
+	for _, value := range arg {
+		out += value
+	}
+
+	out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	return
 }
 
 func (h *Hive) command(cmd ...string) *exec.Cmd {
@@ -76,9 +84,8 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	h.Optional = HIDE_HEADER
-	// fmt.Println(h.cmdStr())
-	cmd := h.command(h.cmdStr())
+	fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	outByte, e := cmd.Output()
 	out = strings.Split(string(outByte), "\n")
 	return
