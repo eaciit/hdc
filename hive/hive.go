@@ -1,15 +1,16 @@
 package hive
 
 import (
-	"fmt"
-	// "log"
 	"bufio"
+	"bytes"
+	"encoding/csv"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
+	"reflect"
+	"strconv"
 	"strings"
-
-	"bytes"
 	"time"
 )
 
@@ -55,29 +56,38 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
+const (
+	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s"
+	BEE_QUERY    = " -e \"%s\""
+	SHOW_HEADER  = " --showHeader=true"
+	HIDE_HEADER  = " --showHeader=false"
+	CSV_FORMAT   = " --outputFormat=csv2"
+)
+
 func ParseOut(s string) {
 	fmt.Println(s)
 }
 
-const beeTemplate = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
+func (h *Hive) cmdStr(arg ...string) (out string) {
+	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
 
-func (h *Hive) cmdStr() string {
-	return fmt.Sprintf(beeTemplate, h.Server, h.DBName, h.User, h.Password, h.HiveCommand)
+	for _, value := range arg {
+		out += value
+	}
+
+	out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	return
 }
 
 func (h *Hive) command(cmd ...string) *exec.Cmd {
-	arg := append(
-		[]string{
-			"-c",
-		},
-		cmd...,
-	)
+	arg := append([]string{"-c"}, cmd...)
 	return exec.Command("sh", arg...)
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr())
+	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	outByte, e := cmd.Output()
 	out = strings.Split(string(outByte), "\n")
 	return
@@ -90,22 +100,22 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	cmd.Stdout = randomBytes
 	err := cmd.Start()
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	outlength := 0
 	ticker := time.NewTicker(time.Millisecond)
 	go func(ticker *time.Ticker) {
-		for _ = range ticker.C {
-			lenlength := len(strings.Split(strings.TrimSpace(randomBytes.String()),"\n"))
-			if outlength < lenlength{
-				for{
-					if(strings.Split(strings.TrimSpace(randomBytes.String()),"\n")[outlength]!=""){
-						str :=  strings.Split(strings.TrimSpace(randomBytes.String()),"\n")[outlength]	
+		for range ticker.C {
+			lenlength := len(strings.Split(strings.TrimSpace(randomBytes.String()), "\n"))
+			if outlength < lenlength {
+				for {
+					if strings.Split(strings.TrimSpace(randomBytes.String()), "\n")[outlength] != "" {
+						str := strings.Split(strings.TrimSpace(randomBytes.String()), "\n")[outlength]
 						ParseOut(str)
-						outlength+=1
-						if outlength == lenlength{
+						outlength += 1
+						if outlength == lenlength {
 							break
 						}
 					}
@@ -183,7 +193,55 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 	return err
 }
 
-func (h *Hive) ParseOutput(stdout string, m interface{}) (out interface{}, e error) {
+func (h *Hive) ParseOutput(stdout []string, m interface{}) (out []interface{}, e error) {
 	// to parse string std out to respective model
-	return nil, nil
+	s := reflect.ValueOf(m).Elem()
+	for _, value := range stdout {
+		//fmt.Printf("line: %v | %s\n", key, value)
+		reader := csv.NewReader(strings.NewReader(value))
+		record, e := reader.Read()
+
+		if e != nil {
+			return nil, e
+		}
+
+		if s.NumField() != len(record) {
+			return nil, &FieldMismatch{s.NumField(), len(record)}
+		}
+
+		for i := 0; i < s.NumField(); i++ {
+			f := s.Field(i)
+			switch f.Type().String() {
+			case "string":
+				f.SetString(record[i])
+			case "int":
+				ival, err := strconv.ParseInt(record[i], 10, 0)
+				if err != nil {
+					return nil, err
+				}
+				f.SetInt(ival)
+			default:
+				return nil, &UnsupportedType{f.Type().String()}
+			}
+		}
+
+		out = append(out, s)
+	}
+	return
+}
+
+type FieldMismatch struct {
+	expected, found int
+}
+
+func (e *FieldMismatch) Error() string {
+	return "CSV line fields mismatch. Expected " + strconv.Itoa(e.expected) + " found " + strconv.Itoa(e.found)
+}
+
+type UnsupportedType struct {
+	Type string
+}
+
+func (e *UnsupportedType) Error() string {
+	return "Unsupported type: " + e.Type
 }
