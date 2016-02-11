@@ -143,7 +143,12 @@ func (h *Hive) ParseOutput(stdout []string, m interface{}) (out interface{}, e e
 	// to parse string std out to respective model
 
 	for key, value := range stdout {
-		fmt.Printf("line: %v | %s\n", key, value)
+		if key > 2 {
+			if !strings.Compare(value[:1], "+") {
+				fmt.Printf("line: %v | %s\n", key, value)
+			}
+		}
+
 	}
 
 	return nil, nil
