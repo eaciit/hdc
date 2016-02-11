@@ -8,9 +8,14 @@ import (
 	"os/exec"
 	"os/user"
 	"strings"
+
+	"bytes"
+	"time"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
+
+type test func(string) (interface{}, error)
 
 type Hive struct {
 	Server      string
@@ -52,6 +57,10 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
+func ParseOut(s string) {
+	fmt.Println(s)
+}
+
 const beeTemplate = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
 
 func (h *Hive) cmdStr() string {
@@ -74,6 +83,43 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	outByte, e := cmd.Output()
 	out = strings.Split(string(outByte), "\n")
 	return
+}
+
+func (h *Hive) ExecPerline(query string) (e error) {
+	h.HiveCommand = query
+	cmd := h.command(h.cmdStr())
+	randomBytes := &bytes.Buffer{}
+	cmd.Stdout = randomBytes
+	err := cmd.Start()
+
+	if err != nil{
+		return err
+	}
+
+	outlength := 0
+	ticker := time.NewTicker(time.Millisecond)
+	go func(ticker *time.Ticker) {
+		for _ = range ticker.C {
+			lenlength := len(strings.Split(strings.TrimSpace(randomBytes.String()),"\n"))
+			if outlength < lenlength{
+				for{
+					if(strings.Split(strings.TrimSpace(randomBytes.String()),"\n")[outlength]!=""){
+						str :=  strings.Split(strings.TrimSpace(randomBytes.String()),"\n")[outlength]	
+						ParseOut(str)
+						outlength+=1
+						if outlength == lenlength{
+							break
+						}
+					}
+				}
+			}
+		}
+	}(ticker)
+
+	cmd.Wait()
+	time.Sleep(time.Second * 2)
+
+	return nil
 }
 
 func (h *Hive) ExecLine(query string) (out []byte, e error) {
