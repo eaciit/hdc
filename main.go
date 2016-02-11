@@ -23,6 +23,6 @@ func main() {
 	fmt.Printf("error: \n%s\n", e)
 	fmt.Printf("result: \n%s\n", result)
 
-	obj, e := h.ParseOutput(result, Sample7{})
-	_ = obj
+	//obj, e := h.ParseOutput(result, Sample7{})
+	//_ = obj
 }

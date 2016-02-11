@@ -54,9 +54,11 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
-const BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
-const SHOW_HEADER = "--showHeader=true"
-const HIDE_HEADER = "--showHeader=false"
+const (
+	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\" | tail -n +2 -f | head -n -1"
+	SHOW_HEADER  = "--showHeader=true"
+	HIDE_HEADER  = "--showHeader=false"
+)
 
 func ParseOut(s string) {
 	fmt.Println(s)
@@ -67,12 +69,7 @@ func (h *Hive) cmdStr() string {
 }
 
 func (h *Hive) command(cmd ...string) *exec.Cmd {
-	arg := append(
-		[]string{
-			"-c",
-		},
-		cmd...,
-	)
+	arg := append([]string{"-c"}, cmd...)
 	return exec.Command("sh", arg...)
 }
 
