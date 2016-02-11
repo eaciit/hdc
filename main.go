@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	. "github.com/frezadev/hdc/hive"
+	"reflect"
 	// "os"
 )
 
@@ -23,6 +24,13 @@ func main() {
 	fmt.Printf("error: \n%s\n", e)
 	fmt.Printf("result: \n%s\n", result)
 
-	//obj, e := h.ParseOutput(result, Sample7{})
-	//_ = obj
+	/*obj, e := h.ParseOutput(nil, Sample7{})
+	_ = e
+
+	for _, value := range obj {
+		fmt.Printf("obj: %v\n", value)
+	}*/
+
+	// test := "00-0000,All Occupations,134354250,40690"
+
 }
