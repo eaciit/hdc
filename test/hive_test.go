@@ -1,11 +1,12 @@
 package hive_test
 
 import (
-	. "github.com/frezadev/hdc/hive"
+	. "github.com/hdc/yanda15/hdc/hive"
 	//"os/exec"
 	"testing"
 	//"fmt"
 	"os"
+
 )
 
 /*func TestHiveConnect(t *testing.T) {
@@ -23,6 +24,20 @@ var fnHR FnHiveReceive
 //var hSess HiveSession
 var h *Hive
 
+type Test struct{
+	Name string
+	NIK int
+	Score float64
+}
+
+func TestParseOutPerLine(t *testing.T) {
+	var xx = Test{} 
+	err := ParseOutPerLine("|Yanda  |163  |6.5  |",[]string{"Name","NIK","Score"},"|",&xx)
+	if err != nil {
+		t.Errorf("Unable to fetch: %s \n", err.Error())
+	}
+}
+
 func killApp(code int) {
 	os.Exit(code)
 }
@@ -33,7 +48,7 @@ func TestHiveConnect(t *testing.T) {
 
 func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
-	hSess, e := h.Exec(q, fnHR)
+	hSess, e := h.Exec(q)
 	_ = hSess
 	_ = e
 }
