@@ -54,7 +54,6 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 const beeTemplate = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
 
 func (h *Hive) cmdStr() string {
-	/*cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""*/
 	return fmt.Sprintf(beeTemplate, h.Server, h.DBName, h.User, h.Password, h.HiveCommand)
 }
 
@@ -70,9 +69,40 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 
 func (h *Hive) Exec(query string) (out []byte, e error) {
 	h.HiveCommand = query
-	//cmd := exec.Command("sh", "-c", h.cmdStr())
 	cmd := h.command(h.cmdStr())
 	out, e = cmd.Output()
+	return
+}
+
+func (h *Hive) ExecLine(query string) (out []byte, e error) {
+	h.HiveCommand = query
+	cmd := h.command(h.cmdStr())
+	cmdReader, e := cmd.StdoutPipe()
+
+	if e != nil {
+		fmt.Fprintln(os.Stderr, "Error creating stdoutPipe for cmd", e)
+	}
+
+	scanner := bufio.NewScanner(cmdReader)
+
+	go func() {
+		for scanner.Scan() {
+			fmt.Printf("out | %s\n", scanner.Text())
+		}
+	}()
+
+	e = cmd.Start()
+
+	if e != nil {
+		fmt.Fprintln(os.Stderr, "Error starting Cmd", e)
+	}
+
+	e = cmd.Wait()
+
+	if e != nil {
+		fmt.Fprintln(os.Stderr, "Error waiting Cmd", e)
+	}
+
 	return
 }
 
