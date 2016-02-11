@@ -132,7 +132,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 
 func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr())
+	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
