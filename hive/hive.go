@@ -144,7 +144,7 @@ func (h *Hive) ParseOutput(stdout []string, m interface{}) (out interface{}, e e
 
 	for key, value := range stdout {
 		if key > 2 {
-			if !strings.Compare(value[:1], "+") {
+			if value[:1] != "+" {
 				fmt.Printf("line: %v | %s\n", key, value)
 			}
 		}
