@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"strings"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -67,10 +68,11 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
-func (h *Hive) Exec(query string) (out []byte, e error) {
+func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr())
-	out, e = cmd.Output()
+	outByte, e := cmd.Output()
+	out = strings.Split(string(outByte), "\n")
 	return
 }
 
