@@ -134,7 +134,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	return nil
 }
 
-func (h *Hive) ExecLine(query string) (out []byte, e error) {
+func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr())
 	cmdReader, e := cmd.StdoutPipe()
@@ -147,7 +147,8 @@ func (h *Hive) ExecLine(query string) (out []byte, e error) {
 
 	go func() {
 		for scanner.Scan() {
-			fmt.Printf("out | %s\n", scanner.Text())
+			DoResult(scanner.Text())
+			//fmt.Printf("out | %s\n", scanner.Text())
 		}
 	}()
 
@@ -197,10 +198,10 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 	return err
 }
 
-func ParseOutPerLine(stdout string,head []string,delim string, m interface{}) (e error) {
+func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
-		return errorlib.Error("","","Fetch", "Model object should be pointer")
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
 	var v reflect.Type
@@ -210,26 +211,25 @@ func ParseOutPerLine(stdout string,head []string,delim string, m interface{}) (e
 	appendData := toolkit.M{}
 	iv := reflect.New(v).Interface()
 
-	splitted:= strings.Split(strings.Trim(stdout," "+delim),delim)
+	splitted := strings.Split(strings.Trim(stdout, " "+delim), delim)
 
-	for i, val := range head{
+	for i, val := range head {
 		appendData[val] = strings.TrimSpace(splitted[i])
 	}
 
 	if v.Kind() == reflect.Struct {
-			for i := 0; i < v.NumField(); i++ {
-				if appendData.Has(v.Field(i).Name) {
-					switch v.Field(i).Type.Kind() {
-					case reflect.Int:
-						appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
-					case reflect.Float64:
-						valf,_ := strconv.ParseFloat(appendData[v.Field(i).Name].(string),64)
-						appendData.Set(v.Field(i).Name, valf )
-					}
+		for i := 0; i < v.NumField(); i++ {
+			if appendData.Has(v.Field(i).Name) {
+				switch v.Field(i).Type.Kind() {
+				case reflect.Int:
+					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+				case reflect.Float64:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					appendData.Set(v.Field(i).Name, valf)
 				}
 			}
+		}
 	}
-
 
 	toolkit.Serde(appendData, iv, "json")
 	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())

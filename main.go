@@ -24,6 +24,15 @@ func main() {
 	fmt.Printf("error: \n%s\n", e)
 	fmt.Printf("result: \n%s\n", result)
 
+	//to execute query and read the result per line and then process its result
+	var DoSomething = func(res interface{}) {
+		fmt.Println(res)
+	}
+
+	resultline, e := h.ExecLine(q, DoSomething)
+	fmt.Printf("error: \n%s\n", e)
+	fmt.Printf("result: \n%s\n", resultline)
+
 	/*obj, e := h.ParseOutput(nil, Sample7{})
 	_ = e
 
