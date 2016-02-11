@@ -52,10 +52,10 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
-const beeTemplate = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
+const BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
 
 func (h *Hive) cmdStr() string {
-	return fmt.Sprintf(beeTemplate, h.Server, h.DBName, h.User, h.Password, h.HiveCommand)
+	return fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password, h.HiveCommand)
 }
 
 func (h *Hive) command(cmd ...string) *exec.Cmd {
@@ -139,7 +139,12 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 	return err
 }
 
-func (h *Hive) ParseOutput(stdout string, m interface{}) (out interface{}, e error) {
+func (h *Hive) ParseOutput(stdout []string, m interface{}) (out interface{}, e error) {
 	// to parse string std out to respective model
+
+	for key, value := range stdout {
+		fmt.Printf("line: %v | %s\n", key, value)
+	}
+
 	return nil, nil
 }
