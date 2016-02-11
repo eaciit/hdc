@@ -51,35 +51,32 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return nil
 }*/
 
-func (h *Hive) ParseOutput(stdout string,m interface{}) (out interface{},e error) {
-	// to parse string std out to respective model
-	return nil,nil
+const beeTemplate = "beeline -u jdbc:hive2://%s/%s -n %s -p %s -e \"%s\""
+
+func (h *Hive) cmdStr() string {
+	/*cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""*/
+	return fmt.Sprintf(beeTemplate, h.Server, h.DBName, h.User, h.Password, h.HiveCommand)
 }
 
-func (h *Hive) ExecNonQuery(query string) (e error) {
-	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
-
-	cmd := exec.Command("sh", "-c", cmdStr)
-	out, err := cmd.Output()
-	if err == nil{
-		fmt.Printf("result: %s\n", out)
-	}else{
-		fmt.Printf("result: %s\n", err)
-	}
-	return err
+func (h *Hive) command(cmd ...string) *exec.Cmd {
+	arg := append(
+		[]string{
+			"-c",
+		},
+		cmd...,
+	)
+	return exec.Command("sh", arg...)
 }
 
-func (h *Hive) Exec(query string, fn FnHiveReceive) (hs *HiveSession, e error) {
-	cmdStr := "beeline -u jdbc:hive2://" + h.Server + "/" + h.DBName + " -n " + h.User + " -p " + h.Password + " -e " + "\"" + query + "\""
-
-	cmd := exec.Command("sh", "-c", cmdStr)
-	out, err := cmd.Output()
-	fmt.Printf("result: %s\n", out)
-	_ = err
-	return nil, nil
+func (h *Hive) Exec(query string) (out []byte, e error) {
+	h.HiveCommand = query
+	//cmd := exec.Command("sh", "-c", h.cmdStr())
+	cmd := h.command(h.cmdStr())
+	out, e = cmd.Output()
+	return
 }
 
-func (h *Hive) ExecFile(filepath string, fn FnHiveReceive) (hs *HiveSession, e error) {
+func (h *Hive) ExecFile(filepath string) (hs *HiveSession, e error) {
 	file, err := os.Open(filepath)
 	if err != nil {
 		fmt.Println(err)
@@ -89,12 +86,28 @@ func (h *Hive) ExecFile(filepath string, fn FnHiveReceive) (hs *HiveSession, e e
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		fmt.Println(scanner.Text())
-		h.Exec(scanner.Text(), nil)
+		h.Exec(scanner.Text())
 	}
 
 	if err := scanner.Err(); err != nil {
 		fmt.Println(err)
 	}
 
+	return nil, nil
+}
+
+func (h *Hive) ExecNonQuery(query string) (e error) {
+	cmd := exec.Command("sh", "-c", h.cmdStr())
+	out, err := cmd.Output()
+	if err == nil {
+		fmt.Printf("result: %s\n", out)
+	} else {
+		fmt.Printf("result: %s\n", err)
+	}
+	return err
+}
+
+func (h *Hive) ParseOutput(stdout string, m interface{}) (out interface{}, e error) {
+	// to parse string std out to respective model
 	return nil, nil
 }
