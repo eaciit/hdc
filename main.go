@@ -26,7 +26,7 @@ func main() {
 	/*fmt.Println("---------------------- EXEC ----------------")
 	result, e := h.Exec(q)
 
-	fmt.Printf("error: \n%s\n", e)
+	fmt.Printf("error: \n%v\n", e)
 
 	for _, res := range result {
 		tmp := Sample7{}
@@ -37,14 +37,14 @@ func main() {
 	fmt.Println("---------------------- EXEC LINE ----------------")
 
 	//to execute query and read the result per line and then process its result
-	var DoSomething = func(res interface{}) {
+	var DoSomething = func(res string) {
 		tmp := Sample7{}
-		h.ParseOutput(res.(string), &tmp)
+		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
 	}
 
 	e = h.ExecLine(q, DoSomething)
-	fmt.Printf("error: \n%s\n", e)
+	fmt.Printf("error: \n%v\n", e)
 
 	// test := "00-0000,All Occupations,134354250,40690"
 

@@ -2,7 +2,7 @@ package hive
 
 import (
 	"bufio"
-	"bytes"
+	// "bytes"
 	"encoding/csv"
 	"fmt"
 	"github.com/eaciit/cast"
@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
+	// "time"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -120,7 +120,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-func (h *Hive) ExecPerline(query string) (e error) {
+/*func (h *Hive) ExecPerline(query string) (e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr())
 	randomBytes := &bytes.Buffer{}
@@ -155,9 +155,9 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	time.Sleep(time.Second * 2)
 
 	return nil
-}
+}*/
 
-func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (e error) {
+func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
