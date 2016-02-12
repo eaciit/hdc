@@ -13,8 +13,8 @@ var h *Hive
 type Sample7 struct {
 	Code        string  `tag_name:"code"`
 	Description string  `tag_name:"description"`
-	Total_emp   int64   `tag_name:"total_emp"`
-	Salary      float64 `tag_name:"salary"`
+	Total_emp   int     `tag_name:"total_emp"`
+	Salary      float32 `tag_name:"salary"`
 }
 
 func main() {
