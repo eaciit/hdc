@@ -2,20 +2,19 @@ package hive
 
 import (
 	"bufio"
-	"bytes"
+	// "bytes"
 	"encoding/csv"
 	"fmt"
+	"github.com/eaciit/cast"
+	"github.com/eaciit/errorlib"
+	"github.com/eaciit/toolkit"
 	"os"
 	"os/exec"
 	"os/user"
 	"reflect"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/eaciit/toolkit"
-	"github.com/eaciit/errorlib"
-	"github.com/eaciit/cast"
+	// "time"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -26,6 +25,7 @@ type Hive struct {
 	Password    string
 	DBName      string
 	HiveCommand string
+	Header      []string
 }
 
 func HiveConfig(server, dbName, userid, password string) *Hive {
@@ -63,9 +63,9 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 const (
 	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s"
 	BEE_QUERY    = " -e \"%s\""
-	SHOW_HEADER  = " --showHeader=true"
-	HIDE_HEADER  = " --showHeader=false"
-	CSV_FORMAT   = " --outputFormat=csv2"
+	/*SHOW_HEADER  = " --showHeader=true"
+	HIDE_HEADER  = " --showHeader=false"*/
+	CSV_FORMAT = " --outputFormat=csv2"
 )
 
 func ParseOut(s string) {
@@ -88,16 +88,39 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
+func (h *Hive) constructHeader(header string) {
+	var tmpHeader []string
+	for _, header := range strings.Split(header, ",") {
+		split := strings.Split(header, ".")
+		if len(split) > 1 {
+			tmpHeader = append(tmpHeader, split[1])
+		} else {
+			tmpHeader = append(tmpHeader, header)
+		}
+	}
+	h.Header = tmpHeader
+}
+
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
-	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	outByte, e := cmd.Output()
-	out = strings.Split(string(outByte), "\n")
+	result := strings.Split(string(outByte), "\n")
+
+	if len(result) > 0 {
+		h.constructHeader(result[:1][0])
+	}
+
+	fmt.Printf("header: %v\n", h.Header)
+
+	if len(result) > 1 {
+		out = result[1:]
+	}
 	return
 }
 
-func (h *Hive) ExecPerline(query string) (e error) {
+/*func (h *Hive) ExecPerline(query string) (e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr())
 	randomBytes := &bytes.Buffer{}
@@ -132,11 +155,11 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	time.Sleep(time.Second * 2)
 
 	return nil
-}
+}*/
 
-func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
+func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -237,40 +260,109 @@ func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) 
 	return nil
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (out []interface{}, e error) {
-	// to parse string std out to respective model
-	s := reflect.ValueOf(m).Elem()
-	//fmt.Printf("line: %v | %s\n", key, value)
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()
+
 	reader := csv.NewReader(strings.NewReader(in))
 	record, e := reader.Read()
 
 	if e != nil {
-		return nil, e
+		return e
 	}
 
-	if s.NumField() != len(record) {
-		return nil, &FieldMismatch{s.NumField(), len(record)}
+	if v.NumField() != len(record) {
+		return &FieldMismatch{v.NumField(), len(record)}
 	}
 
-	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		switch f.Type().String() {
-		case "string":
-			f.SetString(record[i])
-		case "int":
-			ival, err := strconv.ParseInt(record[i], 10, 0)
-			if err != nil {
-				return nil, err
+	for i, val := range h.Header {
+		appendData[val] = strings.TrimSpace(record[i])
+	}
+
+	if v.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			tag := v.Field(i).Tag
+
+			if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+				switch v.Field(i).Type.Kind() {
+				case reflect.Int:
+					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+				case reflect.Float64:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					appendData.Set(v.Field(i).Name, valf)
+				}
 			}
-			f.SetInt(ival)
-		default:
-			return nil, &UnsupportedType{f.Type().String()}
 		}
 	}
 
-	out = append(out, s)
-	return
+	toolkit.Serde(appendData, iv, "json")
+	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+	return nil
 }
+
+/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+	// to parse string std out to respective model
+
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	s := reflect.ValueOf(&m).Elem()
+	typeOfT := s.Type()
+
+	reader := csv.NewReader(strings.NewReader(in))
+	record, e := reader.Read()
+
+	if e != nil {
+		return e
+	}
+
+	fmt.Println(s.Type())
+
+	if s.NumField() != len(record) {
+		return &FieldMismatch{s.NumField(), len(record)}
+	}
+
+	for i := 0; i < s.NumField(); i++ {
+		head := h.Header[i]
+		fieldName := typeOfT.Field(i).Name
+		tag := s.Type().Field(i).Tag
+
+		if (strings.ToUpper(fieldName) == strings.ToUpper(head)) ||
+			(strings.ToUpper(fieldName) == strings.ToUpper(tag.Get("tag_name"))) {
+
+			f := s.Field(i)
+			switch f.Type().String() {
+			case "string":
+				f.SetString(record[i])
+			case "int":
+				var ival int64
+				ival, e = strconv.ParseInt(record[i], 10, 0)
+				if e != nil {
+					return
+				}
+				f.SetInt(ival)
+			default:
+				e = &UnsupportedType{f.Type().String()}
+				return
+			}
+
+		}
+
+	}
+
+	return
+}*/
 
 type FieldMismatch struct {
 	expected, found int
