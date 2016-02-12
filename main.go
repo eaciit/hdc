@@ -8,7 +8,6 @@ import (
 	// "os"
 )
 
-var fnHR FnHiveReceive
 var h *Hive
 
 type Sample7 struct {
@@ -23,7 +22,7 @@ func main() {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	q := "select * from sample_07 limit 5;"
 
-	fmt.Println("---------------------- EXEC ----------------")
+	/*fmt.Println("---------------------- EXEC ----------------")
 	result, e := h.Exec(q)
 
 	fmt.Printf("error: \n%v\n", e)
@@ -32,11 +31,12 @@ func main() {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}
+	}*/
 
-	/*fmt.Println("---------------------- EXEC LINE ----------------")
+	fmt.Println("---------------------- EXEC LINE ----------------")
 
 	//to execute query and read the result per line and then process its result
+
 	var DoSomething = func(res string) {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
@@ -44,7 +44,7 @@ func main() {
 	}
 
 	e = h.ExecLine(q, DoSomething)
-	fmt.Printf("error: \n%v\n", e)*/
+	fmt.Printf("error: \n%v\n", e)
 
 	// test := "00-0000,All Occupations,134354250,40690"
 
