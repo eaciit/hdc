@@ -25,6 +25,7 @@ type Hive struct {
 	Password    string
 	DBName      string
 	HiveCommand string
+	Header      []string
 }
 
 func HiveConfig(server, dbName, userid, password string) *Hive {
@@ -62,9 +63,9 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 const (
 	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s"
 	BEE_QUERY    = " -e \"%s\""
-	SHOW_HEADER  = " --showHeader=true"
-	HIDE_HEADER  = " --showHeader=false"
-	CSV_FORMAT   = " --outputFormat=csv2"
+	/*SHOW_HEADER  = " --showHeader=true"
+	HIDE_HEADER  = " --showHeader=false"*/
+	CSV_FORMAT = " --outputFormat=csv2"
 )
 
 func ParseOut(s string) {
@@ -87,12 +88,36 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
+func (h *Hive) constructHeader() {
+	var tmpHeader []string
+	for _, header := range h.Header {
+		split := strings.Split(header, ".")
+		if len(split) > 1 {
+			tmpHeader = append(tmpHeader, split[1])
+		} else {
+			tmpHeader = append(tmpHeader, header)
+		}
+	}
+	h.Header = tmpHeader
+}
+
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
-	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	outByte, e := cmd.Output()
-	out = strings.Split(string(outByte), "\n")
+	result := strings.Split(string(outByte), "\n")
+
+	if len(result) > 0 {
+		h.Header = result[:1]
+		h.constructHeader()
+	}
+
+	fmt.Printf("header: %v\n", h.Header)
+
+	if len(result) > 1 {
+		out = result[1:]
+	}
 	return
 }
 
@@ -135,7 +160,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 
 func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
