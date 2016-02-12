@@ -11,10 +11,10 @@ import (
 var h *Hive
 
 type Sample7 struct {
-	Code        string `tag_name:"code"`
-	Description string `tag_name:"description"`
-	Total_emp   string `tag_name:"total_emp"`
-	Salary      string `tag_name:"salary"`
+	Code        string  `tag_name:"code"`
+	Description string  `tag_name:"description"`
+	Total_emp   int64   `tag_name:"total_emp"`
+	Salary      float64 `tag_name:"salary"`
 }
 
 func main() {
