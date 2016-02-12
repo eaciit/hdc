@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	. "github.com/frezadev/hdc/hive"
-	// "reflect"
+	"reflect"
 	// "os"
 )
 
@@ -25,13 +25,13 @@ func main() {
 	fmt.Printf("result: \n%s\n", result)*/
 
 	//to execute query and read the result per line and then process its result
-	var DoSomething = func(res interface{}) {
+	/*var DoSomething = func(res interface{}) {
 		fmt.Println(res)
 	}
 
 	resultline, e := h.ExecLine(q, DoSomething)
 	fmt.Printf("error: \n%s\n", e)
-	fmt.Printf("result: \n%s\n", resultline)
+	fmt.Printf("result: \n%s\n", resultline)*/
 
 	/*obj, e := h.ParseOutput(nil, Sample7{})
 	_ = e
@@ -44,8 +44,6 @@ func main() {
 
 	var x interface{}
 	x = Sample7{}
-	x.Code = "xxxx"
-	//fmt.Println(reflect.ValueOf(x).Elem())
-	fmt.Println(x.Code)
-
+	fmt.Println(reflect.TypeOf(x))
+	fmt.Println(reflect.ValueOf(x))
 }
