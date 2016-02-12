@@ -24,7 +24,12 @@ func main() {
 	result, e := h.Exec(q)
 	fmt.Printf("error: \n%s\n", e)
 	fmt.Printf("result: \n%s\n", result)
-	fmt.Printf("result: \n%s\n", result)
+
+	for _, res := range result {
+		tmp := Sample7{}
+		h.ParseOutputX(res, &tmp)
+		fmt.Println(tmp)
+	}
 
 	//to execute query and read the result per line and then process its result
 	/*var DoSomething = func(res interface{}) {
@@ -45,9 +50,11 @@ func main() {
 	// test := "00-0000,All Occupations,134354250,40690"
 
 	/*var x = Sample7{}
-
-	s := reflect.ValueOf(&x).Elem()
+	var z interface{}
+	z = x
+	s := reflect.ValueOf(&z).Elem()
 	typeOfT := s.Type()
+	fmt.Println(reflect.ValueOf(&z).Interface())
 	for i := 0; i < s.NumField(); i++ {
 		f := s.Field(i)
 		tag := s.Type().Field(i).Tag
@@ -55,4 +62,10 @@ func main() {
 
 	}*/
 
+	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	h.Header = []string{"code", "description", "total_emp", "salary"}
+	qTest := "00-0000,All Occupations,134354250,40690"
+	var result = Sample7{}
+	h.ParseOutputX(qTest, &result)
+	fmt.Printf("result: %s\n", result)*/
 }

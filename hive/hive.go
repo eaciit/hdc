@@ -260,15 +260,19 @@ func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) 
 	return nil
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
-	// to parse string std out to respective model
+func (h *Hive) ParseOutputX(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
-	s := reflect.ValueOf(m).Elem()
-	//fmt.Printf("line: %v | %s\n", key, value)
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()
+
 	reader := csv.NewReader(strings.NewReader(in))
 	record, e := reader.Read()
 
@@ -276,24 +280,85 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		return e
 	}
 
+	if v.NumField() != len(record) {
+		return &FieldMismatch{v.NumField(), len(record)}
+	}
+
+	for i, val := range h.Header {
+		appendData[val] = strings.TrimSpace(record[i])
+	}
+
+	if v.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			tag := v.Field(i).Tag
+
+			if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+				switch v.Field(i).Type.Kind() {
+				case reflect.Int:
+					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+				case reflect.Float64:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					appendData.Set(v.Field(i).Name, valf)
+				}
+			}
+		}
+	}
+
+	toolkit.Serde(appendData, iv, "json")
+	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+	return nil
+}
+
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+	// to parse string std out to respective model
+
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	s := reflect.ValueOf(&m).Elem()
+	typeOfT := s.Type()
+
+	reader := csv.NewReader(strings.NewReader(in))
+	record, e := reader.Read()
+
+	if e != nil {
+		return e
+	}
+
+	fmt.Println(s.Type())
+
 	if s.NumField() != len(record) {
 		return &FieldMismatch{s.NumField(), len(record)}
 	}
 
 	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		switch f.Type().String() {
-		case "string":
-			f.SetString(record[i])
-		case "int":
-			ival, err := strconv.ParseInt(record[i], 10, 0)
-			if err != nil {
-				return err
+		head := h.Header[i]
+		fieldName := typeOfT.Field(i).Name
+		tag := s.Type().Field(i).Tag
+
+		if (strings.ToUpper(fieldName) == strings.ToUpper(head)) ||
+			(strings.ToUpper(fieldName) == strings.ToUpper(tag.Get("tag_name"))) {
+
+			f := s.Field(i)
+			switch f.Type().String() {
+			case "string":
+				f.SetString(record[i])
+			case "int":
+				var ival int64
+				ival, e = strconv.ParseInt(record[i], 10, 0)
+				if e != nil {
+					return
+				}
+				f.SetInt(ival)
+			default:
+				e = &UnsupportedType{f.Type().String()}
+				return
 			}
-			f.SetInt(ival)
-		default:
-			return &UnsupportedType{f.Type().String()}
+
 		}
+
 	}
 
 	return
