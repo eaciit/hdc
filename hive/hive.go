@@ -88,9 +88,9 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
-func (h *Hive) constructHeader() {
+func (h *Hive) constructHeader(header string) {
 	var tmpHeader []string
-	for _, header := range h.Header {
+	for _, header := range strings.Split(header, ",") {
 		split := strings.Split(header, ".")
 		if len(split) > 1 {
 			tmpHeader = append(tmpHeader, split[1])
@@ -109,8 +109,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	result := strings.Split(string(outByte), "\n")
 
 	if len(result) > 0 {
-		h.Header = result[:1]
-		h.constructHeader()
+		h.constructHeader(result[:1][0])
 	}
 
 	fmt.Printf("header: %v\n", h.Header)
