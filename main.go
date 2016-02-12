@@ -8,7 +8,6 @@ import (
 	// "os"
 )
 
-var fnHR FnHiveReceive
 var h *Hive
 
 type Sample7 struct {
@@ -38,17 +37,13 @@ func main() {
 
 	//to execute query and read the result per line and then process its result
 
-	/*var DoSomething = func(res string) {
+	var DoSomething = func(res string) {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}*/
+	}
 
-	e = h.ExecLine(q, func(res string) {
-		tmp := Sample7{}
-		h.ParseOutput(res, &tmp)
-		fmt.Println(tmp)
-	})
+	e = h.ExecLine(q, DoSomething)
 	fmt.Printf("error: \n%v\n", e)
 
 	// test := "00-0000,All Occupations,134354250,40690"
