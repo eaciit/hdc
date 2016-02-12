@@ -157,7 +157,7 @@ func (h *Hive) ExecPerline(query string) (e error) {
 	return nil
 }
 
-func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (out []byte, e error) {
+func (h *Hive) ExecLine(query string, DoResult func(result interface{})) (e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
@@ -260,7 +260,7 @@ func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) 
 	return nil
 }
 
-func (h *Hive) ParseOutputX(in string, m interface{}) (e error) {
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
@@ -310,7 +310,7 @@ func (h *Hive) ParseOutputX(in string, m interface{}) (e error) {
 	return nil
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	// to parse string std out to respective model
 
 	if !toolkit.IsPointer(m) {
@@ -362,7 +362,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	}
 
 	return
-}
+}*/
 
 type FieldMismatch struct {
 	expected, found int
