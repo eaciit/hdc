@@ -168,12 +168,19 @@ func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 
 	scanner := bufio.NewScanner(cmdReader)
 
-	go func() {
+	idx := 1
+
+	go func(idx int) {
 		for scanner.Scan() {
-			DoResult(scanner.Text())
-			//fmt.Printf("out | %s\n", scanner.Text())
+			resStr := scanner.Text()
+			if idx == 1 {
+				h.constructHeader(resStr)
+			} else {
+				DoResult(resStr)
+			}
+			idx += 1
 		}
-	}()
+	}(idx)
 
 	e = cmd.Start()
 

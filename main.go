@@ -46,6 +46,7 @@ func main() {
 
 	e = h.ExecLine(q, func(res string) {
 		tmp := Sample7{}
+		h.Header = []string{"code", "description", "total_emp", "salary"}
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
 	})
