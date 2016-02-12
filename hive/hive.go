@@ -180,6 +180,41 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 	return err
 }
 
+func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interface{}) (retVal string, err error) {
+	retVal = "process failed"
+	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+
+	if tempVal == nil {
+		tempQuery := ""
+
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
+
+		if v.Kind() == reflect.Struct {
+			tempQuery = "create table " + TableName + " ("
+			for i := 0; i < v.NumField(); i++ {
+				if i == (v.NumField() - 1) {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") row format delimited fields terminated by ','"
+				} else {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
+				}
+			}
+			tempVal, err = h.Exec(tempQuery)
+		}
+	}
+
+	if err != nil {
+		tempVal, err = h.Exec("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
+
+		if err != nil {
+			retVal = "success"
+		}
+	}
+
+	return retVal, err
+
+}
+
 func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
