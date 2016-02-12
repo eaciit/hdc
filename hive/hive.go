@@ -15,10 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/eaciit/toolkit"
-	"github.com/eaciit/errorlib"
-	"github.com/eaciit/cast"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -240,19 +236,24 @@ func ParseOutPerLine(stdout string, head []string, delim string, m interface{}) 
 	return nil
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (out []interface{}, e error) {
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	// to parse string std out to respective model
+
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
 	s := reflect.ValueOf(m).Elem()
 	//fmt.Printf("line: %v | %s\n", key, value)
 	reader := csv.NewReader(strings.NewReader(in))
 	record, e := reader.Read()
 
 	if e != nil {
-		return nil, e
+		return e
 	}
 
 	if s.NumField() != len(record) {
-		return nil, &FieldMismatch{s.NumField(), len(record)}
+		return &FieldMismatch{s.NumField(), len(record)}
 	}
 
 	for i := 0; i < s.NumField(); i++ {
@@ -263,15 +264,14 @@ func (h *Hive) ParseOutput(in string, m interface{}) (out []interface{}, e error
 		case "int":
 			ival, err := strconv.ParseInt(record[i], 10, 0)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			f.SetInt(ival)
 		default:
-			return nil, &UnsupportedType{f.Type().String()}
+			return &UnsupportedType{f.Type().String()}
 		}
 	}
 
-	out = append(out, s)
 	return
 }
 
