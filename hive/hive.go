@@ -57,10 +57,6 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return &hv
 }
 
-func ParseOut(s string) {
-	fmt.Println(s)
-}
-
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
 
