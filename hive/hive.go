@@ -20,10 +20,10 @@ const (
 	BEE_QUERY    = " -e \"%s\""
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
-	CSV_FORMAT    = " --outputFormat=csv2"
-	TSV_FORMAT    = " --outputFormat=tsv2"
-	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
-	DSV_DELIMITER = "|\t"
+	CSV_FORMAT = " --outputFormat=csv2"
+	TSV_FORMAT = " --outputFormat=tsv2"
+	/*DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
+	DSV_DELIMITER = "|\t"*/
 )
 
 // type FnHiveReceive func(string) (interface{}, error)
@@ -107,18 +107,16 @@ func (h *Hive) constructHeader(header string) {
 	return
 }*/
 
-// exec using dsv format
+// exec using tsv2 format
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(DSV_FORMAT))
+	cmd := h.command(h.cmdStr(TSV_FORMAT))
 	outByte, e := cmd.Output()
 	result := strings.Split(string(outByte), "\n")
 
 	if len(result) > 0 {
 		h.constructHeader(result[:1][0])
 	}
-
-	//fmt.Printf("header: %v\n", h.Header)
 
 	if len(result) > 1 {
 		out = result[1:]
@@ -128,7 +126,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(DSV_FORMAT))
+	cmd := h.command(h.cmdStr(TSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -299,7 +297,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	appendData := toolkit.M{}
 	iv := reflect.New(v).Interface()
 
-	record := strings.Split(in, DSV_DELIMITER)
+	record := strings.Split(in, "\t")
 
 	if v.NumField() != len(record) {
 		return &FieldMismatch{v.NumField(), len(record)}
