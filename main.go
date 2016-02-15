@@ -18,7 +18,7 @@ type Sample7 struct {
 }
 
 func main() {
-	/*var e error
+	var e error
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	q := "select * from sample_07 limit 5;"
 
@@ -31,7 +31,7 @@ func main() {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}*/
+	}
 
 	/*fmt.Println("---------------------- EXEC LINE ----------------")
 
@@ -46,22 +46,7 @@ func main() {
 	e = h.ExecLine(q, DoSomething)
 	fmt.Printf("error: \n%v\n", e)*/
 
-	// test := "00-0000,All Occupations,134354250,40690"
-
-	/*var x = Sample7{}
-	var z interface{}
-	z = x
-	s := reflect.ValueOf(&z).Elem()
-	typeOfT := s.Type()
-	fmt.Println(reflect.ValueOf(&z).Interface())
-	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		tag := s.Type().Field(i).Tag
-		fmt.Printf("%d: %s %s = %v | tag %s \n", i, typeOfT.Field(i).Name, f.Type(), f.Interface(), tag.Get("tag_name"))
-
-	}*/
-
-	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 	qTest := "00-0000	All Occupations, asdfa,a dadsfasd	134354250	40690"
 	var result = Sample7{}
@@ -69,5 +54,20 @@ func main() {
 	fmt.Printf("result: %s\n", result.Code)
 	fmt.Printf("result: %s\n", result.Description)
 	fmt.Printf("result: %s\n", result.Total_emp)
-	fmt.Printf("result: %s\n", result.Salary)
+	fmt.Printf("result: %s\n", result.Salary)*/
 }
+
+// test := "00-0000,All Occupations,134354250,40690"
+
+/*var x = Sample7{}
+var z interface{}
+z = x
+s := reflect.ValueOf(&z).Elem()
+typeOfT := s.Type()
+fmt.Println(reflect.ValueOf(&z).Interface())
+for i := 0; i < s.NumField(); i++ {
+	f := s.Field(i)
+	tag := s.Type().Field(i).Tag
+	fmt.Printf("%d: %s %s = %v | tag %s \n", i, typeOfT.Field(i).Name, f.Type(), f.Interface(), tag.Get("tag_name"))
+
+}*/
