@@ -65,7 +65,7 @@ func main() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 	qTest := "00-0000|	All Occupations, asdfa,a dadsfasd|	134354250|	40690"
 	var result = Sample7{}
-	h.ParseOutputDSV(qTest, &result)
+	h.ParseOutput(qTest, &result)
 	fmt.Printf("result: %s\n", result.Code)
 	fmt.Printf("result: %s\n", result.Description)
 	fmt.Printf("result: %s\n", result.Total_emp)

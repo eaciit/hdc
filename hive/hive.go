@@ -89,9 +89,8 @@ func (h *Hive) constructHeader(header string) {
 	h.Header = tmpHeader
 }
 
-func (h *Hive) Exec(query string) (out []string, e error) {
+/*func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	outByte, e := cmd.Output()
 	result := strings.Split(string(outByte), "\n")
@@ -106,11 +105,11 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		out = result[1:]
 	}
 	return
-}
+}*/
 
-func (h *Hive) ExecDSV(query string) (out []string, e error) {
+// exec using dsv format
+func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	cmd := h.command(h.cmdStr(DSV_FORMAT))
 	outByte, e := cmd.Output()
 	result := strings.Split(string(outByte), "\n")
@@ -233,7 +232,7 @@ func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interfac
 
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
@@ -284,9 +283,10 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	return nil
-}
+}*/
 
-func (h *Hive) ParseOutputDSV(in string, m interface{}) (e error) {
+// parse using dsv format
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
@@ -298,13 +298,6 @@ func (h *Hive) ParseOutputDSV(in string, m interface{}) (e error) {
 
 	appendData := toolkit.M{}
 	iv := reflect.New(v).Interface()
-
-	/*reader := csv.NewReader(strings.NewReader(in))
-	record, e := reader.Read()
-
-	if e != nil {
-		return e
-	}*/
 
 	record := strings.Split(in, DSV_DELIMITER)
 
