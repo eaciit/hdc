@@ -107,23 +107,6 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-// exec using tsv2 format
-/*func (h *Hive) Exec(query string) (out []string, e error) {
-	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(TSV_FORMAT))
-	outByte, e := cmd.Output()
-	result := strings.Split(string(outByte), "\n")
-
-	if len(result) > 0 {
-		h.constructHeader(result[:1][0])
-	}
-
-	if len(result) > 1 {
-		out = result[1:]
-	}
-	return
-}*/
-
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
@@ -282,63 +265,6 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	return nil
 }
-
-// parse using dsv format
-/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
-
-	if !toolkit.IsPointer(m) {
-		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
-	}
-
-	var v reflect.Type
-	v = reflect.TypeOf(m).Elem()
-	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
-
-	appendData := toolkit.M{}
-	iv := reflect.New(v).Interface()
-
-	reader := csv.NewReader(strings.NewReader(in))
-	reader.Comma = '\t'
-	record, e := reader.Read()
-
-	if e != nil {
-		return e
-	}
-
-	// record := strings.Split(in, "\t")
-
-	if v.NumField() != len(record) {
-		return &FieldMismatch{v.NumField(), len(record)}
-	}
-
-	for i, val := range h.Header {
-		appendData[val] = strings.TrimSpace(record[i])
-	}
-
-	if v.Kind() == reflect.Struct {
-		for i := 0; i < v.NumField(); i++ {
-			tag := v.Field(i).Tag
-
-			if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-				switch v.Field(i).Type.Kind() {
-				case reflect.Int:
-					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
-				case reflect.Float32:
-					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
-					appendData.Set(v.Field(i).Name, valf)
-				case reflect.Float64:
-					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
-					appendData.Set(v.Field(i).Name, valf)
-				}
-			}
-		}
-	}
-
-	toolkit.Serde(appendData, iv, "json")
-	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
-	return nil
-}*/
 
 type FieldMismatch struct {
 	expected, found int
