@@ -20,7 +20,7 @@ type Sample7 struct {
 func main() {
 	var e error
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
-	q := "select * from sample_07 limit 5;"
+	/*q := "select * from sample_07 limit 5;"
 
 	fmt.Println("---------------------- EXEC ----------------")
 	result, e := h.Exec(q)
@@ -29,12 +29,12 @@ func main() {
 
 	for _, res := range result {
 		tmp := Sample7{}
-		fmt.Println(res)
+		//fmt.Println(res)
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}
+	}*/
 
-	/*fmt.Println("---------------------- EXEC LINE ----------------")
+	fmt.Println("---------------------- EXEC LINE ----------------")
 
 	//to execute query and read the result per line and then process its result
 
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	e = h.ExecLine(q, DoSomething)
-	fmt.Printf("error: \n%v\n", e)*/
+	fmt.Printf("error: \n%v\n", e)
 
 	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	h.Header = []string{"code", "description", "total_emp", "salary"}
