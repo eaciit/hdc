@@ -180,7 +180,7 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 	return err
 }
 
-func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
 
@@ -194,7 +194,7 @@ func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interfac
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
 				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") row format delimited fields terminated by ','"
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") row format delimited fields terminated by '" + Delimiter + "'"
 				} else {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
