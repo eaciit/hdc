@@ -20,7 +20,10 @@ const (
 	BEE_QUERY    = " -e \"%s\""
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
-	CSV_FORMAT = " --outputFormat=csv2"
+	CSV_FORMAT    = " --outputFormat=csv2"
+	TSV_FORMAT    = " --outputFormat=tsv2"
+	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
+	DSV_DELIMITER = "|\t"
 )
 
 // type FnHiveReceive func(string) (interface{}, error)
@@ -97,7 +100,26 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		h.constructHeader(result[:1][0])
 	}
 
-	fmt.Printf("header: %v\n", h.Header)
+	//fmt.Printf("header: %v\n", h.Header)
+
+	if len(result) > 1 {
+		out = result[1:]
+	}
+	return
+}
+
+func (h *Hive) ExecDSV(query string) (out []string, e error) {
+	h.HiveCommand = query
+	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
+	cmd := h.command(h.cmdStr(DSV_FORMAT))
+	outByte, e := cmd.Output()
+	result := strings.Split(string(outByte), "\n")
+
+	if len(result) > 0 {
+		h.constructHeader(result[:1][0])
+	}
+
+	//fmt.Printf("header: %v\n", h.Header)
 
 	if len(result) > 1 {
 		out = result[1:]
@@ -230,6 +252,61 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	if e != nil {
 		return e
 	}
+
+	if v.NumField() != len(record) {
+		return &FieldMismatch{v.NumField(), len(record)}
+	}
+
+	for i, val := range h.Header {
+		appendData[val] = strings.TrimSpace(record[i])
+	}
+
+	if v.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			tag := v.Field(i).Tag
+
+			if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+				switch v.Field(i).Type.Kind() {
+				case reflect.Int:
+					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+				case reflect.Float32:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
+					appendData.Set(v.Field(i).Name, valf)
+				case reflect.Float64:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					appendData.Set(v.Field(i).Name, valf)
+				}
+			}
+		}
+	}
+
+	toolkit.Serde(appendData, iv, "json")
+	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+	return nil
+}
+
+func (h *Hive) ParseOutputDSV(in string, m interface{}) (e error) {
+
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()
+
+	/*reader := csv.NewReader(strings.NewReader(in))
+	record, e := reader.Read()
+
+	if e != nil {
+		return e
+	}*/
+
+	record := strings.Split(in, DSV_DELIMITER)
 
 	if v.NumField() != len(record) {
 		return &FieldMismatch{v.NumField(), len(record)}
