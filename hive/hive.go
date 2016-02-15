@@ -21,6 +21,9 @@ const (
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
 	CSV_FORMAT = " --outputFormat=csv2"
+	TSV_FORMAT = " --outputFormat=tsv2"
+	/*DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
+	DSV_DELIMITER = "|\t"*/
 )
 
 // type FnHiveReceive func(string) (interface{}, error)
@@ -63,10 +66,6 @@ func SetHeader(header []string) *Hive {
 	return &hv
 }
 
-func ParseOut(s string) {
-	fmt.Println(s)
-}
-
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
 
@@ -98,7 +97,6 @@ func (h *Hive) constructHeader(header string) {
 
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	//fmt.Println(h.cmdStr(HIDE_HEADER, CSV_FORMAT))
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	outByte, e := cmd.Output()
 	result := strings.Split(string(outByte), "\n")
@@ -107,7 +105,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		h.constructHeader(result[:1][0])
 	}
 
-	fmt.Printf("header: %v\n", h.Header)
+	//fmt.Printf("header: %v\n", h.Header)
 
 	if len(result) > 1 {
 		out = result[1:]
@@ -257,6 +255,9 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 				switch v.Field(i).Type.Kind() {
 				case reflect.Int:
 					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+				case reflect.Float32:
+					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
+					appendData.Set(v.Field(i).Name, valf)
 				case reflect.Float64:
 					valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
 					appendData.Set(v.Field(i).Name, valf)

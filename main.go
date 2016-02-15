@@ -22,6 +22,7 @@ func main() {
 
 func DoSomething(res string) {
 		tmp := Sample7{}
+		//fmt.Println(res)
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
 }
@@ -44,17 +45,4 @@ func TestExecPerLine() {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	q := "select * from sample_07 limit 5;"
 	e = h.ExecLine(q, DoSomething)
-
-	if e !=nil{
-			fmt.Printf("error: \n%v\n", e)
-	}
 }
-
-func TestParseOutput() {
-	h = SetHeader([]string{"code","sample","description","total_emp","salary"})
-	res := "00-0000,All Occupations,134354250,40690"
-	tmp := Sample7{}
-	h.ParseOutput(res, &tmp)
-	fmt.Println(tmp)
-}
-
