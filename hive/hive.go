@@ -252,7 +252,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 				case reflect.Int:
 					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
 				case reflect.Float64:
-					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
 					appendData.Set(v.Field(i).Name, valf)
 				}
 			}
