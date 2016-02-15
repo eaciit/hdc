@@ -11,14 +11,14 @@ import (
 var h *Hive
 
 type Sample7 struct {
-	Code        string  `tag_name:"code"`
-	Description string  `tag_name:"description"`
-	Total_emp   int     `tag_name:"total_emp"`
-	Salary      float32 `tag_name:"salary"`
+	Code        string `tag_name:"code"`
+	Description string `tag_name:"description"`
+	Total_emp   string `tag_name:"total_emp"`
+	Salary      string `tag_name:"salary"`
 }
 
 func main() {
-	var e error
+	/*var e error
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	q := "select * from sample_07 limit 5;"
 
@@ -31,7 +31,7 @@ func main() {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}
+	}*/
 
 	/*fmt.Println("---------------------- EXEC LINE ----------------")
 
@@ -61,10 +61,13 @@ func main() {
 
 	}*/
 
-	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	h.Header = []string{"code", "description", "total_emp", "salary"}
-	qTest := "00-0000,All Occupations,134354250,40690"
+	qTest := "00-0000|	All Occupations, asdfa,a dadsfasd|	134354250|	40690"
 	var result = Sample7{}
-	h.ParseOutputX(qTest, &result)
-	fmt.Printf("result: %s\n", result)*/
+	h.ParseOutputDSV(qTest, &result)
+	fmt.Printf("result: %s\n", result.Code)
+	fmt.Printf("result: %s\n", result.Description)
+	fmt.Printf("result: %s\n", result.Total_emp)
+	fmt.Printf("result: %s\n", result.Salary)
 }
