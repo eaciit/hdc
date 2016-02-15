@@ -4,7 +4,7 @@ import (
 	"fmt"
 	// "github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/hdc/yanda15/hdc/hive"
 	// "reflect"
 	// "os"
 )
@@ -19,9 +19,9 @@ type Sample7 struct {
 }
 
 func main() {
-	var e error
-	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
-	q := "select * from sample_07 limit 5;"
+	// var e error
+	// h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	// q := "select * from sample_07 limit 5;"
 
 	/*fmt.Println("---------------------- EXEC ----------------")
 	result, e := h.Exec(q)
@@ -34,18 +34,18 @@ func main() {
 		fmt.Println(tmp)
 	}*/
 
-	fmt.Println("---------------------- EXEC LINE ----------------")
+	// fmt.Println("---------------------- EXEC LINE ----------------")
 
 	//to execute query and read the result per line and then process its result
 
-	var DoSomething = func(res string) {
-		tmp := Sample7{}
-		h.ParseOutput(res, &tmp)
-		fmt.Println(tmp)
-	}
+	// var DoSomething = func(res string) {
+	// 	tmp := Sample7{}
+	// 	h.ParseOutput(res, &tmp)
+	// 	fmt.Println(tmp)
+	// }
 
-	e = h.ExecLine(q, DoSomething)
-	fmt.Printf("error: \n%v\n", e)
+	// e = h.ExecLine(q, DoSomething)
+	// fmt.Printf("error: \n%v\n", e)
 
 	// test := "00-0000,All Occupations,134354250,40690"
 
@@ -69,3 +69,42 @@ func main() {
 	h.ParseOutputX(qTest, &result)
 	fmt.Printf("result: %s\n", result)*/
 }
+
+func DoSomething(res string) {
+		tmp := Sample7{}
+		h.ParseOutput(res, &tmp)
+		fmt.Println(tmp)
+}
+
+func TestExec() {
+	// var e error
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	q := "select * from sample_07 limit 5;"
+	res, e := h.Exec(q)
+
+	if e !=nil{
+		fmt.Printf("error: \n%v\n", e)
+	}else{
+		fmt.Println(res)
+	}
+}
+
+func TestExecPerLine() {
+	var e error
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	q := "select * from sample_07 limit 5;"
+	e = h.ExecLine(q, DoSomething)
+
+	if e !=nil{
+			fmt.Printf("error: \n%v\n", e)
+	}
+}
+
+func TestParseOutput() {
+	h.Header = []string{"code","sample","description","total_emp","salary"}
+	res := "00-0000,All Occupations,134354250,40690"
+	tmp := Sample7{}
+	h.ParseOutput(res, &tmp)
+	fmt.Println(tmp)
+}
+
