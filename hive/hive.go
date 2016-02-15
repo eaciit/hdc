@@ -2,7 +2,7 @@ package hive
 
 import (
 	"bufio"
-	// "encoding/csv"
+	"encoding/csv"
 	"fmt"
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
@@ -89,7 +89,7 @@ func (h *Hive) constructHeader(header string) {
 	h.Header = tmpHeader
 }
 
-/*func (h *Hive) Exec(query string) (out []string, e error) {
+func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	outByte, e := cmd.Output()
@@ -105,10 +105,10 @@ func (h *Hive) constructHeader(header string) {
 		out = result[1:]
 	}
 	return
-}*/
+}
 
 // exec using tsv2 format
-func (h *Hive) Exec(query string) (out []string, e error) {
+/*func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	cmd := h.command(h.cmdStr(TSV_FORMAT))
 	outByte, e := cmd.Output()
@@ -122,11 +122,11 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		out = result[1:]
 	}
 	return
-}
+}*/
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(TSV_FORMAT))
+	cmd := h.command(h.cmdStr(CSV_FORMAT))
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -230,7 +230,7 @@ func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interfac
 
 }
 
-/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
@@ -281,10 +281,10 @@ func (h *Hive) ImportHDFS(HDFSPath string, TableName string, TableModel interfac
 	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	return nil
-}*/
+}
 
 // parse using dsv format
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+/*func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
@@ -297,7 +297,15 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	appendData := toolkit.M{}
 	iv := reflect.New(v).Interface()
 
-	record := strings.Split(in, "\t")
+	reader := csv.NewReader(strings.NewReader(in))
+	reader.Comma = '\t'
+	record, e := reader.Read()
+
+	if e != nil {
+		return e
+	}
+
+	// record := strings.Split(in, "\t")
 
 	if v.NumField() != len(record) {
 		return &FieldMismatch{v.NumField(), len(record)}
@@ -330,7 +338,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	return nil
-}
+}*/
 
 type FieldMismatch struct {
 	expected, found int

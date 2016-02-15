@@ -29,6 +29,7 @@ func main() {
 
 	for _, res := range result {
 		tmp := Sample7{}
+		fmt.Println(res)
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
 	}
@@ -48,7 +49,9 @@ func main() {
 
 	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 	h.Header = []string{"code", "description", "total_emp", "salary"}
-	qTest := "00-0000	All Occupations, asdfa,a dadsfasd	134354250	40690"
+	// qTest := "00-0000	All Occupations, asdfa,a dadsfasd	134354250	40690"
+	//qTest := "00-0000 All Occupations 134354250       40690"
+	qTest := "00-0000,All Occupations asdfa a dadsfasd,134354250,40690"
 	var result = Sample7{}
 	h.ParseOutput(qTest, &result)
 	fmt.Printf("result: %s\n", result.Code)
