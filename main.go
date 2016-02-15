@@ -20,54 +20,6 @@ type Sample7 struct {
 
 func main() {
 	// var e error
-	// h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
-	// q := "select * from sample_07 limit 5;"
-
-	/*fmt.Println("---------------------- EXEC ----------------")
-	result, e := h.Exec(q)
-
-	fmt.Printf("error: \n%v\n", e)
-
-	for _, res := range result {
-		tmp := Sample7{}
-		h.ParseOutput(res, &tmp)
-		fmt.Println(tmp)
-	}*/
-
-	// fmt.Println("---------------------- EXEC LINE ----------------")
-
-	//to execute query and read the result per line and then process its result
-
-	// var DoSomething = func(res string) {
-	// 	tmp := Sample7{}
-	// 	h.ParseOutput(res, &tmp)
-	// 	fmt.Println(tmp)
-	// }
-
-	// e = h.ExecLine(q, DoSomething)
-	// fmt.Printf("error: \n%v\n", e)
-
-	// test := "00-0000,All Occupations,134354250,40690"
-
-	/*var x = Sample7{}
-	var z interface{}
-	z = x
-	s := reflect.ValueOf(&z).Elem()
-	typeOfT := s.Type()
-	fmt.Println(reflect.ValueOf(&z).Interface())
-	for i := 0; i < s.NumField(); i++ {
-		f := s.Field(i)
-		tag := s.Type().Field(i).Tag
-		fmt.Printf("%d: %s %s = %v | tag %s \n", i, typeOfT.Field(i).Name, f.Type(), f.Interface(), tag.Get("tag_name"))
-
-	}*/
-
-	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
-	h.Header = []string{"code", "description", "total_emp", "salary"}
-	qTest := "00-0000,All Occupations,134354250,40690"
-	var result = Sample7{}
-	h.ParseOutputX(qTest, &result)
-	fmt.Printf("result: %s\n", result)*/
 }
 
 func DoSomething(res string) {
@@ -101,7 +53,7 @@ func TestExecPerLine() {
 }
 
 func TestParseOutput() {
-	h.Header = []string{"code","sample","description","total_emp","salary"}
+	h = SetHeader([]string{"code","sample","description","total_emp","salary"})
 	res := "00-0000,All Occupations,134354250,40690"
 	tmp := Sample7{}
 	h.ParseOutput(res, &tmp)

@@ -57,6 +57,12 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return &hv
 }
 
+func SetHeader(header []string) *Hive {
+	hv := Hive{}
+	hv.Header = header
+	return &hv
+}
+
 func ParseOut(s string) {
 	fmt.Println(s)
 }
