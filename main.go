@@ -2,11 +2,7 @@ package main
 
 import (
 	"fmt"
-	// "github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
 	. "github.com/hdc/yanda15/hdc/hive"
-	// "reflect"
-	// "os"
 )
 
 var h *Hive
@@ -19,7 +15,9 @@ type Sample7 struct {
 }
 
 func main() {
-	// var e error
+	TestParseOutput()
+	TestExecPerLine()
+	TestExec() 
 }
 
 func DoSomething(res string) {
