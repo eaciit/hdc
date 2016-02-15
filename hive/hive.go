@@ -60,6 +60,12 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 	return &hv
 }
 
+func SetHeader(header []string) *Hive {
+	hv := Hive{}
+	hv.Header = header
+	return &hv
+}
+
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
 
@@ -253,7 +259,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
 					appendData.Set(v.Field(i).Name, valf)
 				case reflect.Float64:
-					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+					valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
 					appendData.Set(v.Field(i).Name, valf)
 				}
 			}
