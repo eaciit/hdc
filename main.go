@@ -20,9 +20,9 @@ type Sample7 struct {
 func main() {
 	var e error
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
-	/*q := "select * from sample_07 limit 5;"
+	q := "select * from sample_07 limit 5;"
 
-	fmt.Println("---------------------- EXEC ----------------")
+	/*fmt.Println("---------------------- EXEC ----------------")
 	result, e := h.Exec(q)
 
 	fmt.Printf("error: \n%v\n", e)
