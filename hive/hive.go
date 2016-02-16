@@ -143,6 +143,15 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
 	cmd := h.command()
+
+	delimiter :="\t"
+	if h.OutputType == "csv" {
+		cmd = h.command(h.cmdStr(CSV_FORMAT))
+		delimiter = ","
+	}else{
+		cmd = h.command(h.cmdStr(TSV_FORMAT))
+	}
+
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -152,14 +161,6 @@ func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	scanner := bufio.NewScanner(cmdReader)
 
 	idx := 1
-
-	delimiter :="\t"
-	if h.OutputType == "csv" {
-		cmd = h.command(h.cmdStr(CSV_FORMAT))
-		delimiter = ","
-	}else{
-		cmd = h.command(h.cmdStr(TSV_FORMAT))
-	}
 
 	go func(idx int) {
 		for scanner.Scan() {
