@@ -59,7 +59,7 @@ func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 
 	h.OutputType = "csv"
-	res := "00-0000,All Occupations CSV,134354250,40690"
+	res := "'00-0000','All Occupations CSV','134354250','40690'"
 	tmp := Sample7{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
