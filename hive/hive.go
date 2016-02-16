@@ -7,6 +7,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"os/user"
@@ -307,7 +308,12 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 		}else if h.OutputType == "json"{
-			e := toolkit.Serde(in, m, "json")
+			var temp = toolkit.M{}
+			e := json.Unmarshal([]byte(in), temp)
+			if e != nil {
+				return e
+			}
+			e = toolkit.Serde(temp, m, "json")
 			if e != nil {
 				return e
 			}
