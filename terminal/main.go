@@ -6,7 +6,7 @@ import (
 	"fmt"
 	// "os"
 	"os/exec"
-	"time"
+	// "time"
 )
 
 var check func(string, error) = func(what string, e error) {
@@ -15,6 +15,31 @@ var check func(string, error) = func(what string, e error) {
 		/*os.Exit(1000)*/
 		panic(e)
 	}
+}
+
+type DuplexTerm struct {
+	Writer *bufio.Writer
+	Reader *bufio.Reader
+}
+
+func (d *DuplexTerm) SendInput(input string) (result string, e error) {
+	iwrite, ewrite := d.Writer.WriteString(input + "\n")
+	check("write", ewrite)
+	if iwrite == 0 {
+		check("write", errors.New("Writing only 0 byte"))
+	} else {
+		err := d.Writer.Flush()
+		check("Flush", err)
+	}
+
+	scanner := bufio.NewScanner(d.Reader)
+
+	for scanner.Scan() {
+		fmt.Println("Read: ", scanner.Text())
+		result = scanner.Text()
+	}
+
+	return
 }
 
 func main() {
@@ -35,25 +60,31 @@ func main() {
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
 
-	SendIn(bufin, "select * from sample_07 limit 5;")
-	time.Sleep(time.Second)
-	out := GetOut(bufout)
+	dup := DuplexTerm{}
+	dup.Writer = bufin
+	dup.Reader = bufout
+
+	result, err := dup.SendInput("select * from sample_07 limit 5;")
+	_ = result
 
 	/*SendIn(bufin, "select * from sample_07 limit 5;")
-	time.Sleep(time.Second)
-	out = GetOut(bufout)
-
 	SendIn(bufin, "select * from sample_07 limit 5;")
-	time.Sleep(time.Second)
-	out = GetOut(bufout)*/
+	SendIn(bufin, "select * from sample_07 limit 5;")
 
 	SendIn(bufin, "!quit;")
+
+	for {
+		out := GetOut(bufout)
+		if out == "exit" {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}*/
 
 	err = cmd.Wait()
 	check("wait", err)
 	fmt.Println("Done")
 
-	_ = out
 }
 
 func SendIn(bufin *bufio.Writer, data string) {
