@@ -18,7 +18,7 @@ var check func(string, error) = func(what string, e error) {
 }
 
 func main() {
-	cmd := exec.Command("go", "run", "loop.go")
+	cmd := exec.Command("sh", "-c", "beeline -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 	//cmd := exec.Command("cat")
 	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
@@ -37,33 +37,29 @@ func main() {
 
 	for i := 1; i <= 10; i++ {
 		fmt.Println("Attempt sending data ", i)
-		if i == 1 {
-			SendIn(bufin, "dir")
-		} else if i == 2 {
-			SendIn(bufin, "dir")
-		} else if i == 3 {
-			SendIn(bufin, "dir")
-		} else {
-			SendIn(bufin, fmt.Sprintf("Command-%d", i))
-		}
 
+		if i == 1 {
+			SendIn(bufin, "select * from sample_07 limit 5")
+		}
+		if i == 2 {
+			SendIn(bufin, "select * from sample_07 limit 5")
+		}
+		if i == 3 {
+			SendIn(bufin, "select * from sample_07 limit 5")
+		}
 		if i == 10 {
 			SendIn(bufin, "exit")
 		}
-
-		time.Sleep(time.Second)
-
-		out := GetOut(bufout)
-		_ = out
+		//GetOut(bufout)
 	}
 
-	/*for {
+	for {
 		out := GetOut(bufout)
 		if out == "exit" {
 			break
 		}
 		time.Sleep(10 * time.Millisecond)
-	}*/
+	}
 
 	err = cmd.Wait()
 	check("wait", err)
@@ -72,7 +68,6 @@ func main() {
 
 func SendIn(bufin *bufio.Writer, data string) {
 	iwrite, ewrite := bufin.WriteString(data + "\n")
-
 	check("write", ewrite)
 	if iwrite == 0 {
 		check("write", errors.New("Writing only 0 byte"))
