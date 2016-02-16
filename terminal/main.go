@@ -22,7 +22,6 @@ var check func(string, error) = func(what string, e error) {
 type DuplexTerm struct {
 	Writer *bufio.Writer
 	Reader *bufio.Reader
-	Cmd    *exec.Cmd
 }
 
 func (d *DuplexTerm) SendInput(input string) (result string, e error) {
@@ -38,7 +37,6 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	for {
 		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
-			d.Cmd.Wait()
 			break
 		}
 		check("read", eread)
@@ -58,8 +56,14 @@ func main() {
 	check("stdout", err)
 	defer stdout.Close()
 
-	err = cmd.Start()
-	check("Start", err)
+	scanner := bufio.NewScanner(stdout)
+
+	go func() {
+		for scanner.Scan() {
+			resStr := scanner.Text()
+			fmt.Printf("res: %v\n", resStr)
+		}
+	}()
 
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
@@ -67,16 +71,18 @@ func main() {
 	dup := DuplexTerm{}
 	dup.Writer = bufin
 	dup.Reader = bufout
-	dup.Cmd = cmd
+
+	err = cmd.Start()
+	check("Start", err)
 
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
 	result, err = dup.SendInput("!quit;")
 	result, err = dup.SendInput("exit")
 	_ = result
 
-	/*err = cmd.Wait()
+	err = cmd.Wait()
 	check("wait", err)
-	fmt.Println("Done")*/
+	fmt.Println("Done")
 	stdin.Close()
 	stdout.Close()
 }
