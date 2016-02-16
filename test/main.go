@@ -71,7 +71,7 @@ func TestParseOutput() {
 	fmt.Println(tmp)
 
 	h.OutputType = "json"
-	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354250, \"salary\" : 40690}"
+	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354, \"salary\" : 40690}"
 	tmp = Sample7{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
