@@ -35,31 +35,16 @@ func main() {
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
 
-	for i := 1; i <= 10; i++ {
-		fmt.Println("Attempt sending data ", i)
-
-		if i == 1 {
-			SendIn(bufin, "select * from sample_07 limit 5;")
-		}
-		if i == 2 {
-			SendIn(bufin, "select * from sample_07 limit 5;")
-		}
-		if i == 3 {
-			SendIn(bufin, "select * from sample_07 limit 5;")
-		}
-		if i == 10 {
-			SendIn(bufin, "!quit;")
-		}
-		//GetOut(bufout)
-	}
-
-	for {
-		out := GetOut(bufout)
-		if out == "!quit;" {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+	SendIn(bufin, "select * from sample_07 limit 5;")
+	time.Sleep(time.Second)
+	out := GetOut(bufout)
+	SendIn(bufin, "select * from sample_07 limit 5;")
+	time.Sleep(time.Second)
+	out := GetOut(bufout)
+	SendIn(bufin, "select * from sample_07 limit 5;")
+	time.Sleep(time.Second)
+	out := GetOut(bufout)
+	SendIn(bufin, "!quit;")
 
 	err = cmd.Wait()
 	check("wait", err)
