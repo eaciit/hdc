@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	. "github.com/eaciit/hdc/hive"
-	//. "github.com/frezadev/hdc/hive"
 )
 
 var h *Hive
@@ -53,6 +52,7 @@ func TestExecPerLine() {
 
 func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
+	h.OutputType = "csv"
 	//h = SetHeader([]string{"code", "description", "total_emp", "salary"})
 	res := "00-0000,All Occupations,134354250,40690"
 	tmp := Sample7{}
