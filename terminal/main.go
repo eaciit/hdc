@@ -4,11 +4,11 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	// "os"
+	"os"
 	"os/exec"
 	// "time"
-	"runtime"
-	"sync"
+	// "runtime"
+	// "sync"
 )
 
 var check func(string, error) = func(what string, e error) {
@@ -47,16 +47,20 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 func main() {
 	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 	//cmd := exec.Command("cat")
-	stdin, err := cmd.StdinPipe()
+
+	/*stdin, err := cmd.StdinPipe()
 	check("stdin", err)
 	defer stdin.Close()
 
 	stdout, err := cmd.StdoutPipe()
 	check("stdout", err)
-	defer stdout.Close()
+	defer stdout.Close()*/
 
-	err = cmd.Start()
+	err := cmd.Start()
 	check("Start", err)
+
+	stdin := os.Stdin
+	stdout := os.Stdout
 
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
@@ -65,18 +69,18 @@ func main() {
 	dup.Writer = bufin
 	dup.Reader = bufout
 
-	var mutex = &sync.Mutex{}
-	mutex.Lock()
+	/*var mutex = &sync.Mutex{}
+	mutex.Lock()*/
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	mutex.Unlock()
+	/*mutex.Unlock()
 	runtime.Gosched()
-	mutex.Lock()
+	mutex.Lock()*/
 	result, err = dup.SendInput("!quit;")
-	mutex.Unlock()
+	/*mutex.Unlock()
 	runtime.Gosched()
-	mutex.Lock()
+	mutex.Lock()*/
 	result, err = dup.SendInput("exit")
-	mutex.Unlock()
+	// mutex.Unlock()
 	_ = result
 
 	err = cmd.Wait()
