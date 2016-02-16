@@ -18,11 +18,16 @@ type Sample7 struct {
 func main() {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 	q = "select * from sample_07 limit 20;"
+	
 	//for now this function just provide  csv type
 	TestParseOutput()
-	//Exec Query and Process with DoSomething Function PerLine
+
+	//Exec Query and Process with DoSomething Function PerLine | EXECPERLINE only support for csv or tsv
+	h.OutputType = "csv"
 	TestExecPerLine()
-	// Exec Query and wait until all line fetched
+	
+	// Exec Query and wait until all line fetched | EXEC only support for csv or tsv
+	h.OutputType = "tsv"
 	TestExec()
 }
 
@@ -54,19 +59,20 @@ func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 
 	h.OutputType = "csv"
-	res := "00-0000,All Occupations,134354250,40690"
+	res := "00-0000,All Occupations CSV,134354250,40690"
 	tmp := Sample7{}
 	h.ParseOutput(res, &tmp)
+	fmt.Println(tmp)
 
 	h.OutputType = "tsv"
-	res = "00-0000\tAll Occupations\t134354250\t40690"
+	res = "00-0000\tAll Occupations TSV\t134354250\t40690"
 	tmp = Sample7{}
 	h.ParseOutput(res, &tmp)
+	fmt.Println(tmp)
 
 	h.OutputType = "json"
-	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations\", \"total_emp\" : 134354250, \"salary\" : 40690}"
+	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354250, \"salary\" : 40690}"
 	tmp = Sample7{}
 	h.ParseOutput(res, &tmp)
-
 	fmt.Println(tmp)
 }
