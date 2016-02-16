@@ -20,8 +20,8 @@ const (
 	BEE_QUERY    = " -e \"%s\""
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
-	CSV_FORMAT = " --outputFormat=csv2"
-	TSV_FORMAT = " --outputFormat=tsv2"
+	CSV_FORMAT = " --outputFormat=csv"
+	TSV_FORMAT = " --outputFormat=tsv"
 	/*DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
 	DSV_DELIMITER = "|\t"*/
 )
@@ -35,9 +35,10 @@ type Hive struct {
 	DBName      string
 	HiveCommand string
 	Header      []string
+	OutputType 	string
 }
 
-func HiveConfig(server, dbName, userid, password string) *Hive {
+func HiveConfig(server, dbName, userid, password string,delimiter ...string) *Hive {
 	hv := Hive{}
 	hv.Server = server
 	hv.Password = password
@@ -53,6 +54,11 @@ func HiveConfig(server, dbName, userid, password string) *Hive {
 		if err == nil {
 			userid = user.Username
 		}
+	}
+
+	hv.OutputType = "tsv"
+	if len(delimiter) > 0 && delimiter[0] == "csv" {
+		hv.OutputType = "csv"
 	}
 
 	hv.User = userid
@@ -82,9 +88,9 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
-func (h *Hive) constructHeader(header string) {
+func (h *Hive) constructHeader(header string,delimiter string) {
 	var tmpHeader []string
-	for _, header := range strings.Split(header, ",") {
+	for _, header := range strings.Split(header, delimiter) {
 		split := strings.Split(header, ".")
 		if len(split) > 1 {
 			tmpHeader = append(tmpHeader, split[1])
@@ -97,12 +103,21 @@ func (h *Hive) constructHeader(header string) {
 
 func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(CSV_FORMAT))
+	cmd := h.command()
+
+	delimiter :="\t"
+	if h.OutputType == "csv" {
+		cmd = h.command(h.cmdStr(CSV_FORMAT))
+		delimiter = ","
+	}else{
+		cmd = h.command(h.cmdStr(TSV_FORMAT))
+	}
+
 	outByte, e := cmd.Output()
 	result := strings.Split(string(outByte), "\n")
 
 	if len(result) > 0 {
-		h.constructHeader(result[:1][0])
+		h.constructHeader(result[:1][0],delimiter)
 	}
 
 	//fmt.Printf("header: %v\n", h.Header)
@@ -115,7 +130,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
-	cmd := h.command(h.cmdStr(CSV_FORMAT))
+	cmd := h.command()
 	cmdReader, e := cmd.StdoutPipe()
 
 	if e != nil {
@@ -126,11 +141,19 @@ func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 
 	idx := 1
 
+	delimiter :="\t"
+	if h.OutputType == "csv" {
+		cmd = h.command(h.cmdStr(CSV_FORMAT))
+		delimiter = ","
+	}else{
+		cmd = h.command(h.cmdStr(TSV_FORMAT))
+	}
+
 	go func(idx int) {
 		for scanner.Scan() {
 			resStr := scanner.Text()
 			if idx == 1 {
-				h.constructHeader(resStr)
+				h.constructHeader(resStr,delimiter)
 			} else {
 				DoResult(resStr)
 			}
@@ -219,56 +242,95 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+func (h *Hive) ParseOutput(in string, m interface{}, Ftype string) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
-	var v reflect.Type
-	v = reflect.TypeOf(m).Elem()
-	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+	if Ftype == "csv"{
+		var v reflect.Type
+		v = reflect.TypeOf(m).Elem()
+		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
 
-	appendData := toolkit.M{}
-	iv := reflect.New(v).Interface()
+		appendData := toolkit.M{}
+		iv := reflect.New(v).Interface()
 
-	reader := csv.NewReader(strings.NewReader(in))
-	record, e := reader.Read()
+			reader := csv.NewReader(strings.NewReader(in))
+			record, e := reader.Read()
 
-	if e != nil {
-		return e
-	}
+			if e != nil {
+				return e
+			}
 
-	if v.NumField() != len(record) {
-		return &FieldMismatch{v.NumField(), len(record)}
-	}
+			if v.NumField() != len(record) {
+				return &FieldMismatch{v.NumField(), len(record)}
+			}
 
-	for i, val := range h.Header {
-		appendData[val] = strings.TrimSpace(record[i])
-	}
+			for i, val := range h.Header {
+				appendData[val] = strings.TrimSpace(record[i])
+			}
 
-	if v.Kind() == reflect.Struct {
-		for i := 0; i < v.NumField(); i++ {
-			tag := v.Field(i).Tag
+			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					tag := v.Field(i).Tag
 
-			if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-				switch v.Field(i).Type.Kind() {
-				case reflect.Int:
-					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
-				case reflect.Float32:
-					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
-					appendData.Set(v.Field(i).Name, valf)
-				case reflect.Float64:
-					valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
-					appendData.Set(v.Field(i).Name, valf)
+					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+						switch v.Field(i).Type.Kind() {
+						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+						case reflect.Float32:
+							valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
+							appendData.Set(v.Field(i).Name, valf)
+						case reflect.Float64:
+							valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+							appendData.Set(v.Field(i).Name, valf)
+						}
+					}
 				}
 			}
-		}
-	}
 
-	toolkit.Serde(appendData, iv, "json")
-	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-	reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+			toolkit.Serde(appendData, iv, "json")
+			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+		}else if Ftype == "json"{
+			e := toolkit.Serde(in, m, "json")
+			if e != nil {
+				return e
+			}
+		}else{
+				var v reflect.Type		
+			 	v = reflect.TypeOf(m).Elem()		
+			 	ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)		
+			 		
+			 	appendData := toolkit.M{}		
+			 	iv := reflect.New(v).Interface()		
+			 		
+			 	splitted := strings.Split(strings.Trim(in, " '"), "\t")		
+			 		
+			 	for i, val := range h.Header {		
+			 		appendData[val] = strings.TrimSpace(splitted[i])		
+			 	}		
+			 		
+			 	if v.Kind() == reflect.Struct {		
+			 		for i := 0; i < v.NumField(); i++ {		
+			 			if appendData.Has(v.Field(i).Name) {		
+			 				switch v.Field(i).Type.Kind() {		
+			 				case reflect.Int:		
+			 					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))		
+			 				case reflect.Float64:		
+			 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)		
+			 					appendData.Set(v.Field(i).Name, valf)		
+			 				}		
+			 			}		
+			 		}		
+			 	}		
+			 		
+			 	toolkit.Serde(appendData, iv, "json")		
+			 	ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())		
+			 	reflect.ValueOf(m).Elem().Set(ivs.Index(0))		
+			 	return nil
+		}
 	return nil
 }
 
