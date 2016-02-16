@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"os"
+	// "os"
 	"os/exec"
 	// "time"
 	// "runtime"
@@ -34,33 +34,30 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 		check("Flush", err)
 	}
 
-	scanner := bufio.NewScanner(d.Reader)
-
-	for scanner.Scan() {
-		fmt.Println("Read: ", scanner.Text())
-		result = scanner.Text()
+	bread, eread := d.Reader.ReadString('\n')
+	if eread != nil && eread.Error() == "EOF" {
+		return "exit", e
 	}
+	check("read", eread)
 
+	fmt.Println(bread)
+	result = bread
 	return
 }
 
 func main() {
 	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 	//cmd := exec.Command("cat")
-
-	/*stdin, err := cmd.StdinPipe()
+	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
 	defer stdin.Close()
 
 	stdout, err := cmd.StdoutPipe()
 	check("stdout", err)
-	defer stdout.Close()*/
+	defer stdout.Close()
 
-	err := cmd.Start()
+	err = cmd.Start()
 	check("Start", err)
-
-	stdin := os.Stdin
-	stdout := os.Stdout
 
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
