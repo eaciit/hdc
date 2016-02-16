@@ -18,7 +18,7 @@ var check func(string, error) = func(what string, e error) {
 }
 
 func main() {
-	cmd := exec.Command("sh", "-c", "beeline -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
+	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 	//cmd := exec.Command("cat")
 	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
@@ -39,23 +39,23 @@ func main() {
 		fmt.Println("Attempt sending data ", i)
 
 		if i == 1 {
-			SendIn(bufin, "select * from sample_07 limit 5")
+			SendIn(bufin, "select * from sample_07 limit 5;")
 		}
 		if i == 2 {
-			SendIn(bufin, "select * from sample_07 limit 5")
+			SendIn(bufin, "select * from sample_07 limit 5;")
 		}
 		if i == 3 {
-			SendIn(bufin, "select * from sample_07 limit 5")
+			SendIn(bufin, "select * from sample_07 limit 5;")
 		}
 		if i == 10 {
-			SendIn(bufin, "exit")
+			SendIn(bufin, "!quit;")
 		}
 		//GetOut(bufout)
 	}
 
 	for {
 		out := GetOut(bufout)
-		if out == "exit" {
+		if out == "!quit;" {
 			break
 		}
 		time.Sleep(10 * time.Millisecond)
@@ -80,7 +80,7 @@ func SendIn(bufin *bufio.Writer, data string) {
 func GetOut(bufout *bufio.Reader) string {
 	bread, eread := bufout.ReadString('\n')
 	if eread != nil && eread.Error() == "EOF" {
-		return "exit"
+		return "!quit;"
 	}
 	check("read", eread)
 	fmt.Println("Read: ", bread)
