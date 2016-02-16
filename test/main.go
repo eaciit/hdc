@@ -11,8 +11,8 @@ var q string
 type Sample7 struct {
 	Code        string `tag_name:"code"`
 	Description string `tag_name:"description"`
-	Total_emp   string `tag_name:"total_emp"`
-	Salary      string `tag_name:"salary"`
+	Total_emp   int `tag_name:"total_emp"`
+	Salary      int `tag_name:"salary"`
 }
 
 func main() {
@@ -59,7 +59,7 @@ func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 
 	h.OutputType = "csv"
-	res := "00-0000,All Occupations CSV,134354250,40690"
+	res := "'00-0000','All Occupations CSV','134354250','40690'"
 	tmp := Sample7{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
@@ -71,7 +71,7 @@ func TestParseOutput() {
 	fmt.Println(tmp)
 
 	h.OutputType = "json"
-	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354250, \"salary\" : 40690}"
+	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354, \"salary\" : 40690}"
 	tmp = Sample7{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
