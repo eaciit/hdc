@@ -11,7 +11,7 @@ var q string
 type Sample7 struct {
 	Code        string `tag_name:"code"`
 	Description string `tag_name:"description"`
-	Total_emp   float64 `tag_name:"total_emp"`
+	Total_emp   int `tag_name:"total_emp"`
 	Salary      int `tag_name:"salary"`
 }
 
