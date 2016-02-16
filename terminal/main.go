@@ -64,8 +64,8 @@ func main() {
 	dup.Reader = bufout
 
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	result, err := dup.SendInput("!quit;")
-	result, err := dup.SendInput("exit")
+	result, err = dup.SendInput("!quit;")
+	result, err = dup.SendInput("exit")
 	_ = result
 
 	err = cmd.Wait()
