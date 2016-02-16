@@ -6,7 +6,7 @@ import (
 	"fmt"
 	// "os"
 	"os/exec"
-	// "time"
+	"time"
 	// "runtime"
 	// "sync"
 )
@@ -63,17 +63,19 @@ func main() {
 	dup.Writer = bufin
 	dup.Reader = bufout
 
+	err = cmd.Start()
+	check("Start", err)
+
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
 	result, err = dup.SendInput("!quit;")
 	result, err = dup.SendInput("exit")
 
-	err = cmd.Start()
-	check("Start", err)
-
 	_ = result
 
-	err = cmd.Wait()
-	check("wait", err)
+	time.Sleep(2 * time.Second)
+
+	defer cmd.Wait()
+	//check("wait", err)
 	fmt.Println("Done")
 	/*stdin.Close()
 	stdout.Close()*/
