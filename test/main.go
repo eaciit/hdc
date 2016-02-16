@@ -17,7 +17,7 @@ type Sample7 struct {
 
 func main() {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
-	q = "select * from sample_07 limit 5;"
+	q = "select * from sample_07 limit 20;"
 	//for now this function just provide  csv type
 	TestParseOutput()
 	//Exec Query and Process with DoSomething Function PerLine
