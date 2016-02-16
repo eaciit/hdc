@@ -67,14 +67,12 @@ func main() {
 	check("Start", err)
 
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	result, err = dup.SendInput("!quit;")
-	result, err = dup.SendInput("exit")
+	result, err = dup.SendInput("!quit")
+	// result, err = dup.SendInput("exit")
 
 	_ = result
 
-	time.Sleep(2 * time.Second)
-
-	defer cmd.Wait()
+	cmd.Wait()
 	//check("wait", err)
 	fmt.Println("Done")
 	/*stdin.Close()
