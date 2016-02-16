@@ -56,15 +56,6 @@ func main() {
 	check("stdout", err)
 	defer stdout.Close()
 
-	scanner := bufio.NewScanner(stdout)
-
-	go func() {
-		for scanner.Scan() {
-			resStr := scanner.Text()
-			fmt.Printf("res: %v\n", resStr)
-		}
-	}()
-
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
 
@@ -72,17 +63,18 @@ func main() {
 	dup.Writer = bufin
 	dup.Reader = bufout
 
-	err = cmd.Start()
-	check("Start", err)
-
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
 	result, err = dup.SendInput("!quit;")
 	result, err = dup.SendInput("exit")
+
+	err = cmd.Start()
+	check("Start", err)
+
 	_ = result
 
 	err = cmd.Wait()
 	check("wait", err)
 	fmt.Println("Done")
-	stdin.Close()
-	stdout.Close()
+	/*stdin.Close()
+	stdout.Close()*/
 }
