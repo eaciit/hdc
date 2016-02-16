@@ -16,7 +16,9 @@ import (
 )
 
 const (
-	BEE_TEMPLATE = "beeline -u jdbc:hive2://%s/%s -n %s -p %s"
+	BEE_TEMPLATE = "%sbeeline -u jdbc:hive2://%s/%s"
+	BEE_USER     = " -n %s"
+	BEE_PASSWORD = " -p %s"
 	BEE_QUERY    = " -e \"%s\""
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
@@ -29,6 +31,7 @@ const (
 // type FnHiveReceive func(string) (interface{}, error)
 
 type Hive struct {
+	BeePath     string
 	Server      string
 	User        string
 	Password    string
@@ -38,8 +41,9 @@ type Hive struct {
 	OutputType 	string
 }
 
-func HiveConfig(server, dbName, userid, password string,delimiter ...string) *Hive {
+func HiveConfig(server, dbName, userid, password, path string,delimiter ...string) *Hive {
 	hv := Hive{}
+	hv.BeePath = path
 	hv.Server = server
 	hv.Password = password
 
@@ -73,7 +77,15 @@ func SetHeader(header []string) *Hive {
 }
 
 func (h *Hive) cmdStr(arg ...string) (out string) {
-	out = fmt.Sprintf(BEE_TEMPLATE, h.Server, h.DBName, h.User, h.Password)
+	out = fmt.Sprintf(BEE_TEMPLATE, h.BeePath, h.Server, h.DBName)
+
+	if h.User != "" {
+		out += fmt.Sprintf(BEE_USER, h.User)
+	}
+
+	if h.Password != "" {
+		out += fmt.Sprintf(BEE_PASSWORD, h.Password)
+	}
 
 	for _, value := range arg {
 		out += value
