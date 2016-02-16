@@ -22,6 +22,7 @@ var check func(string, error) = func(what string, e error) {
 type DuplexTerm struct {
 	Writer *bufio.Writer
 	Reader *bufio.Reader
+	Cmd    *exec.Cmd
 }
 
 func (d *DuplexTerm) SendInput(input string) (result string, e error) {
@@ -37,6 +38,7 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	for {
 		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
+			d.Cmd.Wait()
 			break
 		}
 		check("read", eread)
@@ -47,7 +49,7 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 
 func main() {
 	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
-	//cmd := exec.Command("cat")
+
 	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
 	defer stdin.Close()
@@ -65,24 +67,16 @@ func main() {
 	dup := DuplexTerm{}
 	dup.Writer = bufin
 	dup.Reader = bufout
+	dup.Cmd = cmd
 
-	/*var mutex = &sync.Mutex{}
-	mutex.Lock()*/
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	/*mutex.Unlock()
-	runtime.Gosched()
-	mutex.Lock()*/
 	result, err = dup.SendInput("!quit;")
-	/*mutex.Unlock()
-	runtime.Gosched()
-	mutex.Lock()*/
 	result, err = dup.SendInput("exit")
-	// mutex.Unlock()
 	_ = result
 
-	err = cmd.Wait()
+	/*err = cmd.Wait()
 	check("wait", err)
-	fmt.Println("Done")
+	fmt.Println("Done")*/
 	stdin.Close()
 	stdout.Close()
 }
