@@ -290,14 +290,19 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					tag := v.Field(i).Tag
 
 					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+						valthis :=  appendData[v.Field(i).Name]
+						if valthis == nil{
+							valthis = appendData[tag.Get("tag_name")]
+						}
+
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
-							appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
 						case reflect.Float32:
-							valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
+							valf, _ := strconv.ParseFloat(valthis.(string), 32)
 							appendData.Set(v.Field(i).Name, valf)
 						case reflect.Float64:
-							valf,_ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+							valf,_ := strconv.ParseFloat(valthis.(string), 64)
 							appendData.Set(v.Field(i).Name, valf)
 						}
 					}
@@ -336,14 +341,18 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			 		tag := v.Field(i).Tag
 
 			 		if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {		
+			 				valthis :=  appendData[v.Field(i).Name]
+							if valthis == nil{
+								valthis = appendData[tag.Get("tag_name")]
+							}
 			 				switch v.Field(i).Type.Kind() {		
 			 				case reflect.Int:		
-			 					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))		
+			 					appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))		
 			 				case reflect.Float32:		
-			 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)		
+			 					valf, _ := strconv.ParseFloat(valthis.(string), 32)		
 			 					appendData.Set(v.Field(i).Name, valf)		
 			 				case reflect.Float64:		
-			 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)		
+			 					valf, _ := strconv.ParseFloat(valthis.(string), 64)		
 			 					appendData.Set(v.Field(i).Name, valf)		
 			 				}		
 			 			}		
