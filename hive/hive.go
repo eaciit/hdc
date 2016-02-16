@@ -7,6 +7,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"os/user"
@@ -269,7 +270,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		appendData := toolkit.M{}
 		iv := reflect.New(v).Interface()
 
-			reader := csv.NewReader(strings.NewReader(in))
+			reader := csv.NewReader(strings.NewReader(strings.Replace(in,"'","\"",-1)))
 			record, e := reader.Read()
 
 			if e != nil {
@@ -281,7 +282,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			}
 
 			for i, val := range h.Header {
-				appendData[val] = strings.TrimSpace(strings.Trim(record[i], " '"))
+				appendData[val] = strings.TrimSpace(record[i])
 			}
 
 			if v.Kind() == reflect.Struct {
@@ -296,7 +297,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 							valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)
 							appendData.Set(v.Field(i).Name, valf)
 						case reflect.Float64:
-							valf := cast.ToF64(appendData[v.Field(i).Name].(string), 2, cast.RoundingAuto) //strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
+							valf,_ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)
 							appendData.Set(v.Field(i).Name, valf)
 						}
 					}
@@ -307,7 +308,12 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 		}else if h.OutputType == "json"{
-			e := toolkit.Serde(in, m, "json")
+			var temp = toolkit.M{}
+			e := json.Unmarshal([]byte(in), &temp)
+			if e != nil {
+				return e
+			}
+			e = toolkit.Serde(temp, m, "json")
 			if e != nil {
 				return e
 			}
@@ -327,10 +333,15 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			 		
 			 	if v.Kind() == reflect.Struct {		
 			 		for i := 0; i < v.NumField(); i++ {		
-			 			if appendData.Has(v.Field(i).Name) {		
+			 		tag := v.Field(i).Tag
+
+			 		if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {		
 			 				switch v.Field(i).Type.Kind() {		
 			 				case reflect.Int:		
 			 					appendData.Set(v.Field(i).Name, cast.ToInt(appendData[v.Field(i).Name], cast.RoundingAuto))		
+			 				case reflect.Float32:		
+			 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 32)		
+			 					appendData.Set(v.Field(i).Name, valf)		
 			 				case reflect.Float64:		
 			 					valf, _ := strconv.ParseFloat(appendData[v.Field(i).Name].(string), 64)		
 			 					appendData.Set(v.Field(i).Name, valf)		
