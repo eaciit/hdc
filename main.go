@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	// "github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/frezadev/hdc/hive"
+	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
 	// "os"
 )
@@ -20,7 +20,7 @@ type Sample7 struct {
 
 func main() {
 	var e error
-	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 	q := "select * from sample_07 limit 5;"
 
 	/*fmt.Println("---------------------- EXEC ----------------")
@@ -48,7 +48,7 @@ func main() {
 	e = h.ExecLine(q, DoSomething)
 	fmt.Printf("error: \n%v\n", e)
 
-	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
+	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", nil)
 	h.Header = []string{"code", "description", "total_emp", "salary"}
 	// qTest := "00-0000	All Occupations, asdfa,a dadsfasd	134354250	40690"
 	//qTest := "00-0000 All Occupations 134354250       40690"
