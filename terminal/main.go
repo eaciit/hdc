@@ -7,6 +7,8 @@ import (
 	// "os"
 	"os/exec"
 	// "time"
+	"runtime"
+	"sync"
 )
 
 var check func(string, error) = func(what string, e error) {
@@ -63,9 +65,18 @@ func main() {
 	dup.Writer = bufin
 	dup.Reader = bufout
 
+	var mutex = &sync.Mutex{}
+	mutex.Lock()
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
+	mutex.Unlock()
+	runtime.Gosched()
+	mutex.Lock()
 	result, err = dup.SendInput("!quit;")
+	mutex.Unlock()
+	runtime.Gosched()
+	mutex.Lock()
 	result, err = dup.SendInput("exit")
+	mutex.Unlock()
 	_ = result
 
 	err = cmd.Wait()
