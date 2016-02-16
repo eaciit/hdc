@@ -309,7 +309,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 		}else if h.OutputType == "json"{
 			var temp = toolkit.M{}
-			e := json.Unmarshal([]byte(in), temp)
+			e := json.Unmarshal([]byte(in), &temp)
 			if e != nil {
 				return e
 			}

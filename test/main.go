@@ -52,10 +52,21 @@ func TestExecPerLine() {
 
 func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary"}
+
 	h.OutputType = "csv"
-	//h = SetHeader([]string{"code", "description", "total_emp", "salary"})
 	res := "00-0000,All Occupations,134354250,40690"
 	tmp := Sample7{}
 	h.ParseOutput(res, &tmp)
+
+	h.OutputType = "tsv"
+	res = "00-0000\tAll Occupations\t134354250\t40690"
+	tmp = Sample7{}
+	h.ParseOutput(res, &tmp)
+
+	h.OutputType = "json"
+	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations\", \"total_emp\" : 134354250, \"salary\" : 40690}"
+	tmp = Sample7{}
+	h.ParseOutput(res, &tmp)
+
 	fmt.Println(tmp)
 }
