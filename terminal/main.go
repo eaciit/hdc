@@ -38,17 +38,22 @@ func main() {
 	SendIn(bufin, "select * from sample_07 limit 5;")
 	time.Sleep(time.Second)
 	out := GetOut(bufout)
+
+	/*SendIn(bufin, "select * from sample_07 limit 5;")
+	time.Sleep(time.Second)
+	out = GetOut(bufout)
+
 	SendIn(bufin, "select * from sample_07 limit 5;")
 	time.Sleep(time.Second)
-	out := GetOut(bufout)
-	SendIn(bufin, "select * from sample_07 limit 5;")
-	time.Sleep(time.Second)
-	out := GetOut(bufout)
+	out = GetOut(bufout)*/
+
 	SendIn(bufin, "!quit;")
 
 	err = cmd.Wait()
 	check("wait", err)
 	fmt.Println("Done")
+
+	_ = out
 }
 
 func SendIn(bufin *bufio.Writer, data string) {
@@ -63,11 +68,17 @@ func SendIn(bufin *bufio.Writer, data string) {
 }
 
 func GetOut(bufout *bufio.Reader) string {
-	bread, eread := bufout.ReadString('\n')
+	scanner := bufio.NewScanner(bufout)
+	for scanner.Scan() {
+		fmt.Println("Read: ", scanner.Text())
+	}
+
+	/*bread, eread := bufout.ReadString('\n')
 	if eread != nil && eread.Error() == "EOF" {
 		return "!quit;"
 	}
 	check("read", eread)
-	fmt.Println("Read: ", bread)
-	return bread
+	// fmt.Println("Read: ", bread)
+	return bread*/
+	return ""
 }
