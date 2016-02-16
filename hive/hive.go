@@ -254,13 +254,13 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}, Ftype string) (e error) {
+func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
-	if Ftype == "csv"{
+	if h.OutputType == "csv"{
 		var v reflect.Type
 		v = reflect.TypeOf(m).Elem()
 		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
@@ -305,7 +305,7 @@ func (h *Hive) ParseOutput(in string, m interface{}, Ftype string) (e error) {
 			toolkit.Serde(appendData, iv, "json")
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
-		}else if Ftype == "json"{
+		}else if h.OutputType == "json"{
 			e := toolkit.Serde(in, m, "json")
 			if e != nil {
 				return e
