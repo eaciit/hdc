@@ -281,7 +281,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			}
 
 			for i, val := range h.Header {
-				appendData[val] = strings.TrimSpace(record[i])
+				appendData[val] = strings.TrimSpace(strings.Trim(record[i], " '"))
 			}
 
 			if v.Kind() == reflect.Struct {
@@ -319,10 +319,10 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			 	appendData := toolkit.M{}		
 			 	iv := reflect.New(v).Interface()		
 			 		
-			 	splitted := strings.Split(in, " '")		
+			 	splitted := strings.Split(in, "\t")		
 			 		
 			 	for i, val := range h.Header {		
-			 		appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], "\t"))		
+			 		appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))		
 			 	}		
 			 		
 			 	if v.Kind() == reflect.Struct {		
