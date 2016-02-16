@@ -105,9 +105,9 @@ func (h *Hive) constructHeader(header string,delimiter string) {
 	for _, header := range strings.Split(header, delimiter) {
 		split := strings.Split(header, ".")
 		if len(split) > 1 {
-			tmpHeader = append(tmpHeader, split[1])
+			tmpHeader = append(tmpHeader, strings.Trim(split[1]," '"))
 		} else {
-			tmpHeader = append(tmpHeader, header)
+			tmpHeader = append(tmpHeader, strings.Trim(header," '"))
 		}
 	}
 	h.Header = tmpHeader
@@ -319,10 +319,10 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 			 	appendData := toolkit.M{}		
 			 	iv := reflect.New(v).Interface()		
 			 		
-			 	splitted := strings.Split(strings.Trim(in, " '"), "\t")		
+			 	splitted := strings.Split(in, " '")		
 			 		
 			 	for i, val := range h.Header {		
-			 		appendData[val] = strings.TrimSpace(splitted[i])		
+			 		appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], "\t"))		
 			 	}		
 			 		
 			 	if v.Kind() == reflect.Struct {		
