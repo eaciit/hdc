@@ -450,7 +450,7 @@ func (h *Hive) InspectJson(in string) (out string) {
 			if len(in) == i+1 {
 				h.JsonPart = ""
 			} else {
-				h.JsonPart = in[i+1 : len(in)]
+				h.JsonPart = in[i+1:]
 			}
 			res = in[:i+1]
 			break
