@@ -82,8 +82,7 @@ func TestParseOutput() {
 	fmt.Println(tmp)
 
 	h.OutputType = "json"
-	h.DateFormat = "YY-MMM-DD DDDD"
-	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"16-Feb-14 Sunday\" }"
+	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : 2012-04-23T18:25:43.511Z }"
 	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
