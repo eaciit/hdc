@@ -7,6 +7,7 @@ import (
 	// "os"
 	"io"
 	"os/exec"
+	"strings"
 	// "time"
 	// "runtime"
 	// "sync"
@@ -76,10 +77,13 @@ func (d *DuplexTerm) Close() {
 func main() {
 	dup := DuplexTerm{}
 	err := dup.Open()
+
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
 	fmt.Printf("error: %v\n", err)
+
 	result, err = dup.SendInput("!quit")
 	fmt.Printf("error: %v\n", err)
+
 	_ = result
 	_ = err
 
@@ -89,7 +93,7 @@ func main() {
 			break
 		}
 		check("read", eread)
-		fmt.Println(bread)
+		fmt.Println(strings.TrimRight(bread, "\n"))
 	}
 
 	defer dup.Close()
