@@ -442,7 +442,7 @@ func (h *Hive) InspectJson(in string) (out string) {
 			charclose += 1
 		}
 
-		if charopen == charclose {
+		if charopen == charclose && (charclose != 0 && charopen != 0) {
 			if len(in) == i+1 {
 				h.JsonPart = ""
 			} else {
@@ -453,7 +453,7 @@ func (h *Hive) InspectJson(in string) (out string) {
 		}
 	}
 
-	if charopen != charclose {
+	if charopen != charclose || (charclose == 0 && charopen == 0) {
 		h.JsonPart = in
 	}
 
