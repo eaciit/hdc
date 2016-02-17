@@ -22,7 +22,7 @@ type Sample7 struct {
 
 func TestExec(t *testing.T) {
 	var e error
-	h = HiveConfig("192.168.0.223:10000", "hdfs", "", "", "")
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
 	log.Println("---------------------- EXEC ----------------")
