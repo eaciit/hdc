@@ -30,8 +30,8 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	if iwrite == 0 {
 		check("write", errors.New("Writing only 0 byte"))
 	} else {
-		err := d.Writer.Flush()
-		check("Flush", err)
+		/*err := d.Writer.Flush()
+		check("Flush", err)*/
 	}
 
 	for {
@@ -46,9 +46,9 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 }
 
 func main() {
-	// cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
+	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 
-	cmd := exec.Command("sh", "-c", "ls")
+	// cmd := exec.Command("sh", "-c", "")
 
 	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
@@ -73,12 +73,12 @@ func main() {
 	go func() {
 		for i := 1; i < 3; i++ {
 			if i == 1 {
-				result, err := dup.SendInput("ls")
+				result, err := dup.SendInput("select * from sample_07 limit 5;")
 				_ = result
 				_ = err
 			}
 			if i == 2 {
-				result, err := dup.SendInput("ls")
+				result, err := dup.SendInput("!quit")
 				_ = result
 				_ = err
 			}
