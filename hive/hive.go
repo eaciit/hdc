@@ -431,10 +431,22 @@ func (h *Hive) DetectFormat(in string) (out string) {
 
 		formatDate := "((^(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)[\\d]{4}$)|(^[\\d]{4}(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])$))"
 		matchDate, _ = regexp.MatchString(formatDate, in)
+
+		// if !matchDate {
+		// 	//dd/mm/yyyy,dd-mm-yyyy or dd.mm.yyyy
+		// 	formatDate = "^(?:(?:31(\\/|-|\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\/|-|\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\/|-|\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\/|-|\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$"
+		// 	matchDate, _ = regexp.MatchString(formatDate, in)
+		// }
+
 		if !matchDate && h.DateFormat != "" {
 			d := cast.String2Date(in, h.DateFormat)
 			if d.Year() > 1 {
 				matchDate = true
+			} else {
+				d, e := fmtdate.Parse(h.DateFormat, in)
+				if e == nil || d.Year() > 1 {
+					matchDate = true
+				}
 			}
 		}
 
