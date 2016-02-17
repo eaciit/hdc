@@ -74,6 +74,13 @@ func TestParseOutput() {
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
+	h.OutputType = "csv"
+	h.DateFormat = "YYYY-MM-DD"
+	res = "00-0000,All Occupations CSV2,134354250,40690,2014-05-01"
+	tmp = SampleParse{}
+	h.ParseOutput(res, &tmp)
+	fmt.Println(tmp)
+
 	h.OutputType = "tsv"
 	h.DateFormat = "YYYY-MMM-DD"
 	res = "00-0000\tAll Occupations TSV\t134354250\t40690\t2014-Dec-05"
