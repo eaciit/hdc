@@ -30,12 +30,12 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	if iwrite == 0 {
 		check("write", errors.New("Writing only 0 byte"))
 	} else {
-		/*err := d.Writer.Flush()
-		check("Flush", err)*/
+		err := d.Writer.Flush()
+		check("Flush", err)
 	}
 
 	for {
-		bread, eread := d.Reader.ReadString('\n')
+		bread, eread := d.Reader.ReadString()
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
@@ -74,16 +74,19 @@ func main() {
 		for i := 1; i < 3; i++ {
 			if i == 1 {
 				result, err := dup.SendInput("select * from sample_07 limit 5;")
+				// result, err := dup.SendInput("ls")
 				_ = result
 				_ = err
 			}
 			if i == 2 {
 				result, err := dup.SendInput("!quit")
+				// result, err := dup.SendInput("ls")
 				_ = result
 				_ = err
+
+				done <- true
 			}
 		}
-		done <- true
 	}()
 	//_ = result
 
