@@ -75,6 +75,14 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	hv.Conn = DuplexTerm{}
 
+	if hv.Conn.Cmd == nil {
+		if hv.OutputType == "csv" {
+			hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
+		} else {
+			hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
+		}
+	}
+
 	return &hv
 }
 
@@ -129,14 +137,6 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 
 	if h.OutputType == "csv" {
 		delimiter = ","
-	}
-
-	if h.Conn.Cmd == nil {
-		if h.OutputType == "csv" {
-			h.Conn.Cmd = h.command(h.cmdStr(CSV_FORMAT))
-		} else {
-			h.Conn.Cmd = h.command(h.cmdStr(TSV_FORMAT))
-		}
 	}
 
 	if !strings.HasPrefix(query, ";") {

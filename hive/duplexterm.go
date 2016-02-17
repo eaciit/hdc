@@ -14,17 +14,14 @@ const (
 )
 
 type DuplexTerm struct {
-	Writer  *bufio.Writer
-	Reader  *bufio.Reader
-	Cmd     *exec.Cmd
-	Stdin   io.WriteCloser
-	Stdout  io.ReadCloser
-	ExecCmd string
+	Writer *bufio.Writer
+	Reader *bufio.Reader
+	Cmd    *exec.Cmd
+	Stdin  io.WriteCloser
+	Stdout io.ReadCloser
 }
 
 func (d *DuplexTerm) Open() (e error) {
-	d.Cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
-
 	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
 		return
 	}
@@ -41,6 +38,11 @@ func (d *DuplexTerm) Open() (e error) {
 }
 
 func (d *DuplexTerm) Close() {
+	result, e := d.SendInput("!quit")
+
+	_ = result
+	_ = e
+
 	d.Cmd.Wait()
 	d.Stdin.Close()
 	d.Stdout.Close()
