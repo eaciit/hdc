@@ -261,6 +261,97 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 }
 
+func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+	retVal = "process failed"
+	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+
+	if tempVal == nil {
+		tempQuery := ""
+
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
+
+		if v.Kind() == reflect.Struct {
+			tempQuery = "create table " + TableName + " ("
+			for i := 0; i < v.NumField(); i++ {
+				if i == (v.NumField() - 1) {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") " //row format delimited fields terminated by '" + Delimiter + "'"
+				} else {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
+				}
+			}
+			tempVal, err = h.Exec(tempQuery)
+		}
+	}
+
+	if err == nil {
+		//tempVal, err = h.Exec("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
+
+		file, e := os.Open(HDFSPath)
+		if e != nil {
+			fmt.Println(e)
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			err = h.ParseOutput(scanner.Text(), TableModel)
+
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), h.ParseOutput(scanner.Text(), TableModel))
+
+			h.Exec("insert into " + TableName + " values (" + retVal + ")")
+		}
+
+		if err == nil {
+			retVal = "success"
+		}
+	}
+
+	return retVal, err
+
+}
+
+func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retVal string) {
+	clause = strings.ToUpper(clause)
+	retVal = ""
+
+	if clause == "INSERT" {
+		retVal += clause + " INTO " + tablename + " values ("
+	} else {
+		return retVal
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(TableModel).Elem()
+
+	if v.Kind() == reflect.Struct {
+		for i := 0; i < v.NumField(); i++ {
+			if v.Field(i).Type.String() == "int" {
+				retVal += reflect.ValueOf(TableModel).Field(i).Int()
+			} else if v.Field(i).Type.String() == "string" {
+				retVal += reflect.ValueOf(TableModel).Field(i).String()
+			} else if v.Field(i).Type.String() == "float" {
+				retVal += reflect.ValueOf(TableModel).Field(i).Float()
+			} else {
+				retVal += reflect.ValueOf(TableModel).Field(i).String()
+			}
+
+			if i < v.NumField()-1 {
+				retVal += ","
+			} else {
+				retVal += ")"
+			}
+		}
+	}
+
+	return retVal
+}
+
 func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
