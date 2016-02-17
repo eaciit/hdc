@@ -99,12 +99,12 @@ func TestHiveExecMulti(t *testing.T) {
 	e = hs2.Wait()
 	fatalCheck(t, "HS2 wait", e)
 
-	for i, v1 := range hs1 {
-		if i > len(hs2) {
+	for i, v1 := range ms1 {
+		if i > len(ms2) {
 			t.Fatalf("Len of both HS is not the same")
 			return
 		}
-		v2 := hs2[i]
+		v2 := ms2[i]
 		for k, vm1 := range v1 {
 			if !v2.Has(k) {
 				t.Fatalf("Key not same")
@@ -115,6 +115,8 @@ func TestHiveExecMulti(t *testing.T) {
 			}
 		}
 	}
+
+	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
 }
 
 func TestHiveClose(t *testing.T) {
