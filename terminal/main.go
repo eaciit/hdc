@@ -38,14 +38,14 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 		check("Flush", err)
 	}
 
-	/*for {
+	for {
 		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
 		check("read", eread)
 		fmt.Println(bread)
-	}*/
+	}
 
 	return
 }
@@ -56,11 +56,9 @@ func (d *DuplexTerm) Open() {
 
 	d.Stdin, err = d.Cmd.StdinPipe()
 	check("stdin", err)
-	// defer d.Stdin.Close()
 
 	d.Stdout, err = d.Cmd.StdoutPipe()
 	check("stdout", err)
-	// defer d.Stdout.Close()
 
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
@@ -86,16 +84,15 @@ func main() {
 	_ = result
 	_ = err
 
-	for {
+	/*for {
 		bread, eread := dup.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
 		check("read", eread)
 		fmt.Println(bread)
-	}
+	}*/
 
-	dup.Close()
-
+	defer dup.Close()
 	fmt.Println("Done")
 }
