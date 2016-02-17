@@ -43,6 +43,8 @@ type Hive struct {
 	Header      []string
 	OutputType  string
 	DateFormat  string
+
+	JsonPart string
 }
 
 func HiveConfig(server, dbName, userid, password, path string, delimiter ...string) *Hive {
@@ -343,13 +345,16 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	} else if h.OutputType == "json" {
 		var temp = toolkit.M{}
-		e := json.Unmarshal([]byte(in), &temp)
-		if e != nil {
-			return e
-		}
-		e = toolkit.Serde(temp, m, "json")
-		if e != nil {
-			return e
+		in = h.InspectJson(in)
+		if in != "" {
+			e := json.Unmarshal([]byte(in), &temp)
+			if e != nil {
+				return e
+			}
+			e = toolkit.Serde(temp, m, "json")
+			if e != nil {
+				return e
+			}
 		}
 	} else {
 		var v reflect.Type
@@ -422,6 +427,39 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 	return nil
 }
 
+func (h *Hive) InspectJson(in string) (out string) {
+	if h.JsonPart != "" {
+		in = h.JsonPart + in
+	}
+	res := ""
+	charopen := 0
+	charclose := 0
+	for i, r := range in {
+		c := string(r)
+		if c == "{" {
+			charopen += 1
+		} else if c == "}" {
+			charclose += 1
+		}
+
+		if charopen == charclose {
+			if len(in) == i+1 {
+				h.JsonPart = ""
+			} else {
+				h.JsonPart = in[i+1 : len(in)]
+			}
+			res = in[:i+1]
+			break
+		}
+	}
+
+	if charopen != charclose {
+		h.JsonPart = in
+	}
+
+	return strings.Trim(strings.TrimSpace(res), " ,")
+}
+
 func (h *Hive) DetectFormat(in string) (out string) {
 	res := ""
 	if in != "" {
@@ -431,12 +469,6 @@ func (h *Hive) DetectFormat(in string) (out string) {
 
 		formatDate := "((^(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)[\\d]{4}$)|(^[\\d]{4}(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])$))"
 		matchDate, _ = regexp.MatchString(formatDate, in)
-
-		// if !matchDate {
-		// 	//dd/mm/yyyy,dd-mm-yyyy or dd.mm.yyyy
-		// 	formatDate = "^(?:(?:31(\\/|-|\\.)(?:0?[13578]|1[02]))\\1|(?:(?:29|30)(\\/|-|\\.)(?:0?[1,3-9]|1[0-2])\\2))(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$|^(?:29(\\/|-|\\.)0?2\\3(?:(?:(?:1[6-9]|[2-9]\\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\\d|2[0-8])(\\/|-|\\.)(?:(?:0?[1-9])|(?:1[0-2]))\\4(?:(?:1[6-9]|[2-9]\\d)?\\d{2})$"
-		// 	matchDate, _ = regexp.MatchString(formatDate, in)
-		// }
 
 		if !matchDate && h.DateFormat != "" {
 			d := cast.String2Date(in, h.DateFormat)
