@@ -49,6 +49,12 @@ func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@")
 }
 
+func fatalCheck(t *testing.T, what string, e error) {
+	if e != nil {
+		t.Fatalf("%s: %s", what, e.Error())
+	}
+}
+
 func TestHiveExec(t *testing.T) {
 	i := 0
 	q := "select * from sample_07 limit 5;"
@@ -73,10 +79,24 @@ func TestHiveExec(t *testing.T) {
 	}
 }
 
-func fatalCheck(t *testing.T, what string, e error) {
-	if e != nil {
-		t.Fatalf("%s: %s", what, e.Error())
+func TestHivePopulate(t *testing.T) {
+	var ms1 []toolkit.M
+	q := "select * from sample_07 limit 5"
+
+	/* Populate will exec query and immidiately return the value into object
+	Populate is suitable for short type query that return limited data,
+	Exec is suitable for long type query that return massive amount of data and require time to produce it
+
+	Ideally Populate should call Exec as well but already have predefined function on it receiving process
+	*/
+	e := h.Populate(q, &ms1)
+	fatalCheck(t, "Populate", e)
+
+	if len(ms1) != 5 {
+		t.Logf("Error want %d got %d", 5, len(ms1))
 	}
+
+	t.Logf("Result: %s", toolkit.JsonString(ms1))
 }
 
 func TestHiveExecMulti(t *testing.T) {
