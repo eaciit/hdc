@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	// "strings"
+	"strings"
 )
 
 /*var check func(string, error) = func(what string, e error) {
@@ -50,11 +50,9 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 			break
 		}
 
-		if bread != BEE_CLI_STR {
+		if strings.Contains(bread, BEE_CLI_STR) {
 			result = append(result, bread)
 		}
-
-		// fmt.Println(strings.TrimRight(bread, "\n"))
 	}
 
 	return
@@ -90,15 +88,15 @@ func main() {
 
 	result, err := dup.SendInput("select * from sample_07 limit 5;")
 	fmt.Printf("result: %v\n", result)
-	fmt.Printf("error: %v\n", err)
+	// fmt.Printf("error: %v\n", err)
 
 	result, err = dup.SendInput("select * from sample_07 limit 5;")
 	fmt.Printf("result: %v\n", result)
-	fmt.Printf("error: %v\n", err)
+	// fmt.Printf("error: %v\n", err)
 
 	result, err = dup.SendInput("!quit")
 	fmt.Printf("result: %v\n", result)
-	fmt.Printf("error: %v\n", err)
+	// fmt.Printf("error: %v\n", err)
 
 	_ = result
 	_ = err
