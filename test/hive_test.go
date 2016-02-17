@@ -1,7 +1,7 @@
 package hive_test
 
 import (
-	. "github.com/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	//"os/exec"
 	"github.com/eaciit/toolkit"
 	"testing"
@@ -50,7 +50,6 @@ func TestHiveConnect(t *testing.T) {
 }
 
 func TestHiveExec(t *testing.T) {
-	var ms []toolkit.M
 	i := 0
 	q := "select * from sample_07 limit 5;"
 	// func exec(query string, model interface{}, receive interface{}=>func) (hivesession, error)
@@ -58,14 +57,63 @@ func TestHiveExec(t *testing.T) {
 	hs, e := h.Exec(q, toolkit.M{}, func(x toolkit.M) error {
 		i++
 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
+		return nil
 	})
-
 	if e != nil {
 		t.Fatalf("Error exec query: %s", e.Error())
 	}
 
+	e := hs.Wait()
+	if e != nil {
+		t.Fatalf("Error waiting for respond: %s", e.Error())
+	}
+
 	if i < 5 {
 		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
+	}
+}
+
+func fatalCheck(t *testing.T, what string, e error) {
+	if e != nil {
+		t.Fatalf("%s: %s", what, e.Error())
+	}
+}
+
+func TestHiveExecMulti(t *testing.T) {
+	var ms1, ms2 []toolkit.M
+	q := "select * from sample_07 limit 5"
+
+	hs1, e := h.Exec(q, toolkit.M{}, func(x toolkit.M) error {
+		ms1 = append(ms1, x)
+		return nil
+	})
+	fatalCheck(t, "HS1 exec", e)
+	e = hs1.Wait()
+	fatalCheck(t, "HS1 wait", e)
+
+	hs2, e := h.Exec(q, toolkit.M{}, func(x toolkit.M) error {
+		ms2 = append(ms2, x)
+		return nil
+	})
+	fatalCheck(t, "HS2 exec", e)
+	e = hs2.Wait()
+	fatalCheck(t, "HS2 wait", e)
+
+	for i, v1 := range hs1 {
+		if i > len(hs2) {
+			t.Fatalf("Len of both HS is not the same")
+			return
+		}
+		v2 := hs2[i]
+		for k, vm1 := range v1 {
+			if !v2.Has(k) {
+				t.Fatalf("Key not same")
+			}
+			vm2 := v2[k]
+			if vm1 != vm2 {
+				t.Fatalf("Value not the same")
+			}
+		}
 	}
 }
 
