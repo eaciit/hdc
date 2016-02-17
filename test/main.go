@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/hdc/yanda15/hdc/hive"
 	"time"
 )
 
@@ -88,8 +88,14 @@ func TestParseOutput() {
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
-	res = ", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"2012-04-23T18:25:43Z\" },{ \"code\" : \"00-0000\""
+	res = ", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"2012-04-23T18:25:43Z\" },{ \"code\" : \"00-2222\""
 	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
+
+	res = ",\"description\" : \"All Occupations INTERFACE\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }"
+	var tmpx interface{}
+	h.ParseOutput(res, &tmpx)
+	fmt.Println(tmpx)
+
 }
