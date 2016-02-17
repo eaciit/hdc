@@ -4,22 +4,18 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	// "os"
 	"io"
 	"os/exec"
 	"strings"
-	// "time"
-	// "runtime"
-	// "sync"
 )
 
-var check func(string, error) = func(what string, e error) {
+/*var check func(string, error) = func(what string, e error) {
 	if e != nil {
 		fmt.Println("Error", what+":", e.Error())
-		/*os.Exit(1000)*/
+		// os.Exit(1000)
 		panic(e)
 	}
-}
+}*/
 
 type DuplexTerm struct {
 	Writer *bufio.Writer
@@ -30,41 +26,46 @@ type DuplexTerm struct {
 }
 
 func (d *DuplexTerm) SendInput(input string) (result string, e error) {
-	iwrite, ewrite := d.Writer.WriteString(input + "\n")
-	check("write", ewrite)
+	iwrite, e := d.Writer.WriteString(input + "\n")
 	if iwrite == 0 {
-		check("write", errors.New("Writing only 0 byte"))
+		e = errors.New("Writing only 0 byte")
 	} else {
-		err := d.Writer.Flush()
-		check("Flush", err)
+		e = d.Writer.Flush()
 	}
 
-	/*for {
-		bread, eread := d.Reader.ReadString('\n')
-		if eread != nil && eread.Error() == "EOF" {
+	if e != nil {
+		return
+	}
+
+	for {
+		bread, e := d.Reader.ReadString('\n')
+		if e != nil && e.Error() == "EOF" {
 			break
 		}
-		check("read", eread)
-		fmt.Println(bread)
-	}*/
+		fmt.Println(strings.TrimRight(bread, "\n"))
+	}
 
 	return
 }
 
-func (d *DuplexTerm) Open() (err error) {
+func (d *DuplexTerm) Open() (e error) {
 	d.Cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 
-	d.Stdin, err = d.Cmd.StdinPipe()
-	// check("stdin", err)
+	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
+		return
+	}
 
-	d.Stdout, err = d.Cmd.StdoutPipe()
-	// check("stdout", err)
+	if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
+		return
+	}
+
+	/*d.Stdin, e = d.Cmd.StdinPipe()
+	d.Stdout, e = d.Cmd.StdoutPipe()*/
 
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
 
-	err = d.Cmd.Start()
-	// check("Start", err)
+	e = d.Cmd.Start()
 	return
 }
 
@@ -92,10 +93,9 @@ func main() {
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
-		check("read", eread)
 		fmt.Println(strings.TrimRight(bread, "\n"))
 	}
 
-	defer dup.Close()
+	dup.Close()
 	fmt.Println("Done")
 }
