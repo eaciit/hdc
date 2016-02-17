@@ -34,14 +34,29 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 		check("Flush", err)
 	}
 
-	for {
+	/*for {
 		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
 		check("read", eread)
 		fmt.Println(bread)
-	}
+	}*/
+
+	scanner := bufio.NewScanner(d.Reader)
+
+	readDone := make(chan bool)
+
+	go func() {
+		for scanner.Scan() {
+			resStr := scanner.Text()
+			fmt.Printf("Read: %v\n", resStr)
+		}
+		readDone <- true
+	}()
+
+	<-readDone
+
 	return
 }
 
