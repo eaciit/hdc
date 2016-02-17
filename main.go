@@ -33,7 +33,7 @@ func main() {
 
 	for _, res := range result {
 		tmp := Sample7{}
-		//fmt.Println(res)
+		fmt.Println(res)
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
 	}
