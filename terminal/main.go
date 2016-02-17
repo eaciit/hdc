@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	// "strings"
+	"strings"
 )
 
 /*var check func(string, error) = func(what string, e error) {
@@ -36,29 +36,35 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	if e != nil {
 		return
 	}
+	/*
+		scanner := bufio.NewScanner(d.Reader)
 
-	scanner := bufio.NewScanner(d.Reader)
+		done := make(chan bool)
 
-	done := make(chan bool)
+		go func() {
+			for scanner.Scan() {
+				fmt.Println(scanner.Text())
+			}
+			done <- true
+			close(done)
+		}()
 
-	go func() {
-		for scanner.Scan() {
-			fmt.Println(scanner.Text())
-		}
-		done <- true
-		close(done)
-	}()
+		<-done*/
 
-	<-done
-
-	/*for {
+loopRead:
+	for {
 		bread, e := d.Reader.ReadString('\n')
-		if e != nil && e.Error() == "EOF" {
-			break
+		_ = e
+		if bread == "" {
+			break loopRead
 		}
+
+		/*if e != nil && e.Error() == "EOF" {
+			break
+		}*/
 		result = append(result, bread)
 		fmt.Println(strings.TrimRight(bread, "\n"))
-	}*/
+	}
 
 	return
 }
