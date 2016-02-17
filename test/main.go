@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	. "github.com/hdc/yanda15/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	"time"
 )
 
