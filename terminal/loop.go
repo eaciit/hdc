@@ -13,6 +13,7 @@ func main() {
 	for cmd != "exit\n" {
 		fmt.Print("Enter command: ")
 		cmd, _ = buf.ReadString('\n')
-		fmt.Println("You exec ", cmd)
+		// fmt.Println("You exec ", cmd)
+		fmt.Println(cmd)
 	}
 }
