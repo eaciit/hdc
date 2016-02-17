@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	. "github.com/eaciit/hdc/hive"
+	"time"
 )
 
 var h *Hive
@@ -13,6 +14,14 @@ type Sample7 struct {
 	Description string `tag_name:"description"`
 	Total_emp   int    `tag_name:"total_emp"`
 	Salary      int    `tag_name:"salary"`
+}
+
+type SampleParse struct {
+	Code        string    `tag_name:"code"`
+	Description string    `tag_name:"description"`
+	Total_emp   int       `tag_name:"total_emp"`
+	Salary      int       `tag_name:"salary"`
+	Date        time.Time `tag_name:"date"`
 }
 
 func main() {
@@ -61,21 +70,21 @@ func TestParseOutput() {
 	h.OutputType = "csv"
 	h.DateFormat = "YYYY-MM-DD"
 	res := "'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"
-	tmp := Sample7{}
+	tmp := SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
 	h.OutputType = "tsv"
 	h.DateFormat = "YYYY-MMM-DD"
 	res = "00-0000\tAll Occupations TSV\t134354250\t40690\t2014-Dec-05"
-	tmp = Sample7{}
+	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
 	h.OutputType = "json"
 	h.DateFormat = "YY-MMM-DD DDDD"
 	res = "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"16-Feb-14 Sunday\" }"
-	tmp = Sample7{}
+	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 }
