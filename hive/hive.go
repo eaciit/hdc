@@ -274,7 +274,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 		appendData := toolkit.M{}
 		iv := reflect.New(v).Interface()
-		reader := csv.NewReader("")
+		reader := csv.NewReader(strings.NewReader(""))
 		if strings.Contains(in, "','") {
 			reader = csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
 		} else {
