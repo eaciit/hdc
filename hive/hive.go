@@ -343,8 +343,7 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 			}
 
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), h.ParseOutput(scanner.Text(), TableModel))
-
-			h.Exec("insert into " + TableName + " values (" + retVal + ")")
+			h.Exec(retVal)
 		}
 
 		if err == nil {
@@ -371,15 +370,17 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
-			if v.Field(i).Type.String() == "int" {
-				retVal += reflect.ValueOf(TableModel).Field(i).Int()
-			} else if v.Field(i).Type.String() == "string" {
-				retVal += reflect.ValueOf(TableModel).Field(i).String()
-			} else if v.Field(i).Type.String() == "float" {
-				retVal += reflect.ValueOf(TableModel).Field(i).Float()
-			} else {
-				retVal += reflect.ValueOf(TableModel).Field(i).String()
-			}
+			// if v.Field(i).Type.String() == "int" {
+			// 	retVal += reflect.ValueOf(TableModel).Field(i).Int()
+			// } else if v.Field(i).Type.String() == "string" {
+			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
+			// } else if v.Field(i).Type.String() == "float" {
+			// 	retVal += reflect.ValueOf(TableModel).Field(i).Float()
+			// } else {
+			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
+			// }
+
+			retVal += reflect.ValueOf(TableModel).Field(i).String()
 
 			if i < v.NumField()-1 {
 				retVal += ","
