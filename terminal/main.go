@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
+	// "strings"
 )
 
 /*var check func(string, error) = func(what string, e error) {
@@ -43,15 +43,18 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 
 	for {
 		bread, e := d.Reader.ReadString('\n')
-		peek, ePeek := d.Reader.Peek(14)
+		peek, _ := d.Reader.Peek(14)
 		peekStr := string(peek)
 
 		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
 			break
 		}
 
-		result = append(result, bread)
-		fmt.Println(strings.TrimRight(bread, "\n"))
+		if bread != BEE_CLI_STR {
+			result = append(result, bread)
+		}
+
+		// fmt.Println(strings.TrimRight(bread, "\n"))
 	}
 
 	return
@@ -77,7 +80,6 @@ func (d *DuplexTerm) Open() (e error) {
 
 func (d *DuplexTerm) Close() {
 	d.Cmd.Wait()
-	fmt.Println("command closed")
 	d.Stdin.Close()
 	d.Stdout.Close()
 }
@@ -110,5 +112,4 @@ func main() {
 	}*/
 
 	dup.Close()
-	fmt.Println("Done")
 }
