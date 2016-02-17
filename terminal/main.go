@@ -46,10 +46,8 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	return
 }
 
-func main() {
-	cmd := exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
-
-	// cmd := exec.Command("sh", "-c", "")
+func (d *DuplexTerm) Open() {
+	cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 
 	stdin, err := cmd.StdinPipe()
 	check("stdin", err)
@@ -62,12 +60,22 @@ func main() {
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
 
-	dup := DuplexTerm{}
-	dup.Writer = bufin
-	dup.Reader = bufout
+	d.Writer = bufin
+	d.Reader = bufout
 
 	err = cmd.Start()
 	check("Start", err)
+}
+
+func (d *DuplexTerm) Close() {
+	cmd.Wait()
+}
+
+var cmd *exec.Cmd
+
+func main() {
+	dup := DuplexTerm{}
+	dup.Open()
 
 	done := make(chan bool)
 
@@ -87,17 +95,15 @@ func main() {
 				fmt.Printf("error: %v\n", err)
 				_ = result
 				_ = err
-
-				done <- true
 			}
 		}
+		done <- true
 	}()
-	//_ = result
 
 	<-done
 
 	for {
-		bread, eread := d.Reader.ReadString('\n')
+		bread, eread := dup.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
@@ -105,9 +111,7 @@ func main() {
 		fmt.Println(bread)
 	}
 
-	cmd.Wait()
-	//check("wait", err)
+	dup.Close()
+
 	fmt.Println("Done")
-	/*stdin.Close()
-	stdout.Close()*/
 }
