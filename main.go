@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	// "github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/frezadev/hdc/hive"
+	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
 	// "os"
 )
@@ -20,10 +20,13 @@ type Sample7 struct {
 
 func main() {
 	var e error
-	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
+	h = HiveConfig("192.168.0.223:10000", "hdfs", "", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	/*fmt.Println("---------------------- EXEC ----------------")
+	fmt.Println("---------------------- EXEC ----------------")
+
+	h.Conn.Open()
+
 	result, e := h.Exec(q)
 
 	fmt.Printf("error: \n%v\n", e)
@@ -33,9 +36,10 @@ func main() {
 		//fmt.Println(res)
 		h.ParseOutput(res, &tmp)
 		fmt.Println(tmp)
-	}*/
+	}
 
-	fmt.Println("---------------------- EXEC LINE ----------------")
+	h.Conn.Close()
+	/*fmt.Println("---------------------- EXEC LINE ----------------")
 
 	//to execute query and read the result per line and then process its result
 
@@ -46,7 +50,7 @@ func main() {
 	}
 
 	e = h.ExecLine(q, DoSomething)
-	fmt.Printf("error: \n%v\n", e)
+	fmt.Printf("error: \n%v\n", e)*/
 
 	/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", nil)
 	h.Header = []string{"code", "description", "total_emp", "salary"}

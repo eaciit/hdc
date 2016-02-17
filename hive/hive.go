@@ -31,7 +31,7 @@ const (
 	DSV_DELIMITER = "|\t"*/
 )
 
-// type FnHiveReceive func(string) (interface{}, error)
+type FnHiveReceive func(string) (interface{}, error)
 
 type Hive struct {
 	BeePath     string
@@ -43,8 +43,8 @@ type Hive struct {
 	Header      []string
 	OutputType  string
 	DateFormat  string
-
-	JsonPart string
+	JsonPart    string
+	Conn        DuplexTerm
 }
 
 func HiveConfig(server, dbName, userid, password, path string, delimiter ...string) *Hive {
@@ -76,11 +76,11 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 	return &hv
 }
 
-func SetHeader(header []string) *Hive {
+/*func SetHeader(header []string) *Hive {
 	hv := Hive{}
 	hv.Header = header
 	return &hv
-}
+}*/
 
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.BeePath, h.Server, h.DBName)
@@ -97,7 +97,9 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 		out += value
 	}
 
-	out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	if h.HiveCommand != "" {
+		out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	}
 	return
 }
 
@@ -120,6 +122,42 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
+	h.HiveCommand = query
+	delimiter := "\t"
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if h.Conn.Cmd == nil {
+		if h.OutputType == "csv" {
+			h.Conn.Cmd = h.command(h.cmdStr(CSV_FORMAT))
+		} else {
+			h.Conn.Cmd = h.command(h.cmdStr(TSV_FORMAT))
+		}
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	result, e := h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	if len(result) > 0 {
+		h.constructHeader(result[:1][0], delimiter)
+	}
+
+	if len(result) > 1 {
+		out = result[1:]
+	}
+	return
+}
+
+/*func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	cmd := h.command()
 
@@ -144,7 +182,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		out = result[1:]
 	}
 	return
-}
+}*/
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
