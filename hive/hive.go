@@ -274,8 +274,12 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 		appendData := toolkit.M{}
 		iv := reflect.New(v).Interface()
-
-		reader := csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
+		reader := csv.NewReader("")
+		if strings.Contains(in, "','") {
+			reader = csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
+		} else {
+			reader = csv.NewReader(strings.NewReader(in))
+		}
 		record, e := reader.Read()
 
 		if e != nil {
