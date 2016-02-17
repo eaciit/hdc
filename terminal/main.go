@@ -6,7 +6,7 @@ import (
 	"fmt"
 	// "os"
 	"os/exec"
-	"time"
+	// "time"
 	// "runtime"
 	// "sync"
 )
@@ -66,11 +66,26 @@ func main() {
 	err = cmd.Start()
 	check("Start", err)
 
-	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	result, err = dup.SendInput("!quit")
-	// result, err = dup.SendInput("exit")
+	done := make(chan bool)
 
-	_ = result
+	go func() {
+		for i := 1; i < 3; i++ {
+			if i == 1 {
+				result, err := dup.SendInput("select * from sample_07 limit 5;")
+				_ = result
+				_ = err
+			}
+			if i == 2 {
+				result, err := dup.SendInput("!quit")
+				_ = result
+				_ = err
+			}
+		}
+		done <- true
+	}()
+	//_ = result
+
+	<-done
 
 	cmd.Wait()
 	//check("wait", err)
