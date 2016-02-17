@@ -35,7 +35,7 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 	}
 
 	for {
-		bread, eread := d.Reader.ReadString()
+		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
@@ -72,15 +72,18 @@ func main() {
 
 	go func() {
 		for i := 1; i < 3; i++ {
+			fmt.Printf("i: %v\n", i)
 			if i == 1 {
 				result, err := dup.SendInput("select * from sample_07 limit 5;")
 				// result, err := dup.SendInput("ls")
+				fmt.Printf("error: %v\n", err)
 				_ = result
 				_ = err
 			}
 			if i == 2 {
 				result, err := dup.SendInput("!quit")
 				// result, err := dup.SendInput("ls")
+				fmt.Printf("error: %v\n", err)
 				_ = result
 				_ = err
 
