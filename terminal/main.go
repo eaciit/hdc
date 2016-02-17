@@ -17,6 +17,10 @@ import (
 	}
 }*/
 
+const (
+	BEE_CLI_STR = "0: jdbc:hive2:"
+)
+
 type DuplexTerm struct {
 	Writer *bufio.Writer
 	Reader *bufio.Reader
@@ -36,32 +40,16 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	if e != nil {
 		return
 	}
-	/*
-		scanner := bufio.NewScanner(d.Reader)
 
-		done := make(chan bool)
-
-		go func() {
-			for scanner.Scan() {
-				fmt.Println(scanner.Text())
-			}
-			done <- true
-			close(done)
-		}()
-
-		<-done*/
-
-loopRead:
 	for {
 		bread, e := d.Reader.ReadString('\n')
-		_ = e
-		if bread == "" {
-			break loopRead
+		peek, ePeek := d.Reader.Peek(14)
+		peekStr := string(peek)
+
+		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+			break
 		}
 
-		/*if e != nil && e.Error() == "EOF" {
-			break
-		}*/
 		result = append(result, bread)
 		fmt.Println(strings.TrimRight(bread, "\n"))
 	}
