@@ -88,7 +88,7 @@ func TestParseOutput() {
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
-	res = ", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"2012-04-23T18:25:43Z\" }"
+	res = ", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"2012-04-23T18:25:43Z\" },{ \"code\" : \"00-0000\""
 	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
