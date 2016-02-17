@@ -38,14 +38,14 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 		check("Flush", err)
 	}
 
-	for {
+	/*for {
 		bread, eread := d.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
 		check("read", eread)
 		fmt.Println(bread)
-	}
+	}*/
 
 	return
 }
