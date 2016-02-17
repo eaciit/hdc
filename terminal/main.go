@@ -88,13 +88,13 @@ func main() {
 	_ = result
 	_ = err
 
-	for {
+	/*for {
 		bread, eread := dup.Reader.ReadString('\n')
 		if eread != nil && eread.Error() == "EOF" {
 			break
 		}
 		fmt.Println(strings.TrimRight(bread, "\n"))
-	}
+	}*/
 
 	dup.Close()
 	fmt.Println("Done")
