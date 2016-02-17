@@ -22,6 +22,7 @@ var check func(string, error) = func(what string, e error) {
 type DuplexTerm struct {
 	Writer *bufio.Writer
 	Reader *bufio.Reader
+	Cmd    *exec.Cmd
 }
 
 func (d *DuplexTerm) SendInput(input string) (result string, e error) {
@@ -47,15 +48,15 @@ func (d *DuplexTerm) SendInput(input string) (result string, e error) {
 }
 
 func (d *DuplexTerm) Open() {
-	cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
+	d.Cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
 
-	stdin, err := cmd.StdinPipe()
+	stdin, err := d.Cmd.StdinPipe()
 	check("stdin", err)
-	defer stdin.Close()
+	//defer stdin.Close()
 
-	stdout, err := cmd.StdoutPipe()
+	stdout, err := d.Cmd.StdoutPipe()
 	check("stdout", err)
-	defer stdout.Close()
+	//defer stdout.Close()
 
 	bufin := bufio.NewWriter(stdin)
 	bufout := bufio.NewReader(stdout)
@@ -63,15 +64,13 @@ func (d *DuplexTerm) Open() {
 	d.Writer = bufin
 	d.Reader = bufout
 
-	err = cmd.Start()
+	err = d.Cmd.Start()
 	check("Start", err)
 }
 
 func (d *DuplexTerm) Close() {
-	cmd.Wait()
+	d.Cmd.Wait()
 }
-
-var cmd *exec.Cmd
 
 func main() {
 	dup := DuplexTerm{}
@@ -80,23 +79,12 @@ func main() {
 	done := make(chan bool)
 
 	go func() {
-		for i := 1; i < 3; i++ {
-			fmt.Printf("i: %v\n", i)
-			if i == 1 {
-				result, err := dup.SendInput("select * from sample_07 limit 5;")
-				// result, err := dup.SendInput("ls")
-				fmt.Printf("error: %v\n", err)
-				_ = result
-				_ = err
-			}
-			if i == 2 {
-				result, err := dup.SendInput("!quit")
-				// result, err := dup.SendInput("ls")
-				fmt.Printf("error: %v\n", err)
-				_ = result
-				_ = err
-			}
-		}
+		result, err := dup.SendInput("select * from sample_07 limit 5;")
+		fmt.Printf("error: %v\n", err)
+		result, err = dup.SendInput("!quit")
+		fmt.Printf("error: %v\n", err)
+		_ = result
+		_ = err
 		done <- true
 	}()
 
