@@ -31,7 +31,7 @@ const (
 	DSV_DELIMITER = "|\t"*/
 )
 
-// type FnHiveReceive func(string) (interface{}, error)
+type FnHiveReceive func(string) (interface{}, error)
 
 type Hive struct {
 	BeePath     string
@@ -43,8 +43,8 @@ type Hive struct {
 	Header      []string
 	OutputType  string
 	DateFormat  string
-
-	JsonPart string
+	JsonPart    string
+	Conn        DuplexTerm
 }
 
 func HiveConfig(server, dbName, userid, password, path string, delimiter ...string) *Hive {
@@ -66,21 +66,31 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 		}
 	}
 
+	hv.User = userid
+
 	hv.OutputType = "tsv"
 	if len(delimiter) > 0 && delimiter[0] == "csv" {
 		hv.OutputType = "csv"
 	}
 
-	hv.User = userid
+	hv.Conn = DuplexTerm{}
+
+	if hv.Conn.Cmd == nil {
+		if hv.OutputType == "csv" {
+			hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
+		} else {
+			hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
+		}
+	}
 
 	return &hv
 }
 
-func SetHeader(header []string) *Hive {
+/*func SetHeader(header []string) *Hive {
 	hv := Hive{}
 	hv.Header = header
 	return &hv
-}
+}*/
 
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.BeePath, h.Server, h.DBName)
@@ -97,7 +107,9 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 		out += value
 	}
 
-	out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	if h.HiveCommand != "" {
+		out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
+	}
 	return
 }
 
@@ -120,6 +132,34 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
+	h.HiveCommand = query
+	delimiter := "\t"
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	result, e := h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	if len(result) > 0 {
+		h.constructHeader(result[:1][0], delimiter)
+	}
+
+	if len(result) > 1 {
+		out = result[1:]
+	}
+	return
+}
+
+/*func (h *Hive) Exec(query string) (out []string, e error) {
 	h.HiveCommand = query
 	cmd := h.command()
 
@@ -144,7 +184,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 		out = result[1:]
 	}
 	return
-}
+}*/
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
