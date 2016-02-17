@@ -66,12 +66,14 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 		}
 	}
 
+	hv.User = userid
+
 	hv.OutputType = "tsv"
 	if len(delimiter) > 0 && delimiter[0] == "csv" {
 		hv.OutputType = "csv"
 	}
 
-	hv.User = userid
+	hv.Conn = DuplexTerm{}
 
 	return &hv
 }
