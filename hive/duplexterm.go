@@ -1,21 +1,13 @@
-package main
+package hive
 
 import (
 	"bufio"
 	"errors"
-	"fmt"
+	// "fmt"
 	"io"
 	"os/exec"
 	"strings"
 )
-
-/*var check func(string, error) = func(what string, e error) {
-	if e != nil {
-		fmt.Println("Error", what+":", e.Error())
-		// os.Exit(1000)
-		panic(e)
-	}
-}*/
 
 const (
 	BEE_CLI_STR = "0: jdbc:hive2:"
@@ -27,6 +19,33 @@ type DuplexTerm struct {
 	Cmd    *exec.Cmd
 	Stdin  io.WriteCloser
 	Stdout io.ReadCloser
+}
+
+func (d *DuplexTerm) Open() (e error) {
+	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
+		return
+	}
+
+	if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
+		return
+	}
+
+	d.Writer = bufio.NewWriter(d.Stdin)
+	d.Reader = bufio.NewReader(d.Stdout)
+
+	e = d.Cmd.Start()
+	return
+}
+
+func (d *DuplexTerm) Close() {
+	result, e := d.SendInput("!quit")
+
+	_ = result
+	_ = e
+
+	d.Cmd.Wait()
+	d.Stdin.Close()
+	d.Stdout.Close()
 }
 
 func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
@@ -58,31 +77,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	return
 }
 
-func (d *DuplexTerm) Open() (e error) {
-	d.Cmd = exec.Command("sh", "-c", "beeline --outputFormat=csv2 -u jdbc:hive2://192.168.0.223:10000/default -n developer -d org.apache.hive.jdbc.HiveDriver")
-
-	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
-		return
-	}
-
-	if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
-		return
-	}
-
-	d.Writer = bufio.NewWriter(d.Stdin)
-	d.Reader = bufio.NewReader(d.Stdout)
-
-	e = d.Cmd.Start()
-	return
-}
-
-func (d *DuplexTerm) Close() {
-	d.Cmd.Wait()
-	d.Stdin.Close()
-	d.Stdout.Close()
-}
-
-func main() {
+/*func main() {
 	dup := DuplexTerm{}
 	err := dup.Open()
 
@@ -101,13 +96,5 @@ func main() {
 	_ = result
 	_ = err
 
-	/*for {
-		bread, eread := dup.Reader.ReadString('\n')
-		if eread != nil && eread.Error() == "EOF" {
-			break
-		}
-		fmt.Println(strings.TrimRight(bread, "\n"))
-	}*/
-
 	dup.Close()
-}
+}*/
