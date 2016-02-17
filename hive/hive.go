@@ -8,10 +8,12 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"github.com/metakeule/fmtdate"
 	"os"
 	"os/exec"
 	"os/user"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -40,6 +42,9 @@ type Hive struct {
 	HiveCommand string
 	Header      []string
 	OutputType  string
+	DateFormat  string
+
+	JsonPart string
 }
 
 func HiveConfig(server, dbName, userid, password, path string, delimiter ...string) *Hive {
@@ -61,12 +66,12 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 		}
 	}
 
-	hv.User = userid
-
 	hv.OutputType = "tsv"
 	if len(delimiter) > 0 && delimiter[0] == "csv" {
 		hv.OutputType = "csv"
 	}
+
+	hv.User = userid
 
 	return &hv
 }
@@ -269,8 +274,12 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 		appendData := toolkit.M{}
 		iv := reflect.New(v).Interface()
-
-		reader := csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
+		reader := csv.NewReader(strings.NewReader(""))
+		if strings.Contains(in, "','") {
+			reader = csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
+		} else {
+			reader = csv.NewReader(strings.NewReader(in))
+		}
 		record, e := reader.Read()
 
 		if e != nil {
@@ -305,6 +314,32 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 						valf, _ := strconv.ParseFloat(valthis.(string), 64)
 						appendData.Set(v.Field(i).Name, valf)
 					}
+
+					dtype := h.DetectFormat(valthis.(string))
+					if dtype == "date" {
+						valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
+					} else if dtype == "bool" {
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
+					}
+				}
+			}
+		} else {
+			for _, val := range h.Header {
+				valthis := appendData[val]
+				dtype := h.DetectFormat(valthis.(string))
+				if dtype == "int" {
+					appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
+				} else if dtype == "float" {
+					valf, _ := strconv.ParseFloat(valthis.(string), 64)
+					appendData.Set(val, valf)
+				} else if dtype == "date" {
+					valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+					appendData.Set(val, valf)
+				} else if dtype == "bool" {
+					valf, _ := strconv.ParseBool(valthis.(string))
+					appendData.Set(val, valf)
 				}
 			}
 		}
@@ -314,13 +349,16 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 	} else if h.OutputType == "json" {
 		var temp = toolkit.M{}
-		e := json.Unmarshal([]byte(in), &temp)
-		if e != nil {
-			return e
-		}
-		e = toolkit.Serde(temp, m, "json")
-		if e != nil {
-			return e
+		in = h.InspectJson(in)
+		if in != "" {
+			e := json.Unmarshal([]byte(in), &temp)
+			if e != nil {
+				return e
+			}
+			e = toolkit.Serde(temp, m, "json")
+			if e != nil {
+				return e
+			}
 		}
 	} else {
 		var v reflect.Type
@@ -355,6 +393,32 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 						valf, _ := strconv.ParseFloat(valthis.(string), 64)
 						appendData.Set(v.Field(i).Name, valf)
 					}
+					dtype := h.DetectFormat(valthis.(string))
+					if dtype == "date" {
+						valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
+					} else if dtype == "bool" {
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
+					}
+				}
+			}
+
+		} else {
+			for _, val := range h.Header {
+				valthis := appendData[val]
+				dtype := h.DetectFormat(valthis.(string))
+				if dtype == "int" {
+					appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
+				} else if dtype == "float" {
+					valf, _ := strconv.ParseFloat(valthis.(string), 64)
+					appendData.Set(val, valf)
+				} else if dtype == "date" {
+					valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+					appendData.Set(val, valf)
+				} else if dtype == "bool" {
+					valf, _ := strconv.ParseBool(valthis.(string))
+					appendData.Set(val, valf)
 				}
 			}
 		}
@@ -365,6 +429,90 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		return nil
 	}
 	return nil
+}
+
+func (h *Hive) InspectJson(in string) (out string) {
+	if h.JsonPart != "" {
+		in = h.JsonPart + in
+	}
+	res := ""
+	charopen := 0
+	charclose := 0
+	for i, r := range in {
+		c := string(r)
+		if c == "{" {
+			charopen += 1
+		} else if c == "}" {
+			charclose += 1
+		}
+
+		if charopen == charclose && (charclose != 0 && charopen != 0) {
+			if len(in) == i+1 {
+				h.JsonPart = ""
+			} else {
+				h.JsonPart = in[i+1:]
+			}
+			res = in[:i+1]
+			break
+		}
+	}
+
+	if charopen != charclose || (charclose == 0 && charopen == 0) {
+		h.JsonPart = in
+	}
+
+	return strings.Trim(strings.TrimSpace(res), " ,")
+}
+
+func (h *Hive) DetectFormat(in string) (out string) {
+	res := ""
+	if in != "" {
+		matchNumber := false
+		matchFloat := false
+		matchDate := false
+
+		formatDate := "((^(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)[\\d]{4}$)|(^[\\d]{4}(\\.|\\/|-)(0[0-9]|[0-9]|1[0-2])(\\.|\\/|-)(0[0-9]|[0-9]|(1|2)[0-9]|3[0-1])$))"
+		matchDate, _ = regexp.MatchString(formatDate, in)
+
+		if !matchDate && h.DateFormat != "" {
+			d := cast.String2Date(in, h.DateFormat)
+			if d.Year() > 1 {
+				matchDate = true
+			} else {
+				d, e := fmtdate.Parse(h.DateFormat, in)
+				if e == nil || d.Year() > 1 {
+					matchDate = true
+				}
+			}
+		}
+
+		x := strings.Index(in, ".")
+
+		if x > 0 {
+			matchFloat = true
+			in = strings.Replace(in, ".", "", 1)
+		}
+
+		matchNumber, _ = regexp.MatchString("^\\d+$", in)
+
+		if strings.TrimSpace(in) == "true" || strings.TrimSpace(in) == "false" {
+			res = "bool"
+		} else {
+			res = "string"
+			if matchNumber {
+				res = "int"
+				if matchFloat {
+					res = "float"
+				}
+			}
+
+			if matchDate {
+				res = "date"
+			}
+		}
+	}
+
+	return res
 }
 
 type FieldMismatch struct {

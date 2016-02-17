@@ -50,7 +50,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 			break
 		}
 
-		if strings.Contains(bread, BEE_CLI_STR) {
+		if !strings.Contains(bread, BEE_CLI_STR) {
 			result = append(result, bread)
 		}
 	}
