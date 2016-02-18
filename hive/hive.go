@@ -8,6 +8,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -131,7 +132,6 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
-	//h.HiveCommand = query
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -158,8 +158,19 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e error) {
-	//h.HiveCommand = query
+func (h *Hive) Populate(query string, m interface{}) (e error) {
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	log.Printf("v: %v\n", v)
+	/*ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()*/
+
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -184,8 +195,8 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 		rows := result[1:]
 
 		for _, val := range rows {
-			h.ParseOutput(val, obj)
-			out = append(out, obj)
+			h.ParseOutput(val, m)
+			//out = append(out, obj)
 		}
 
 	}
@@ -219,6 +230,42 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 	}
 	return
 }*/
+
+func (h *Hive) ExecLineX(query string, DoResult func(result string)) (e error) {
+	delimiter := "\t"
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	scanner := bufio.NewScanner(h.Conn.Stdout)
+
+	idx := 1
+
+	go func(idx int) {
+		for scanner.Scan() {
+			resStr := scanner.Text()
+			if idx == 1 {
+				h.constructHeader(resStr, delimiter)
+			} else {
+				DoResult(resStr)
+			}
+			idx += 1
+		}
+	}(idx)
+
+	_, e = h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	return
+}
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
