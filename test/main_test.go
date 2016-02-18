@@ -42,7 +42,7 @@ func TestHiveExec(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	h.Conn.Open()
+	h.Conn.Open(nil)
 
 	result, e := h.Exec(q)
 
@@ -74,7 +74,7 @@ func TestHivePopulate(t *testing.T) {
 
 	var result []toolkit.M
 
-	h.Conn.Open()
+	h.Conn.Open(nil)
 
 	e := h.Populate(q, &result)
 	fatalCheck(t, "Populate", e)
@@ -92,16 +92,17 @@ func TestExecLine(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	h.Conn.Open()
-
-	var DoSomething = func(res string) {
+	var DoSomething = func(res string) (interface{}, error) {
 		tmp := Sample7{}
 		h.ParseOutput(res, &tmp)
-		log.Println(tmp)
+		//log.Println(tmp)
+		return tmp, nil
 	}
 
-	e = h.ExecLineX(q, DoSomething)
-	log.Printf("error: \n%v\n", e)
+	h.Conn.Open(DoSomething)
+
+	h.ExecLineX(q)
+	// log.Printf("error: \n%v\n", e)
 
 	h.Conn.Close()
 }

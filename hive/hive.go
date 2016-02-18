@@ -231,8 +231,9 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 	return
 }*/
 
-func (h *Hive) ExecLineX(query string, DoResult func(result string)) (e error) {
+func (h *Hive) ExecLineX(query string) {
 	delimiter := "\t"
+	_ = delimiter
 
 	if h.OutputType == "csv" {
 		delimiter = ","
@@ -242,23 +243,7 @@ func (h *Hive) ExecLineX(query string, DoResult func(result string)) (e error) {
 		query += ";"
 	}
 
-	scanner := bufio.NewScanner(h.Conn.Stdout)
-
-	idx := 1
-
-	go func(idx int) {
-		for scanner.Scan() {
-			resStr := scanner.Text()
-			if idx == 1 {
-				h.constructHeader(resStr, delimiter)
-			} else {
-				DoResult(resStr)
-			}
-			idx += 1
-		}
-	}(idx)
-
-	_, e = h.Conn.SendInput(query)
+	_, e := h.Conn.SendInput(query)
 
 	if e != nil {
 		return
