@@ -72,11 +72,11 @@ func TestHivePopulate(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	var result toolkit.M
+	var obj toolkit.M
 
 	h.Conn.Open()
 
-	e = h.Populate(q, &result)
+	result, e := h.Populate(q, &obj)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {

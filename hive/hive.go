@@ -9,7 +9,7 @@ import (
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
 	"github.com/metakeule/fmtdate"
-	"log"
+	// "log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -160,7 +160,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-func (h *Hive) Populate(query string, obj interface{}) (e error) {
+func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e error) {
 	//h.HiveCommand = query
 	delimiter := "\t"
 
@@ -183,13 +183,11 @@ func (h *Hive) Populate(query string, obj interface{}) (e error) {
 	}
 
 	if len(result) > 1 {
-		out := result[1:]
-		//tmpObj := obj
+		rows := result[1:]
 
-		for _, val := range out {
-			// h.ParseOutput(val, tmpObj)
-			//obj = append(obj, tmpObj)
-			log.Printf("test: %v", val)
+		for _, val := range rows {
+			h.ParseOutput(val, obj)
+			out = append(out, obj)
 		}
 
 	}
