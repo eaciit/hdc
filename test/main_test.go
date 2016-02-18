@@ -76,7 +76,7 @@ func TestHivePopulate(t *testing.T) {
 
 	h.Conn.Open()
 
-	result, e = h.Populate(q, &obj)
+	result, e := h.Populate(q, &obj)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
