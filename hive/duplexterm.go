@@ -14,14 +14,15 @@ const (
 )
 
 type DuplexTerm struct {
-	Writer *bufio.Writer
-	Reader *bufio.Reader
-	Cmd    *exec.Cmd
-	Stdin  io.WriteCloser
-	Stdout io.ReadCloser
+	Writer    *bufio.Writer
+	Reader    *bufio.Reader
+	Cmd       *exec.Cmd
+	Stdin     io.WriteCloser
+	Stdout    io.ReadCloser
+	FnReceive FnHiveReceive
 }
 
-func (d *DuplexTerm) Open() (e error) {
+/*func (d *DuplexTerm) Open() (e error) {
 	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
 		return
 	}
@@ -33,6 +34,43 @@ func (d *DuplexTerm) Open() (e error) {
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
 
+	e = d.Cmd.Start()
+	return
+}*/
+
+func (d *DuplexTerm) Open(fn FnHiveReceive) (e error) {
+	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
+		return
+	}
+
+	if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
+		return
+	}
+
+	d.Writer = bufio.NewWriter(d.Stdin)
+	d.Reader = bufio.NewReader(d.Stdout)
+
+	if fn != nil {
+		d.FnReceive = fn
+		idx := 1
+		go func(idx int) {
+			for {
+				bread, e := d.Reader.ReadString('\n')
+				peek, _ := d.Reader.Peek(14)
+				peekStr := string(peek)
+
+				if !strings.Contains(bread, BEE_CLI_STR) && idx != 1 {
+					//result = append(result, bread)
+					d.FnReceive(bread)
+				}
+
+				if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+					break
+				}
+				idx += 1
+			}
+		}(idx)
+	}
 	e = d.Cmd.Start()
 	return
 }
@@ -60,17 +98,19 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 		return
 	}
 
-	for {
-		bread, e := d.Reader.ReadString('\n')
-		peek, _ := d.Reader.Peek(14)
-		peekStr := string(peek)
+	if d.FnReceive == nil {
+		for {
+			bread, e := d.Reader.ReadString('\n')
+			peek, _ := d.Reader.Peek(14)
+			peekStr := string(peek)
 
-		if !strings.Contains(bread, BEE_CLI_STR) {
-			result = append(result, bread)
-		}
+			if !strings.Contains(bread, BEE_CLI_STR) {
+				result = append(result, bread)
+			}
 
-		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-			break
+			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+				break
+			}
 		}
 	}
 

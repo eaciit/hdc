@@ -3,8 +3,8 @@ package hive
 import (
 	//"fmt"
 	"github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/frezadev/hdc/hive"
+	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
 	"log"
 	"os"
@@ -42,7 +42,7 @@ func TestHiveExec(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	h.Conn.Open()
+	h.Conn.Open(nil)
 
 	result, e := h.Exec(q)
 
@@ -72,11 +72,11 @@ func TestHivePopulate(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
-	var obj toolkit.M
+	var result []toolkit.M
 
-	h.Conn.Open()
+	h.Conn.Open(nil)
 
-	result, e := h.Populate(q, &obj)
+	e := h.Populate(q, &result)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
@@ -88,26 +88,25 @@ func TestHivePopulate(t *testing.T) {
 	h.Conn.Close()
 }
 
-/*func TestExecLine(t *testing.T) {
-	var e error
-	h = HiveConfig("192.168.0.223:10000", "hdfs", "", "", "")
+func TestExecLine(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
+	x := "select * from sample_07 limit 10;"
+	var DoSomething = func(res string) (interface{}, error) {
+		tmp := Sample7{}
+		//h.ParseOutput(res, &tmp)
+		log.Println(res)
+		return tmp, nil
+	}
 
-	log.Println("---------------------- EXEC LINE ----------------")
+	h.Conn.Open(DoSomething)
 
-	h.Conn.Open()
-
-	// var DoSomething = func(res string) {
-	// 	tmp := Sample7{}
-	// 	h.ParseOutput(res, &tmp)
-	// 	fmt.Println(tmp)
-	// }
-
-	// e = h.ExecLine(q, DoSomething)
-	// fmt.Printf("error: \n%v\n", e)
+	h.ExecLineX(q)
+	h.ExecLineX(x)
+	// log.Printf("error: \n%v\n", e)
 
 	h.Conn.Close()
-}*/
+}
 
 //func main() {
 
