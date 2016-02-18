@@ -9,6 +9,7 @@ import (
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
 	"github.com/metakeule/fmtdate"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -156,6 +157,43 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	if len(result) > 1 {
 		out = result[1:]
 	}
+	return
+}
+
+func (h *Hive) Populate(query string, obj interface{}) (e error) {
+	h.HiveCommand = query
+	delimiter := "\t"
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	result, e := h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	if len(result) > 0 {
+		h.constructHeader(result[:1][0], delimiter)
+	}
+
+	if len(result) > 1 {
+		out := result[1:]
+		//tmpObj := obj
+
+		for _, val := range out {
+			// h.ParseOutput(val, tmpObj)
+			//obj = append(obj, tmpObj)
+			log.Printf("test: %v", val)
+		}
+
+	}
+
 	return
 }
 
