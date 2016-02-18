@@ -448,7 +448,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 					dtype := h.DetectFormat(valthis.(string))
 					if dtype == "date" {
-						valf, _ := cast.String2Date(h.DateFormat, valthis.(string))
+						valf := cast.String2Date(h.DateFormat, valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
@@ -466,7 +466,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					valf, _ := strconv.ParseFloat(valthis.(string), 64)
 					appendData.Set(val, valf)
 				} else if dtype == "date" {
-					valf, _ := cast.String2Date(h.DateFormat, valthis.(string))
+					valf := cast.String2Date(h.DateFormat, valthis.(string))
 					appendData.Set(val, valf)
 				} else if dtype == "bool" {
 					valf, _ := strconv.ParseBool(valthis.(string))
@@ -526,7 +526,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					}
 					dtype := h.DetectFormat(valthis.(string))
 					if dtype == "date" {
-						valf, _ := cast.String2Date(h.DateFormat, valthis.(string))
+						valf := cast.String2Date(h.DateFormat, valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
@@ -545,7 +545,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					valf, _ := strconv.ParseFloat(valthis.(string), 64)
 					appendData.Set(val, valf)
 				} else if dtype == "date" {
-					valf, _ := cast.String2Date(h.DateFormat, valthis.(string))
+					valf := cast.String2Date(h.DateFormat, valthis.(string))
 					appendData.Set(val, valf)
 				} else if dtype == "bool" {
 					valf, _ := strconv.ParseBool(valthis.(string))
