@@ -8,6 +8,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -133,7 +134,6 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
-	//h.HiveCommand = query
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -160,8 +160,19 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e error) {
-	//h.HiveCommand = query
+func (h *Hive) Populate(query string, m interface{}) (e error) {
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	log.Printf("v: %v\n", v)
+	/*ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()*/
+
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -186,8 +197,8 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 		rows := result[1:]
 
 		for _, val := range rows {
-			h.ParseOutput(val, obj)
-			out = append(out, obj)
+			h.ParseOutput(val, m)
+			//out = append(out, obj)
 		}
 
 	}
@@ -221,6 +232,27 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 	}
 	return
 }*/
+
+func (h *Hive) ExecLineX(query string) {
+	delimiter := "\t"
+	_ = delimiter
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	_, e := h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	return
+}
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
@@ -339,6 +371,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
+	isMatch = false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
 
 	if tempVal == nil {
@@ -358,11 +391,16 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 			}
 			tempVal, err = h.Exec(tempQuery)
 		}
+	} else {
+		isMatch, err = CheckDataStructure(TableName, TableModel)
+	}
+
+	if isMatch == false {
+		err.Error() = "Structure does not match"
+		return retVal, err
 	}
 
 	if err == nil {
-		//tempVal, err = h.Exec("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
-
 		file, e := os.Open(HDFSPath)
 		if e != nil {
 			fmt.Println(e)
@@ -391,14 +429,56 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 
 }
 
+func CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
+	isMatch = false
+	res, err := h.Exec("describe " + Tablename + ";")
+
+	if err != nil {
+		return isMatch, err
+	}
+
+	if res != nil {
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
+
+		if v.Kind() == reflect.Struct {
+			for i := 0; i < v.NumField(); i++ {
+				if res[i] != nil {
+					lines := strings.Split(res[i], ",").Trim()
+
+					if strings.Replace(lines[1], "double", "float") == v.Field(i).Type.String() {
+						isMatch = true
+					} else {
+						isMatch = false
+						break
+					}
+				} else {
+					// handle new column
+					update, err := h.Exec(QueryBuilder("add column", Tablename, nil, TableModel))
+
+					if err != nil {
+						break
+					}
+
+					isMatch = true
+				}
+			}
+		}
+	} else {
+		return isMatch, err
+	}
+}
+
 func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retVal string) {
 	clause = strings.ToUpper(clause)
 	retVal = ""
 
 	if clause == "INSERT" {
-		retVal += clause + " INTO " + tablename + " values ("
-	} else {
-		return retVal
+		retVal += clause + " INTO " + tablename + " VALUES ("
+	} else if clause == "ADD COLUMN" {
+		retVal += "ALTER TABLE" + tablename + " ADD COLUMNS ("
+	} else if clause == "SELECT" {
+		retVal += "SELECT * FROM " + tablename + ";"
 	}
 
 	var v reflect.Type
@@ -406,17 +486,11 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
-			// if v.Field(i).Type.String() == "int" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).Int()
-			// } else if v.Field(i).Type.String() == "string" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
-			// } else if v.Field(i).Type.String() == "float" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).Float()
-			// } else {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
-			// }
-
-			retVal += reflect.ValueOf(TableModel).Field(i).String()
+			if clause == "INSERT" {
+				retVal += reflect.ValueOf(TableModel).Field(i).String()
+			} else if clause == "ADD COLUMN" {
+				retVal += reflect.ValueOf(TableModel).Field(i).String() + " " + v.Field(i).Type.String()
+			}
 
 			if i < v.NumField()-1 {
 				retVal += ","
