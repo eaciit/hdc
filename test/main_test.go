@@ -76,14 +76,14 @@ func TestHivePopulate(t *testing.T) {
 
 	h.Conn.Open()
 
-	result, e := h.Populate(q, &obj)
+	result, e = h.Populate(q, &obj)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
 		log.Printf("Error want %d got %d", 5, len(result))
 	}
 
-	log.Printf("Result: %s", toolkit.JsonString(result))
+	log.Printf("Result: \n%s", toolkit.JsonString(result))
 
 	h.Conn.Close()
 }
