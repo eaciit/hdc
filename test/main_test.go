@@ -34,11 +34,12 @@ func fatalCheck(t *testing.T, what string, e error) {
 	}
 }
 
-func TestHiveConnect(t *testing.T) {
+/*func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-}
+}*/
 
 func TestHiveExec(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
 	h.Conn.Open()
@@ -52,7 +53,7 @@ func TestHiveExec(t *testing.T) {
 		log.Printf("result: \n%v\n", result)
 
 		for _, res := range result {
-			tmp := Sample7{}
+			var tmp toolkit.M
 			h.ParseOutput(res, &tmp)
 			log.Println(tmp)
 		}
@@ -68,10 +69,10 @@ Exec is suitable for long type query that return massive amount of data and requ
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
 func TestHivePopulate(t *testing.T) {
-	var result toolkit.M
-
-	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
+
+	var result toolkit.M
 
 	h.Conn.Open()
 

@@ -133,7 +133,7 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
-	h.HiveCommand = query
+	//h.HiveCommand = query
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -161,7 +161,7 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 }
 
 func (h *Hive) Populate(query string, obj interface{}) (e error) {
-	h.HiveCommand = query
+	//h.HiveCommand = query
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
