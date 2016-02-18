@@ -68,21 +68,21 @@ func TestParseOutput() {
 	h.Header = []string{"code", "description", "total_emp", "salary", "Date"}
 
 	h.OutputType = "csv"
-	h.DateFormat = "YYYY-MM-DD"
+	h.DateFormat = "YYYY-MM-dd"
 	res := "'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"
 	tmp := SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
 	h.OutputType = "csv"
-	h.DateFormat = "YYYY-MM-DD"
+	h.DateFormat = "YYYY-MM-dd"
 	res = "00-0000,All Occupations CSV2,134354250,40690,2014-05-01"
 	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
 	fmt.Println(tmp)
 
 	h.OutputType = "tsv"
-	h.DateFormat = "YYYY-MMM-DD"
+	h.DateFormat = "YYYY-MMM-dd"
 	res = "00-0000\tAll Occupations TSV\t134354250\t40690\t2014-Dec-05"
 	tmp = SampleParse{}
 	h.ParseOutput(res, &tmp)
