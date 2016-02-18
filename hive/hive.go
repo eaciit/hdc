@@ -8,7 +8,6 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	"github.com/metakeule/fmtdate"
 	"os"
 	"os/exec"
 	"os/user"
@@ -449,7 +448,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 
 					dtype := h.DetectFormat(valthis.(string))
 					if dtype == "date" {
-						valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+						valf := cast.String2Date(h.DateFormat, valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
@@ -467,7 +466,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					valf, _ := strconv.ParseFloat(valthis.(string), 64)
 					appendData.Set(val, valf)
 				} else if dtype == "date" {
-					valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+					valf := cast.String2Date(h.DateFormat, valthis.(string))
 					appendData.Set(val, valf)
 				} else if dtype == "bool" {
 					valf, _ := strconv.ParseBool(valthis.(string))
@@ -527,7 +526,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					}
 					dtype := h.DetectFormat(valthis.(string))
 					if dtype == "date" {
-						valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+						valf := cast.String2Date(h.DateFormat, valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
@@ -546,7 +545,7 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 					valf, _ := strconv.ParseFloat(valthis.(string), 64)
 					appendData.Set(val, valf)
 				} else if dtype == "date" {
-					valf, _ := fmtdate.Parse(h.DateFormat, valthis.(string))
+					valf := cast.String2Date(h.DateFormat, valthis.(string))
 					appendData.Set(val, valf)
 				} else if dtype == "bool" {
 					valf, _ := strconv.ParseBool(valthis.(string))
@@ -610,11 +609,6 @@ func (h *Hive) DetectFormat(in string) (out string) {
 			d := cast.String2Date(in, h.DateFormat)
 			if d.Year() > 1 {
 				matchDate = true
-			} else {
-				d, e := fmtdate.Parse(h.DateFormat, in)
-				if e == nil || d.Year() > 1 {
-					matchDate = true
-				}
 			}
 		}
 
