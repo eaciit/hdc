@@ -91,17 +91,18 @@ func TestHivePopulate(t *testing.T) {
 func TestExecLine(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
-
+	x := "select * from sample_07 limit 10;"
 	var DoSomething = func(res string) (interface{}, error) {
 		tmp := Sample7{}
-		h.ParseOutput(res, &tmp)
-		//log.Println(tmp)
+		//h.ParseOutput(res, &tmp)
+		log.Println(res)
 		return tmp, nil
 	}
 
 	h.Conn.Open(DoSomething)
 
 	h.ExecLineX(q)
+	h.ExecLineX(x)
 	// log.Printf("error: \n%v\n", e)
 
 	h.Conn.Close()

@@ -59,7 +59,7 @@ func (d *DuplexTerm) Open(fn FnHiveReceive) (e error) {
 				peek, _ := d.Reader.Peek(14)
 				peekStr := string(peek)
 
-				if !strings.Contains(bread, BEE_CLI_STR) {
+				if !strings.Contains(bread, BEE_CLI_STR) && idx != 1 {
 					//result = append(result, bread)
 					d.FnReceive(bread)
 				}
@@ -69,16 +69,6 @@ func (d *DuplexTerm) Open(fn FnHiveReceive) (e error) {
 				}
 				idx += 1
 			}
-			/*
-				for scanner.Scan() {
-					resStr := scanner.Text()
-					if idx == 1 {
-						h.constructHeader(resStr, delimiter)
-					} else {
-						fn(resStr)
-					}
-					idx += 1
-				}*/
 		}(idx)
 	}
 	e = d.Cmd.Start()
