@@ -2,16 +2,17 @@ package hive
 
 import (
 	//"fmt"
-	// "github.com/eaciit/toolkit"
+	"github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
-	// "os"
 	"log"
+	"os"
 	"testing"
 )
 
 var h *Hive
+var e error
 
 type Sample7 struct {
 	Code        string `tag_name:"code"`
@@ -20,12 +21,26 @@ type Sample7 struct {
 	Salary      string `tag_name:"salary"`
 }
 
-func TestExec(t *testing.T) {
-	var e error
+func killApp(code int) {
+	if h != nil {
+		h.Conn.Close()
+	}
+	os.Exit(code)
+}
+
+func fatalCheck(t *testing.T, what string, e error) {
+	if e != nil {
+		t.Fatalf("%s: %s", what, e.Error())
+	}
+}
+
+/*func TestHiveConnect(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+}*/
+
+func TestHiveExec(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
-
-	log.Println("---------------------- EXEC ----------------")
 
 	h.Conn.Open()
 
@@ -38,11 +53,37 @@ func TestExec(t *testing.T) {
 		log.Printf("result: \n%v\n", result)
 
 		for _, res := range result {
-			tmp := Sample7{}
+			var tmp toolkit.M
 			h.ParseOutput(res, &tmp)
 			log.Println(tmp)
 		}
 	}
+
+	h.Conn.Close()
+}
+
+/* Populate will exec query and immidiately return the value into object
+Populate is suitable for short type query that return limited data,
+Exec is suitable for long type query that return massive amount of data and require time to produce it
+
+Ideally Populate should call Exec as well but already have predefined function on it receiving process
+*/
+func TestHivePopulate(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	q := "select * from sample_07 limit 5;"
+
+	var obj toolkit.M
+
+	h.Conn.Open()
+
+	result, e := h.Populate(q, &obj)
+	fatalCheck(t, "Populate", e)
+
+	if len(result) != 5 {
+		log.Printf("Error want %d got %d", 5, len(result))
+	}
+
+	log.Printf("Result: \n%s", toolkit.JsonString(result))
 
 	h.Conn.Close()
 }

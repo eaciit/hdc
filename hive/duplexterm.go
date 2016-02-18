@@ -65,12 +65,12 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 		peek, _ := d.Reader.Peek(14)
 		peekStr := string(peek)
 
-		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-			break
-		}
-
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			result = append(result, bread)
+		}
+
+		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+			break
 		}
 	}
 
