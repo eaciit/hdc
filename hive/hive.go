@@ -674,6 +674,23 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 	} else if h.OutputType == "json" {
 		var temp interface{}
 		ins = h.InspectJson(ins)
+
+		//for catch multi json in one line
+		if h.JsonPart != "" && slice {
+			for {
+				tempjsonpart := h.JsonPart
+				h.JsonPart = ""
+				tempIn := h.InspectJson([]string{tempjsonpart})
+				if len(tempIn) == 0 {
+					break
+				} else {
+					for _, tin := range tempIn {
+						ins = append(ins, tin)
+					}
+				}
+			}
+		}
+
 		inss := fmt.Sprintf("[%s]", strings.Join(ins, ","))
 		if len(ins) > 0 {
 			e := json.Unmarshal([]byte(inss), &temp)

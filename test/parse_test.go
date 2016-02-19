@@ -61,15 +61,43 @@ func TestParseOutput(t *testing.T) {
 	h.ParseOutput(resj, &tmpj)
 	log.Println(tmpj)
 
-	resj = []string{",\"description\" : \"All Occupations INTERFACE\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }"}
+	resj = []string{",\"description\" : \"All Occupations INTERFACE\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" },{ \"code\" : \"00-2222\",\"description\" : \"All Occupations SISANYA\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }", "{ \"code\" : \"00-2222\",\"description\" : \"All Occupations Belakang DW\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }"}
 	var tmpx interface{}
 	h.ParseOutput(resj, &tmpx)
 	log.Println(tmpx)
 
 }
 
-func TestConstructHeader(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
-	h.ConstructHeader("'sample_07.code'\t'sample_07.description'\t'sample_07.total_emp'\t'sample_07.salary'", "\t")
-	log.Println(h.Header)
-}
+// func TestConstructHeader(t *testing.T) {
+// 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
+// 	h.ConstructHeader("'sample_07.code'\t'sample_07.description'\t'sample_07.total_emp'\t'sample_07.salary'", "\t")
+// 	log.Println(h.Header)
+// }
+
+// func TestUpperGoroutine(t *testing.T) {
+// 	jobs := make(chan int, 1000)
+// 	results := make(chan int, 1000)
+
+// 	for w := 1; w <= 100; w++ {
+// 		go worker(w, jobs, results)
+// 	}
+
+// 	for j := 1; j <= 150; j++ {
+// 		jobs <- j
+// 	}
+
+// 	close(jobs)
+
+// 	for a := 1; a <= 150; a++ {
+// 		<-results
+// 	}
+
+// }
+
+// func worker(id int, jobs <-chan int, results chan<- int) {
+// 	for j := range jobs {
+// 		log.Println("worker", id, "processing job", j)
+// 		time.Sleep(time.Second)
+// 		results <- j * 2
+// 	}
+// }
