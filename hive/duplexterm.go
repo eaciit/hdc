@@ -5,7 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
 	"strings"
 )
@@ -52,15 +52,9 @@ func (d *DuplexTerm) Open() (e error) {
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
 
-	log.Printf("Open: %v\n", d.FnReceive)
-
 	if d.FnReceive != nil {
-		idx := 1
-		go func(idx int) {
+		go func() {
 			for {
-				/*peek, _ := d.Reader.Peek(14)
-				peekStr := string(peek)*/
-
 				bread, e := d.Reader.ReadString('\n')
 
 				peek, _ := d.Reader.Peek(14)
@@ -75,12 +69,8 @@ func (d *DuplexTerm) Open() (e error) {
 					break
 				}
 
-				/*if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-					break
-				}*/
-				idx += 1
 			}
-		}(idx)
+		}()
 	}
 	e = d.Cmd.Start()
 	return
@@ -127,25 +117,3 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 
 	return
 }
-
-/*func main() {
-	dup := DuplexTerm{}
-	err := dup.Open()
-
-	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	result, err = dup.SendInput("select * from sample_07 limit 5;")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	result, err = dup.SendInput("!quit")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	_ = result
-	_ = err
-
-	dup.Close()
-}*/
