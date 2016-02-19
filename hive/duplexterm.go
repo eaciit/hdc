@@ -5,6 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"io"
+	"log"
 	"os/exec"
 	"strings"
 )
@@ -51,6 +52,8 @@ func (d *DuplexTerm) Open() (e error) {
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
 
+	log.Printf("Open: %v\n", d.FnReceive)
+
 	if d.FnReceive != nil {
 		idx := 1
 		go func(idx int) {
@@ -68,7 +71,7 @@ func (d *DuplexTerm) Open() (e error) {
 					d.FnReceive(bread)
 				}
 
-				if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+				if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 					break
 				}
 
@@ -116,7 +119,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 				result = append(result, bread)
 			}
 
-			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
+			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
 				break
 			}
 		}
