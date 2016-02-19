@@ -44,7 +44,7 @@ func TestParseOutput(t *testing.T) {
 
 	h.OutputType = "tsv"
 	h.DateFormat = "YYYY-MMM-dd"
-	res = []string{"00-0000\tAll Occupations TSV\t134354250\t40690\t2014-Dec-05"}
+	res = []string{"'00-0000'\t'All Occupations TSV'\t'134354250'\t'40690'\t'2014-Dec-05'"}
 	tmp = []SampleParse{}
 	h.ParseOutput(res, &tmp)
 	log.Println(tmp)
@@ -66,4 +66,10 @@ func TestParseOutput(t *testing.T) {
 	h.ParseOutput(resj, &tmpx)
 	log.Println(tmpx)
 
+}
+
+func TestConstructHeader(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
+	h.ConstructHeader("'sample_07.code'\t'sample_07.description'\t'sample_07.total_emp'\t'sample_07.salary'", "\t")
+	log.Println(h.Header)
 }
