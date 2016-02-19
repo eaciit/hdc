@@ -116,19 +116,6 @@ func (h *Hive) command(cmd ...string) *exec.Cmd {
 	return exec.Command("sh", arg...)
 }
 
-func (h *Hive) ConstructHeader(header string, delimiter string) {
-	var tmpHeader []string
-	for _, header := range strings.Split(strings.Replace(header, "\n", "", -1), delimiter) {
-		split := strings.Split(header, ".")
-		if len(split) > 1 {
-			tmpHeader = append(tmpHeader, strings.Trim(split[1], " '"))
-		} else {
-			tmpHeader = append(tmpHeader, strings.Trim(header, " '"))
-		}
-	}
-	h.Header = tmpHeader
-}
-
 func (h *Hive) constructHeader(header string, delimiter string) {
 	var tmpHeader []string
 	for _, header := range strings.Split(header, delimiter) {
