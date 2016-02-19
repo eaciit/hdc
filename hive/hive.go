@@ -8,6 +8,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -22,12 +23,14 @@ const (
 	BEE_USER     = " -n %s"
 	BEE_PASSWORD = " -p %s"
 	BEE_QUERY    = " -e \"%s\""
+	PACKAGENAME  = "Hive"
+
 	/*SHOW_HEADER  = " --showHeader=true"
 	HIDE_HEADER  = " --showHeader=false"*/
-	CSV_FORMAT = " --outputFormat=csv"
-	TSV_FORMAT = " --outputFormat=tsv"
-	/*DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
-	DSV_DELIMITER = "|\t"*/
+	CSV_FORMAT    = " --outputFormat=csv"
+	TSV_FORMAT    = " --outputFormat=tsv"
+	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
+	DSV_DELIMITER = "|\t"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -131,7 +134,6 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 }
 
 func (h *Hive) Exec(query string) (out []string, e error) {
-	//h.HiveCommand = query
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -158,8 +160,19 @@ func (h *Hive) Exec(query string) (out []string, e error) {
 	return
 }
 
-func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e error) {
-	//h.HiveCommand = query
+func (h *Hive) Populate(query string, m interface{}) (e error) {
+	if !toolkit.IsPointer(m) {
+		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+	}
+
+	var v reflect.Type
+	v = reflect.TypeOf(m).Elem()
+	log.Printf("v: %v\n", v)
+	/*ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+	appendData := toolkit.M{}
+	iv := reflect.New(v).Interface()*/
+
 	delimiter := "\t"
 
 	if h.OutputType == "csv" {
@@ -184,8 +197,8 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 		rows := result[1:]
 
 		for _, val := range rows {
-			h.ParseOutput(val, obj)
-			out = append(out, obj)
+			h.ParseOutput(val, m)
+			//out = append(out, obj)
 		}
 
 	}
@@ -219,6 +232,27 @@ func (h *Hive) Populate(query string, obj interface{}) (out []interface{}, e err
 	}
 	return
 }*/
+
+func (h *Hive) ExecLineX(query string) {
+	delimiter := "\t"
+	_ = delimiter
+
+	if h.OutputType == "csv" {
+		delimiter = ","
+	}
+
+	if !strings.HasPrefix(query, ";") {
+		query += ";"
+	}
+
+	_, e := h.Conn.SendInput(query)
+
+	if e != nil {
+		return
+	}
+
+	return
+}
 
 func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	h.HiveCommand = query
@@ -337,6 +371,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
+	isMatch := false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
 
 	if tempVal == nil {
@@ -356,11 +391,15 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 			}
 			tempVal, err = h.Exec(tempQuery)
 		}
+	} else {
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
+	}
+
+	if isMatch == false {
+		return retVal, err
 	}
 
 	if err == nil {
-		//tempVal, err = h.Exec("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
-
 		file, e := os.Open(HDFSPath)
 		if e != nil {
 			fmt.Println(e)
@@ -389,14 +428,55 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 
 }
 
+func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
+	isMatch = false
+	res, err := h.Exec("describe " + Tablename + ";")
+
+	if err != nil {
+		return isMatch, err
+	}
+
+	if res != nil {
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
+
+		if v.Kind() == reflect.Struct {
+			for i := 0; i < v.NumField(); i++ {
+				if res[i] != "" {
+					lines := strings.Split(res[i], ",")
+
+					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
+						isMatch = true
+					} else {
+						isMatch = false
+						break
+					}
+				} else {
+					// handle new column
+					_, err := h.Exec(QueryBuilder("add column", Tablename, "", TableModel))
+
+					if err != nil {
+						break
+					}
+
+					isMatch = true
+				}
+			}
+		}
+	}
+	return isMatch, err
+}
+
 func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retVal string) {
 	clause = strings.ToUpper(clause)
 	retVal = ""
 
 	if clause == "INSERT" {
-		retVal += clause + " INTO " + tablename + " values ("
-	} else {
-		return retVal
+		retVal += clause + " INTO " + tablename + " VALUES ("
+	} else if clause == "ADD COLUMN" {
+		retVal += "ALTER TABLE" + tablename + " ADD COLUMNS ("
+	} else if clause == "SELECT" {
+		retVal += "SELECT * FROM " + tablename + ";"
 	}
 
 	var v reflect.Type
@@ -404,17 +484,11 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
-			// if v.Field(i).Type.String() == "int" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).Int()
-			// } else if v.Field(i).Type.String() == "string" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
-			// } else if v.Field(i).Type.String() == "float" {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).Float()
-			// } else {
-			// 	retVal += reflect.ValueOf(TableModel).Field(i).String()
-			// }
-
-			retVal += reflect.ValueOf(TableModel).Field(i).String()
+			if clause == "INSERT" {
+				retVal += reflect.ValueOf(TableModel).Field(i).String()
+			} else if clause == "ADD COLUMN" {
+				retVal += reflect.ValueOf(TableModel).Field(i).String() + " " + v.Field(i).Type.String()
+			}
 
 			if i < v.NumField()-1 {
 				retVal += ","
@@ -427,97 +501,116 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	return retVal
 }
 
-func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
+func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
+	slice := false
+	var ins []string
+	if reflect.ValueOf(m).Elem().Kind() == reflect.Slice || toolkit.TypeName(in) == "[]string" {
+		slice = true
+		ins = in.([]string)
+	} else {
+		ins = append(ins, in.(string))
+	}
 
 	if h.OutputType == "csv" {
 		var v reflect.Type
-		v = reflect.TypeOf(m).Elem()
-		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
 
-		appendData := toolkit.M{}
-		iv := reflect.New(v).Interface()
-		reader := csv.NewReader(strings.NewReader(""))
-		if strings.Contains(in, "','") {
-			reader = csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(in, "','", "\",\"", -1), "'") + "\""))
+		if slice {
+			v = reflect.TypeOf(m).Elem().Elem()
 		} else {
-			reader = csv.NewReader(strings.NewReader(in))
-		}
-		record, e := reader.Read()
-
-		if e != nil {
-			return e
+			v = reflect.TypeOf(m).Elem()
 		}
 
-		if v.NumField() != len(record) {
-			return &FieldMismatch{v.NumField(), len(record)}
-		}
+		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+		for _, data := range ins {
+			appendData := toolkit.M{}
+			iv := reflect.New(v).Interface()
+			reader := csv.NewReader(strings.NewReader(""))
+			if strings.Contains(data, "','") {
+				reader = csv.NewReader(strings.NewReader("\"" + strings.Trim(strings.Replace(data, "','", "\",\"", -1), "'") + "\""))
+			} else {
+				reader = csv.NewReader(strings.NewReader(data))
+			}
+			record, e := reader.Read()
 
-		for i, val := range h.Header {
-			appendData[val] = strings.TrimSpace(record[i])
-		}
+			if e != nil {
+				return e
+			}
 
-		if v.Kind() == reflect.Struct {
-			for i := 0; i < v.NumField(); i++ {
-				tag := v.Field(i).Tag
+			if v.NumField() != len(record) {
+				return &FieldMismatch{v.NumField(), len(record)}
+			}
 
-				if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-					valthis := appendData[v.Field(i).Name]
-					if valthis == nil {
-						valthis = appendData[tag.Get("tag_name")]
+			for i, val := range h.Header {
+				appendData[val] = strings.TrimSpace(record[i])
+			}
+			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					tag := v.Field(i).Tag
+
+					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+						valthis := appendData[v.Field(i).Name]
+						if valthis == nil {
+							valthis = appendData[tag.Get("tag_name")]
+						}
+
+						switch v.Field(i).Type.Kind() {
+						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Float32:
+							valf, _ := strconv.ParseFloat(valthis.(string), 32)
+							appendData.Set(v.Field(i).Name, valf)
+						case reflect.Float64:
+							valf, _ := strconv.ParseFloat(valthis.(string), 64)
+							appendData.Set(v.Field(i).Name, valf)
+						}
+
+						dtype := h.DetectFormat(valthis.(string))
+						if dtype == "date" {
+							valf := cast.String2Date(valthis.(string), h.DateFormat)
+							appendData.Set(v.Field(i).Name, valf)
+						} else if dtype == "bool" {
+							valf, _ := strconv.ParseBool(valthis.(string))
+							appendData.Set(v.Field(i).Name, valf)
+						}
 					}
-
-					switch v.Field(i).Type.Kind() {
-					case reflect.Int:
-						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-					case reflect.Float32:
-						valf, _ := strconv.ParseFloat(valthis.(string), 32)
-						appendData.Set(v.Field(i).Name, valf)
-					case reflect.Float64:
-						valf, _ := strconv.ParseFloat(valthis.(string), 64)
-						appendData.Set(v.Field(i).Name, valf)
-					}
-
+				}
+			} else {
+				for _, val := range h.Header {
+					valthis := appendData[val]
 					dtype := h.DetectFormat(valthis.(string))
-					if dtype == "date" {
-						valf := cast.String2Date(h.DateFormat, valthis.(string))
-						appendData.Set(v.Field(i).Name, valf)
+					if dtype == "int" {
+						appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
+					} else if dtype == "float" {
+						valf, _ := strconv.ParseFloat(valthis.(string), 64)
+						appendData.Set(val, valf)
+					} else if dtype == "date" {
+						valf := cast.String2Date(valthis.(string), h.DateFormat)
+						appendData.Set(val, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
-						appendData.Set(v.Field(i).Name, valf)
+						appendData.Set(val, valf)
 					}
 				}
 			}
-		} else {
-			for _, val := range h.Header {
-				valthis := appendData[val]
-				dtype := h.DetectFormat(valthis.(string))
-				if dtype == "int" {
-					appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
-				} else if dtype == "float" {
-					valf, _ := strconv.ParseFloat(valthis.(string), 64)
-					appendData.Set(val, valf)
-				} else if dtype == "date" {
-					valf := cast.String2Date(h.DateFormat, valthis.(string))
-					appendData.Set(val, valf)
-				} else if dtype == "bool" {
-					valf, _ := strconv.ParseBool(valthis.(string))
-					appendData.Set(val, valf)
-				}
-			}
-		}
 
-		toolkit.Serde(appendData, iv, "json")
-		ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-		reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+			toolkit.Serde(appendData, iv, "json")
+			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+		}
+		if slice {
+			reflect.ValueOf(m).Elem().Set(ivs)
+		} else {
+			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+		}
 	} else if h.OutputType == "json" {
-		var temp = toolkit.M{}
-		in = h.InspectJson(in)
-		if in != "" {
-			e := json.Unmarshal([]byte(in), &temp)
+		var temp interface{}
+		ins = h.InspectJson(ins)
+		inss := fmt.Sprintf("[%s]", strings.Join(ins, ","))
+		if len(ins) > 0 {
+			e := json.Unmarshal([]byte(inss), &temp)
 			if e != nil {
 				return e
 			}
@@ -528,106 +621,121 @@ func (h *Hive) ParseOutput(in string, m interface{}) (e error) {
 		}
 	} else {
 		var v reflect.Type
-		v = reflect.TypeOf(m).Elem()
+
+		if slice {
+			v = reflect.TypeOf(m).Elem().Elem()
+		} else {
+			v = reflect.TypeOf(m).Elem()
+		}
+
 		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
 
-		appendData := toolkit.M{}
-		iv := reflect.New(v).Interface()
+		for _, data := range ins {
+			appendData := toolkit.M{}
+			iv := reflect.New(v).Interface()
 
-		splitted := strings.Split(in, "\t")
+			splitted := strings.Split(data, "\t")
 
-		for i, val := range h.Header {
-			appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
-		}
+			for i, val := range h.Header {
+				appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
+			}
+			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					tag := v.Field(i).Tag
 
-		if v.Kind() == reflect.Struct {
-			for i := 0; i < v.NumField(); i++ {
-				tag := v.Field(i).Tag
-
-				if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-					valthis := appendData[v.Field(i).Name]
-					if valthis == nil {
-						valthis = appendData[tag.Get("tag_name")]
+					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
+						valthis := appendData[v.Field(i).Name]
+						if valthis == nil {
+							valthis = appendData[tag.Get("tag_name")]
+						}
+						switch v.Field(i).Type.Kind() {
+						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Float32:
+							valf, _ := strconv.ParseFloat(valthis.(string), 32)
+							appendData.Set(v.Field(i).Name, valf)
+						case reflect.Float64:
+							valf, _ := strconv.ParseFloat(valthis.(string), 64)
+							appendData.Set(v.Field(i).Name, valf)
+						}
+						dtype := h.DetectFormat(valthis.(string))
+						if dtype == "date" {
+							valf := cast.String2Date(valthis.(string), h.DateFormat)
+							appendData.Set(v.Field(i).Name, valf)
+						} else if dtype == "bool" {
+							valf, _ := strconv.ParseBool(valthis.(string))
+							appendData.Set(v.Field(i).Name, valf)
+						}
 					}
-					switch v.Field(i).Type.Kind() {
-					case reflect.Int:
-						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-					case reflect.Float32:
-						valf, _ := strconv.ParseFloat(valthis.(string), 32)
-						appendData.Set(v.Field(i).Name, valf)
-					case reflect.Float64:
-						valf, _ := strconv.ParseFloat(valthis.(string), 64)
-						appendData.Set(v.Field(i).Name, valf)
-					}
+				}
+
+			} else {
+				for _, val := range h.Header {
+					valthis := appendData[val]
 					dtype := h.DetectFormat(valthis.(string))
-					if dtype == "date" {
-						valf := cast.String2Date(h.DateFormat, valthis.(string))
-						appendData.Set(v.Field(i).Name, valf)
+					if dtype == "int" {
+						appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
+					} else if dtype == "float" {
+						valf, _ := strconv.ParseFloat(valthis.(string), 64)
+						appendData.Set(val, valf)
+					} else if dtype == "date" {
+						valf := cast.String2Date(valthis.(string), h.DateFormat)
+						appendData.Set(val, valf)
 					} else if dtype == "bool" {
 						valf, _ := strconv.ParseBool(valthis.(string))
-						appendData.Set(v.Field(i).Name, valf)
+						appendData.Set(val, valf)
 					}
 				}
 			}
 
-		} else {
-			for _, val := range h.Header {
-				valthis := appendData[val]
-				dtype := h.DetectFormat(valthis.(string))
-				if dtype == "int" {
-					appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
-				} else if dtype == "float" {
-					valf, _ := strconv.ParseFloat(valthis.(string), 64)
-					appendData.Set(val, valf)
-				} else if dtype == "date" {
-					valf := cast.String2Date(h.DateFormat, valthis.(string))
-					appendData.Set(val, valf)
-				} else if dtype == "bool" {
-					valf, _ := strconv.ParseBool(valthis.(string))
-					appendData.Set(val, valf)
-				}
-			}
+			toolkit.Serde(appendData, iv, "json")
+			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
 		}
 
-		toolkit.Serde(appendData, iv, "json")
-		ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-		reflect.ValueOf(m).Elem().Set(ivs.Index(0))
-		return nil
+		if slice {
+			reflect.ValueOf(m).Elem().Set(ivs)
+		} else {
+			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
+		}
+
 	}
 	return nil
 }
 
-func (h *Hive) InspectJson(in string) (out string) {
-	if h.JsonPart != "" {
-		in = h.JsonPart + in
-	}
-	res := ""
-	charopen := 0
-	charclose := 0
-	for i, r := range in {
-		c := string(r)
-		if c == "{" {
-			charopen += 1
-		} else if c == "}" {
-			charclose += 1
-		}
+func (h *Hive) InspectJson(ins []string) (out []string) {
+	var re []string
 
-		if charopen == charclose && (charclose != 0 && charopen != 0) {
-			if len(in) == i+1 {
-				h.JsonPart = ""
-			} else {
-				h.JsonPart = in[i+1:]
+	for _, in := range ins {
+		if h.JsonPart != "" {
+			in = h.JsonPart + in
+		}
+		in = strings.Trim(strings.TrimSpace(in), " ,")
+		charopen := 0
+		charclose := 0
+		for i, r := range in {
+			c := string(r)
+			if c == "{" {
+				charopen += 1
+			} else if c == "}" {
+				charclose += 1
 			}
-			res = in[:i+1]
-			break
+
+			if charopen == charclose && (charclose != 0 && charopen != 0) {
+				if len(in) == i+1 {
+					h.JsonPart = ""
+				} else {
+					h.JsonPart = in[i+1:]
+				}
+				re = append(re, strings.Trim(strings.TrimSpace(in[:i+1]), " ,"))
+				break
+			}
+			if charopen != charclose || (charclose == 0 && charopen == 0) {
+				h.JsonPart = in
+			}
 		}
-	}
 
-	if charopen != charclose || (charclose == 0 && charopen == 0) {
-		h.JsonPart = in
 	}
-
-	return strings.Trim(strings.TrimSpace(res), " ,")
+	return re
 }
 
 func (h *Hive) DetectFormat(in string) (out string) {
