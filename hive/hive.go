@@ -367,7 +367,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 }
 
-/*func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch = false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
@@ -499,7 +499,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	}
 
 	return retVal
-}*/
+}
 
 func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
