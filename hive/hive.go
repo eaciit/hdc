@@ -593,14 +593,11 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 				return e
 			}
 
-			if v.NumField() != len(record) {
-				return &FieldMismatch{v.NumField(), len(record)}
-			}
-
 			for i, val := range h.Header {
 				appendData[val] = strings.TrimSpace(record[i])
 			}
 			if v.Kind() == reflect.Struct {
+
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
 
@@ -612,6 +609,12 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int16:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int32:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int64:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
 						case reflect.Float32:
 							valf, _ := strconv.ParseFloat(valthis.(string), 32)
@@ -724,6 +727,12 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 						}
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int16:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int32:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int64:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
 						case reflect.Float32:
 							valf, _ := strconv.ParseFloat(valthis.(string), 32)
