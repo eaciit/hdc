@@ -56,7 +56,7 @@ func (d *DuplexTerm) Open() (e error) {
 		go func() {
 			for {
 				bread, e := d.Reader.ReadString('\n')
-
+				bread = strings.TrimRight(bread, "\n")
 				peek, _ := d.Reader.Peek(14)
 				peekStr := string(peek)
 
@@ -102,6 +102,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	if d.FnReceive == nil {
 		for {
 			bread, e := d.Reader.ReadString('\n')
+			bread = strings.TrimRight(bread, "\n")
 			peek, _ := d.Reader.Peek(14)
 			peekStr := string(peek)
 
