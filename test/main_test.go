@@ -99,12 +99,13 @@ func TestExecLine(t *testing.T) {
 		return tmp, nil
 	}
 
-	var DoElse = func(res string) (interface{}, error) {
+	/*var DoElse = func(res string) (interface{}, error) {
 		tmp := Sample7{}
-		//h.ParseOutput(res, &tmp)
+		h.Header = []string{}
+		h.ParseOutput(res, &tmp)
 		log.Printf("Else: %v\n", res)
 		return tmp, nil
-	}
+	}*/
 
 	h.Conn.FnReceive = DoSomething
 	h.Conn.Open()
