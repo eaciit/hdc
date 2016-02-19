@@ -191,15 +191,16 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		h.constructHeader(result[:1][0], delimiter)
 	}
 
-	if len(result) > 1 {
-		rows := result[1:]
+	h.ParseOutput(result[1:], m)
 
+	/*if len(result) > 1 {
+		rows := result[1:]
 		for _, val := range rows {
 			h.ParseOutput(val, m)
-			//out = append(out, obj)
+			out = append(out, obj)
 		}
 
-	}
+	}*/
 
 	return
 }
