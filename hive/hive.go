@@ -233,9 +233,9 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
 
-	if tempVal == nil {
+	if hr.Result == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -250,10 +250,10 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			tempVal, err = h.Exec(tempQuery)
+			hr, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, Delimiter, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
@@ -275,7 +275,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				}
 			}
 			retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-			_, err = h.Exec(retVal)
+			_, err = h.fetch(retVal)
 		}
 
 		if err == nil {
@@ -309,7 +309,7 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 			hr, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, Delimiter, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
@@ -344,7 +344,8 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 	return retVal, err
 }
 
-func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
+// func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
+func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
 	hr, err := h.fetch("describe " + Tablename + ";")
 

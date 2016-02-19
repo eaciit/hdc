@@ -74,14 +74,11 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				return e
 			}
 
-			if v.NumField() != len(record) {
-				return &FieldMismatch{v.NumField(), len(record)}
-			}
-
 			for i, val := range header {
 				appendData[val] = strings.TrimSpace(record[i])
 			}
 			if v.Kind() == reflect.Struct {
+
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
 
@@ -93,6 +90,12 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int16:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int32:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int64:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
 						case reflect.Float32:
 							valf, _ := strconv.ParseFloat(valthis.(string), 32)
@@ -141,10 +144,32 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		}
 	} else if outputType == JSON {
 		var temp interface{}
-		ins = InspectJson(ins)
-		inss := fmt.Sprintf("[%s]", strings.Join(ins, ","))
+		ins, jsonPart := InspectJson(ins)
+
+		//for catch multi json in one line
+		if jsonPart != "" && slice {
+			for {
+				tempjsonpart := jsonPart
+				jsonPart = ""
+				tempIn, jsonPart := InspectJson([]string{tempjsonpart})
+				_ = jsonPart
+				if len(tempIn) == 0 {
+					break
+				} else {
+					for _, tin := range tempIn {
+						ins = append(ins, tin)
+					}
+				}
+			}
+		}
+
+		forSerde := strings.Join(ins, ",")
+		if slice {
+			forSerde = fmt.Sprintf("[%s]", strings.Join(ins, ","))
+		}
+
 		if len(ins) > 0 {
-			e := json.Unmarshal([]byte(inss), &temp)
+			e := json.Unmarshal([]byte(forSerde), &temp)
 			if e != nil {
 				return e
 			}
@@ -184,6 +209,12 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 						}
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int16:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int32:
+							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+						case reflect.Int64:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
 						case reflect.Float32:
 							valf, _ := strconv.ParseFloat(valthis.(string), 32)
@@ -236,9 +267,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 	return nil
 }
 
-func InspectJson(ins []string) (out []string) {
-	var re []string
-	var jsonPart string
+func InspectJson(ins []string) (re []string, jsonPart string) {
 	for _, in := range ins {
 		if jsonPart != "" {
 			in = jsonPart + in
@@ -269,11 +298,10 @@ func InspectJson(ins []string) (out []string) {
 		}
 
 	}
-	return re
+	return
 }
 
-func DetectFormat(in string, dateFormat string) (out string) {
-	res := ""
+func DetectFormat(in string, dateFormat string) (res string) {
 	if in != "" {
 		matchNumber := false
 		matchFloat := false
