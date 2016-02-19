@@ -1,4 +1,4 @@
-package hive_test
+package parse_test
 
 import (
 	. "github.com/yanda15/hdc/hive"
