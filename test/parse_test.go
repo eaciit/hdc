@@ -30,21 +30,21 @@ func TestParseOutput(t *testing.T) {
 
 	h.OutputType = "csv"
 	h.DateFormat = "yyyy-MM-dd"
-	res := []string{"'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"}
+	res := []string{"'00-0000','All Occupations CSV','134354250','40690','2014-05-01'", "'00-0000','All Occupations NEXT','134354250','40690','2014-05-01'"}
 	tmp := []SampleParse{}
 	h.ParseOutput(res, &tmp)
 	log.Println(tmp)
 
 	h.OutputType = "csv"
 	h.DateFormat = "YYYY-MM-dd"
-	res = []string{"00-0000,All Occupations CSV2,134354250,40690,2014-05-01"}
+	res = []string{"00-0000,All Occupations CSV2,134354250,40690,2014-05-01", "00-0000,All Occupations CSV2 NEXT,134354250,40690,2014-05-01"}
 	tmp = []SampleParse{}
 	h.ParseOutput(res, &tmp)
 	log.Println(tmp)
 
 	h.OutputType = "tsv"
 	h.DateFormat = "YYYY-MMM-dd"
-	res = []string{"'00-0000'\t'All Occupations TSV'\t'134354250'\t'40690'\t'2014-Dec-05'"}
+	res = []string{"'00-0000'\t'All Occupations TSV'\t'134354250'\t'40690'\t'2014-Dec-05'", "'00-0000'\t'All Occupations TSV NEXT'\t'134354250'\t'40690'\t'2014-Dec-05'"}
 	tmp = []SampleParse{}
 	h.ParseOutput(res, &tmp)
 	log.Println(tmp)
@@ -62,6 +62,50 @@ func TestParseOutput(t *testing.T) {
 	log.Println(tmpj)
 
 	resj = []string{",\"description\" : \"All Occupations INTERFACE\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" },{ \"code\" : \"00-2222\",\"description\" : \"All Occupations NEXT\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }", "{ \"code\" : \"00-2222\",\"description\" : \"All Occupations Last\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }"}
+	var tmpx interface{}
+	h.ParseOutput(resj, &tmpx)
+	log.Println(tmpx)
+
+}
+
+func TestParseOutputOneStruct(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
+	h.Header = []string{"Code", "Description", "Total_emp", "Salary", "Date"}
+
+	h.OutputType = "csv"
+	h.DateFormat = "yyyy-MM-dd"
+	res := "'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"
+	tmp := SampleParse{}
+	h.ParseOutput(res, &tmp)
+	log.Println(tmp)
+
+	h.OutputType = "csv"
+	h.DateFormat = "YYYY-MM-dd"
+	res = "00-0000,All Occupations CSV2,134354250,40690,2014-05-01"
+	tmp = SampleParse{}
+	h.ParseOutput(res, &tmp)
+	log.Println(tmp)
+
+	h.OutputType = "tsv"
+	h.DateFormat = "YYYY-MMM-dd"
+	res = "'00-0000'\t'All Occupations TSV'\t'134354250'\t'40690'\t'2014-Dec-05'"
+	tmp = SampleParse{}
+	h.ParseOutput(res, &tmp)
+	log.Println(tmp)
+
+	//try to parse json with different line
+	h.OutputType = "json"
+	resj := "{ \"code\" : \"00-0000\" , \"description\" : \"All Occupations JSON\" "
+	tmpj := SampleParse{}
+	h.ParseOutput(resj, &tmpj)
+	log.Println(tmpj)
+
+	resj = ", \"total_emp\" : 134354, \"salary\" : 40690,\"Date\" : \"2012-04-23T18:25:43Z\" },{ \"code\" : \"00-2222\""
+	tmpj = SampleParse{}
+	h.ParseOutput(resj, &tmpj)
+	log.Println(tmpj)
+
+	resj = ",\"description\" : \"All Occupations INTERFACE\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" },{ \"code\" : \"00-2222\",\"description\" : \"All Occupations NEXT\" , \"total_emp\" : 222, \"salary\" : 2222,\"Date\" : \"2012-05-23T18:25:43Z\" }"
 	var tmpx interface{}
 	h.ParseOutput(resj, &tmpx)
 	log.Println(tmpx)
