@@ -62,7 +62,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 				if !strings.Contains(bread, BEE_CLI_STR) {
 					//result = append(result, bread)
-					d.FnReceive(bread)
+					d.FnReceive(strings.TrimRight(bread, "\n"))
 				}
 
 				if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
@@ -106,7 +106,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 			peekStr := string(peek)
 
 			if !strings.Contains(bread, BEE_CLI_STR) {
-				result = append(result, bread)
+				result = append(result, strings.TrimRight(bread, "\n"))
 			}
 
 			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
