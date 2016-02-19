@@ -8,7 +8,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	"log"
+	// "log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -165,13 +165,15 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
-	var v reflect.Type
-	v = reflect.TypeOf(m).Elem()
-	log.Printf("v: %v\n", v)
-	/*ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+	/*
 
-	appendData := toolkit.M{}
-	iv := reflect.New(v).Interface()*/
+		var v reflect.Type
+		v = reflect.TypeOf(m).Elem()
+		log.Printf("v: %v\n", v)
+		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+		appendData := toolkit.M{}
+		iv := reflect.New(v).Interface()*/
 
 	delimiter := "\t"
 
@@ -369,7 +371,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 }
 
-func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+/*func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch = false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
@@ -501,7 +503,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	}
 
 	return retVal
-}
+}*/
 
 func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
