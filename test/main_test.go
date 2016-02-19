@@ -99,20 +99,11 @@ func TestExec(t *testing.T) {
 		return tmp, nil
 	}
 
-	/*var DoElse = func(res string) (interface{}, error) {
-		tmp := Sample7{}
-		h.Header = []string{}
-		h.ParseOutput(res, &tmp)
-		log.Printf("Else: %v\n", res)
-		return tmp, nil
-	}*/
-
 	h.Conn.FnReceive = DoSomething
 	h.Conn.Open()
 
 	h.Exec(q)
 	h.Exec(x)
-	// log.Printf("error: \n%v\n", e)
 
 	h.Conn.Close()
 }

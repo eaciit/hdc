@@ -60,22 +60,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		if d.FnReceive != nil {
 			go func() {
-				for {
-					bread, e := d.Reader.ReadString('\n')
-					bread = strings.TrimRight(bread, "\n")
-					peek, _ := d.Reader.Peek(14)
-					peekStr := string(peek)
-
-					if !strings.Contains(bread, BEE_CLI_STR) {
-						//result = append(result, bread)
-						d.FnReceive(bread)
-					}
-
-					if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
-						break
-					}
-
-				}
+				_, e = d.Wait()
 			}()
 		}
 		e = d.Cmd.Start()
@@ -110,20 +95,32 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	}
 
 	if d.FnReceive == nil {
-		for {
-			bread, e := d.Reader.ReadString('\n')
-			bread = strings.TrimRight(bread, "\n")
-			peek, _ := d.Reader.Peek(14)
-			peekStr := string(peek)
+		result, e = d.Wait()
+	}
 
-			if !strings.Contains(bread, BEE_CLI_STR) {
+	return
+}
+
+func (d *DuplexTerm) Wait() (result []string, e error) {
+	for {
+		bread, e := d.Reader.ReadString('\n')
+		bread = strings.TrimRight(bread, "\n")
+		peek, _ := d.Reader.Peek(14)
+		peekStr := string(peek)
+
+		if !strings.Contains(bread, BEE_CLI_STR) {
+			//result = append(result, bread)
+			if d.FnReceive != nil {
+				d.FnReceive(bread)
+			} else {
 				result = append(result, bread)
 			}
-
-			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-				break
-			}
 		}
+
+		if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
+			break
+		}
+
 	}
 
 	return
