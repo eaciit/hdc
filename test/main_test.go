@@ -34,11 +34,11 @@ func fatalCheck(t *testing.T, what string, e error) {
 	}
 }
 
-/*func TestHiveConnect(t *testing.T) {
+func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-}*/
+}
 
-func TestHiveExec(t *testing.T) {
+/*func TestHiveExec(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
@@ -60,7 +60,7 @@ func TestHiveExec(t *testing.T) {
 	}
 
 	h.Conn.Close()
-}
+}*/
 
 /* Populate will exec query and immidiately return the value into object
 Populate is suitable for short type query that return limited data,
@@ -69,14 +69,14 @@ Exec is suitable for long type query that return massive amount of data and requ
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
 func TestHivePopulate(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
 
 	h.Conn.Open()
 
-	e := h.Populate(q, &result)
+	_, e := h.Populate(q, &result)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
@@ -88,8 +88,8 @@ func TestHivePopulate(t *testing.T) {
 	h.Conn.Close()
 }
 
-func TestExecLine(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+func TestExec(t *testing.T) {
+	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 	x := "select * from sample_07 limit 10;"
 	var DoSomething = func(res string) (interface{}, error) {
@@ -110,8 +110,8 @@ func TestExecLine(t *testing.T) {
 	h.Conn.FnReceive = DoSomething
 	h.Conn.Open()
 
-	h.ExecLineX(q)
-	h.ExecLineX(x)
+	h.Exec(q)
+	h.Exec(x)
 	// log.Printf("error: \n%v\n", e)
 
 	h.Conn.Close()
