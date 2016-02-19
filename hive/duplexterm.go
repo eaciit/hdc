@@ -5,12 +5,14 @@ import (
 	"errors"
 	// "fmt"
 	"io"
+	// "log"
 	"os/exec"
 	"strings"
 )
 
 const (
-	BEE_CLI_STR = "0: jdbc:hive2:"
+	BEE_CLI_STR  = "0: jdbc:hive2:"
+	CLOSE_SCRIPT = "!quit"
 )
 
 type DuplexTerm struct {
@@ -38,7 +40,7 @@ type DuplexTerm struct {
 	return
 }*/
 
-func (d *DuplexTerm) Open(fn FnHiveReceive) (e error) {
+func (d *DuplexTerm) Open() (e error) {
 	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
 		return
 	}
@@ -50,33 +52,32 @@ func (d *DuplexTerm) Open(fn FnHiveReceive) (e error) {
 	d.Writer = bufio.NewWriter(d.Stdin)
 	d.Reader = bufio.NewReader(d.Stdout)
 
-	if fn != nil {
-		d.FnReceive = fn
-		idx := 1
-		go func(idx int) {
+	if d.FnReceive != nil {
+		go func() {
 			for {
 				bread, e := d.Reader.ReadString('\n')
+
 				peek, _ := d.Reader.Peek(14)
 				peekStr := string(peek)
 
-				if !strings.Contains(bread, BEE_CLI_STR) && idx != 1 {
+				if !strings.Contains(bread, BEE_CLI_STR) {
 					//result = append(result, bread)
 					d.FnReceive(bread)
 				}
 
-				if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+				if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 					break
 				}
-				idx += 1
+
 			}
-		}(idx)
+		}()
 	}
 	e = d.Cmd.Start()
 	return
 }
 
 func (d *DuplexTerm) Close() {
-	result, e := d.SendInput("!quit")
+	result, e := d.SendInput(CLOSE_SCRIPT)
 
 	_ = result
 	_ = e
@@ -116,25 +117,3 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 
 	return
 }
-
-/*func main() {
-	dup := DuplexTerm{}
-	err := dup.Open()
-
-	result, err := dup.SendInput("select * from sample_07 limit 5;")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	result, err = dup.SendInput("select * from sample_07 limit 5;")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	result, err = dup.SendInput("!quit")
-	fmt.Printf("result: %v\n", result)
-	// fmt.Printf("error: %v\n", err)
-
-	_ = result
-	_ = err
-
-	dup.Close()
-}*/

@@ -8,7 +8,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	"log"
+	// "log"
 	"os"
 	"os/exec"
 	"os/user"
@@ -31,6 +31,8 @@ const (
 	TSV_FORMAT    = " --outputFormat=tsv"
 	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
 	DSV_DELIMITER = "|\t"
+	TSV           = "tsv"
+	CSV           = "csv"
 )
 
 type FnHiveReceive func(string) (interface{}, error)
@@ -70,15 +72,15 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	hv.User = userid
 
-	hv.OutputType = "tsv"
-	if len(delimiter) > 0 && delimiter[0] == "csv" {
-		hv.OutputType = "csv"
+	hv.OutputType = TSV
+	if len(delimiter) > 0 && delimiter[0] == CSV {
+		hv.OutputType = CSV
 	}
 
 	hv.Conn = DuplexTerm{}
 
 	if hv.Conn.Cmd == nil {
-		if hv.OutputType == "csv" {
+		if hv.OutputType == CSV {
 			hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
 		} else {
 			hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
@@ -87,12 +89,6 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	return &hv
 }
-
-/*func SetHeader(header []string) *Hive {
-	hv := Hive{}
-	hv.Header = header
-	return &hv
-}*/
 
 func (h *Hive) cmdStr(arg ...string) (out string) {
 	out = fmt.Sprintf(BEE_TEMPLATE, h.BeePath, h.Server, h.DBName)
@@ -136,7 +132,7 @@ func (h *Hive) constructHeader(header string, delimiter string) {
 func (h *Hive) Exec(query string) (out []string, e error) {
 	delimiter := "\t"
 
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		delimiter = ","
 	}
 
@@ -165,17 +161,19 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
 
-	var v reflect.Type
-	v = reflect.TypeOf(m).Elem()
-	log.Printf("v: %v\n", v)
-	/*ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+	/*
 
-	appendData := toolkit.M{}
-	iv := reflect.New(v).Interface()*/
+		var v reflect.Type
+		v = reflect.TypeOf(m).Elem()
+		log.Printf("v: %v\n", v)
+		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+		appendData := toolkit.M{}
+		iv := reflect.New(v).Interface()*/
 
 	delimiter := "\t"
 
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		delimiter = ","
 	}
 
@@ -211,7 +209,7 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 	cmd := h.command()
 
 	delimiter := "\t"
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		cmd = h.command(h.cmdStr(CSV_FORMAT))
 		delimiter = ","
 	} else {
@@ -237,7 +235,7 @@ func (h *Hive) ExecLineX(query string) {
 	delimiter := "\t"
 	_ = delimiter
 
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		delimiter = ","
 	}
 
@@ -259,7 +257,7 @@ func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
 	cmd := h.command()
 
 	delimiter := "\t"
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		cmd = h.command(h.cmdStr(CSV_FORMAT))
 		delimiter = ","
 	} else {
@@ -515,7 +513,7 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 		ins = append(ins, in.(string))
 	}
 
-	if h.OutputType == "csv" {
+	if h.OutputType == CSV {
 		var v reflect.Type
 
 		if slice {
