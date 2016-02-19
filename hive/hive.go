@@ -678,9 +678,13 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 			}
 		}
 
-		inss := fmt.Sprintf("[%s]", strings.Join(ins, ","))
+		forSerde := strings.Join(ins, ",")
+		if slice {
+			forSerde = fmt.Sprintf("[%s]", strings.Join(ins, ","))
+		}
+
 		if len(ins) > 0 {
-			e := json.Unmarshal([]byte(inss), &temp)
+			e := json.Unmarshal([]byte(forSerde), &temp)
 			if e != nil {
 				return e
 			}
