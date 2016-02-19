@@ -117,8 +117,14 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			}
 		}
 
-		if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
-			break
+		if d.FnReceive != nil {
+			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
+				break
+			}
+		} else {
+			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+				break
+			}
 		}
 
 	}
