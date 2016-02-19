@@ -371,7 +371,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 
 func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
-	isMatch = false
+	isMatch := false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
 
 	if tempVal == nil {
@@ -392,11 +392,10 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 			tempVal, err = h.Exec(tempQuery)
 		}
 	} else {
-		isMatch, err = CheckDataStructure(TableName, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
-		err.Error() = "Structure does not match"
 		return retVal, err
 	}
 
@@ -429,7 +428,7 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 
 }
 
-func CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
+func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
 	res, err := h.Exec("describe " + Tablename + ";")
 
@@ -443,10 +442,10 @@ func CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool,
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if res[i] != nil {
-					lines := strings.Split(res[i], ",").Trim()
+				if res[i] != "" {
+					lines := strings.Split(res[i], ",")
 
-					if strings.Replace(lines[1], "double", "float") == v.Field(i).Type.String() {
+					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
 						isMatch = false
@@ -454,7 +453,7 @@ func CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool,
 					}
 				} else {
 					// handle new column
-					update, err := h.Exec(QueryBuilder("add column", Tablename, nil, TableModel))
+					_, err := h.Exec(QueryBuilder("add column", Tablename, "", TableModel))
 
 					if err != nil {
 						break
@@ -464,9 +463,8 @@ func CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool,
 				}
 			}
 		}
-	} else {
-		return isMatch, err
 	}
+	return isMatch, err
 }
 
 func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retVal string) {
