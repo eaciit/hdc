@@ -106,10 +106,10 @@ func TestExecLine(t *testing.T) {
 		return tmp, nil
 	}
 
-	h.Conn.Open()
 	h.Conn.FnReceive = DoSomething
+	h.Conn.Open()
+
 	h.ExecLineX(q)
-	h.Conn.FnReceive = DoElse
 	h.ExecLineX(x)
 	// log.Printf("error: \n%v\n", e)
 
