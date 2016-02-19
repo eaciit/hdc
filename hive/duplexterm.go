@@ -6,6 +6,7 @@ import (
 	// "fmt"
 	"io"
 	// "log"
+	"github.com/eaciit/errorlib"
 	"os/exec"
 	"strings"
 )
@@ -19,6 +20,7 @@ type DuplexTerm struct {
 	Writer    *bufio.Writer
 	Reader    *bufio.Reader
 	Cmd       *exec.Cmd
+	CmdStr    string
 	Stdin     io.WriteCloser
 	Stdout    io.ReadCloser
 	FnReceive FnHiveReceive
@@ -41,38 +43,46 @@ type DuplexTerm struct {
 }*/
 
 func (d *DuplexTerm) Open() (e error) {
-	if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
-		return
-	}
+	if d.CmdStr != "" {
+		arg := append([]string{"-c"}, d.CmdStr)
+		d.Cmd = exec.Command("sh", arg...)
 
-	if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
-		return
-	}
+		if d.Stdin, e = d.Cmd.StdinPipe(); e != nil {
+			return
+		}
 
-	d.Writer = bufio.NewWriter(d.Stdin)
-	d.Reader = bufio.NewReader(d.Stdout)
+		if d.Stdout, e = d.Cmd.StdoutPipe(); e != nil {
+			return
+		}
 
-	if d.FnReceive != nil {
-		go func() {
-			for {
-				bread, e := d.Reader.ReadString('\n')
+		d.Writer = bufio.NewWriter(d.Stdin)
+		d.Reader = bufio.NewReader(d.Stdout)
 
-				peek, _ := d.Reader.Peek(14)
-				peekStr := string(peek)
+		if d.FnReceive != nil {
+			go func() {
+				for {
+					bread, e := d.Reader.ReadString('\n')
 
-				if !strings.Contains(bread, BEE_CLI_STR) {
-					//result = append(result, bread)
-					d.FnReceive(bread)
+					peek, _ := d.Reader.Peek(14)
+					peekStr := string(peek)
+
+					if !strings.Contains(bread, BEE_CLI_STR) {
+						//result = append(result, bread)
+						d.FnReceive(bread)
+					}
+
+					if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
+						break
+					}
+
 				}
-
-				if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
-					break
-				}
-
-			}
-		}()
+			}()
+		}
+		e = d.Cmd.Start()
+	} else {
+		errorlib.Error("", "", "Open", "The Connection Config not Set")
 	}
-	e = d.Cmd.Start()
+
 	return
 }
 
