@@ -56,13 +56,13 @@ func (d *DuplexTerm) Open() (e error) {
 		go func() {
 			for {
 				bread, e := d.Reader.ReadString('\n')
-
+				bread = strings.TrimRight(bread, "\n")
 				peek, _ := d.Reader.Peek(14)
 				peekStr := string(peek)
 
 				if !strings.Contains(bread, BEE_CLI_STR) {
 					//result = append(result, bread)
-					d.FnReceive(strings.TrimRight(bread, "\n"))
+					d.FnReceive(bread)
 				}
 
 				if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
@@ -102,11 +102,12 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	if d.FnReceive == nil {
 		for {
 			bread, e := d.Reader.ReadString('\n')
+			bread = strings.TrimRight(bread, "\n")
 			peek, _ := d.Reader.Peek(14)
 			peekStr := string(peek)
 
 			if !strings.Contains(bread, BEE_CLI_STR) {
-				result = append(result, strings.TrimRight(bread, "\n"))
+				result = append(result, bread)
 			}
 
 			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
