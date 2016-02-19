@@ -863,7 +863,6 @@ func (h *Hive) DetectFormat(in string) (out string) {
 			}
 		}
 	}
-
 	return res
 }
 
