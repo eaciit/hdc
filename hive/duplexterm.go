@@ -45,7 +45,7 @@ type DuplexTerm struct {
 	return
 }*/
 
-var hr *HiveResult
+var hr HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
