@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
 	"reflect"
 	"strings"
@@ -151,6 +151,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 
 				fn := reflect.ValueOf(d.Fn)
 				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
+				log.Printf("test: %v\n", res)
 				d.FnReceive(res)
 			} else {
 				result = append(result, bread)
