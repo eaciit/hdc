@@ -5,6 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"github.com/eaciit/errorlib"
+	// "github.com/eaciit/toolkit"
 	"io"
 	"log"
 	"os/exec"
@@ -128,13 +129,13 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if isHeader {
-			hr := HiveResult{}
+			// hr = HiveResult{}
 			hr.constructHeader(bread, delimiter)
-			log.Printf("model: %v\n", hr)
+			/*log.Printf("model: %v\n", hr)
 			log.Printf("headerStr: %v\n", bread)
 			for _, val := range hr.Header {
 				log.Printf("header: %v\n", val)
-			}
+			}*/
 
 			isHeader = false
 		}
@@ -144,10 +145,11 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
-			//result = append(result, bread)
 			if d.FnReceive != nil {
-				/*Parse(hr.Header, bread, hr.ResultObj, d.OutputType, d.DateFormat)
-				log.Printf("model: %v\n", hr.ResultObj)*/
+				log.Printf("model: %v\n", hr)
+				// var test toolkit.M
+				// Parse(hr.Header, bread, hr.ResultObj, d.OutputType, d.DateFormat)
+				// log.Printf("model: %v\n", hr.ResultObj)
 				d.FnReceive(bread)
 			} else {
 				result = append(result, bread)
