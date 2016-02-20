@@ -128,8 +128,9 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 
 		if BEE_CLI_STR == peekBeforeStr {
 			hr := HiveResult{}
-			log.Printf("model: %v\n", hr)
 			hr.constructHeader(bread, delimiter)
+			log.Printf("model: %v\n", hr)
+			log.Printf("header: %v\n", hr.Header)
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
