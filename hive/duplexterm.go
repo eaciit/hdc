@@ -115,7 +115,7 @@ func (d *DuplexTerm) SetFn(f interface{}) {
 		panic("Expected a unary function returning a single value")
 	}
 
-	d.Fn = fn
+	d.Fn = f
 }
 
 func (d *DuplexTerm) Wait() (result []string, e error) {
@@ -147,9 +147,12 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			if d.FnReceive != nil {
-				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-
 				fn := reflect.ValueOf(d.Fn)
+				tp := fn.Type().In(0)
+				tmp := reflect.New(tp)
+
+				Parse(hr.Header, bread, &tmp, d.OutputType, d.DateFormat)
+				log.Printf("fn: %v\n", tmp)
 				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
 				log.Printf("test: %v\n", res)
 				d.FnReceive(res)
