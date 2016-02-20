@@ -39,10 +39,12 @@ func (hr *HiveResult) constructHeader(header string, delimiter string) {
 }
 
 func Parse(header []string, in interface{}, m interface{}, outputType string, dateFormat string) (e error) {
-
+	log.Printf("start parse:\n")
 	if !toolkit.IsPointer(m) {
+		log.Printf("not pointer\n")
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
+	log.Printf("pointer\n")
 	slice := false
 	var ins []string
 	if reflect.ValueOf(m).Elem().Kind() == reflect.Slice || toolkit.TypeName(in) == "[]string" {
@@ -51,6 +53,8 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 	} else {
 		ins = append(ins, in.(string))
 	}
+
+	log.Printf("outputType: %v\n", outputType)
 
 	if outputType == CSV {
 		var v reflect.Type
