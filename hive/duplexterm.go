@@ -106,6 +106,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 }
 
 func (d *DuplexTerm) Wait() (result []string, e error) {
+	isHeader := false
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
@@ -127,6 +128,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if BEE_CLI_STR == peekBeforeStr {
+			isHeader = true
+		}
+
+		if isHeader {
 			hr := HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			log.Printf("model: %v\n", hr)
@@ -134,6 +139,8 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			for _, val := range hr.Header {
 				log.Printf("header: %v\n", val)
 			}
+
+			isHeader = false
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
