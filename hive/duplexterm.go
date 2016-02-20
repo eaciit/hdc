@@ -17,13 +17,15 @@ const (
 )
 
 type DuplexTerm struct {
-	Writer    *bufio.Writer
-	Reader    *bufio.Reader
-	Cmd       *exec.Cmd
-	CmdStr    string
-	Stdin     io.WriteCloser
-	Stdout    io.ReadCloser
-	FnReceive FnHiveReceive
+	Writer     *bufio.Writer
+	Reader     *bufio.Reader
+	Cmd        *exec.Cmd
+	CmdStr     string
+	Stdin      io.WriteCloser
+	Stdout     io.ReadCloser
+	FnReceive  FnHiveReceive
+	OutputType string
+	DateFormat string
 }
 
 /*func (d *DuplexTerm) Open() (e error) {
@@ -107,21 +109,34 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
-		log.Printf("peekBefore: %v\n", peekBefore)
-		log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
+		// log.Printf("peekBefore: %v\n", peekBefore)
+		// log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
 
 		bread, e := d.Reader.ReadString('\n')
 		bread = strings.TrimRight(bread, "\n")
 
 		peek, _ := d.Reader.Peek(14)
 		peekStr := string(peek)
-		log.Printf("peek: %v\n", peek)
-		log.Printf("peekStr: %v\n", peekStr)
+		// log.Printf("peek: %v\n", peek)
+		// log.Printf("peekStr: %v\n", peekStr)
+
+		delimiter := "\t"
+
+		if d.OutputType == CSV {
+			delimiter = ","
+		}
+
+		if BEE_CLI_STR == peekBeforeStr {
+			hr := HiveResult{}
+			log.Printf("model: %v\n", hr)
+			hr.constructHeader(bread, delimiter)
+		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			//result = append(result, bread)
 			if d.FnReceive != nil {
-
+				/*Parse(hr.Header, bread, hr.ResultObj, d.OutputType, d.DateFormat)
+				log.Printf("model: %v\n", hr.ResultObj)*/
 				d.FnReceive(bread)
 			} else {
 				result = append(result, bread)

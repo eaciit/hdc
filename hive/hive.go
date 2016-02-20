@@ -67,12 +67,14 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	hv.User = userid
 
+	hv.Conn = &DuplexTerm{}
+
 	hv.OutputType = TSV
+	hv.Conn.OutputType = TSV
 	if len(delimiter) > 0 && delimiter[0] == CSV {
 		hv.OutputType = CSV
+		hv.Conn.OutputType = TSV
 	}
-
-	hv.Conn = &DuplexTerm{}
 
 	if hv.Conn.Cmd == nil {
 		if hv.OutputType == CSV {
