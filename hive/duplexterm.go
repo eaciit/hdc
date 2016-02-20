@@ -130,7 +130,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			hr := HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			log.Printf("model: %v\n", hr)
-			log.Printf("header: %v\n", hr.Header)
+
+			for _, val = range hr.Header {
+				log.Printf("header: %v\n", val)
+			}
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
