@@ -5,7 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"github.com/eaciit/errorlib"
-	// "github.com/eaciit/toolkit"
+	"github.com/eaciit/toolkit"
 	"io"
 	"log"
 	"os/exec"
@@ -146,16 +146,20 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
-			if d.FnReceive != nil {
+			if d.Fn != nil {
 				fn := reflect.ValueOf(d.Fn)
 				tp := fn.Type().In(0)
 				tmp := reflect.New(tp)
 
-				Parse(hr.Header, bread, &tmp, d.OutputType, d.DateFormat)
-				log.Printf("fn: %v\n", tmp)
-				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
+				xTmp := toolkit.M{}
+
+				Parse(hr.Header, bread, &xTmp, d.OutputType, d.DateFormat)
+				log.Printf("tmp: %v\n", xTmp)
+				// log.Printf("tmp: %v\n", tmp)
+
+				/*res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
 				log.Printf("test: %v\n", res)
-				d.FnReceive(res)
+				d.FnReceive(res)*/
 			} else {
 				result = append(result, bread)
 			}
