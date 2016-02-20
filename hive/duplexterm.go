@@ -146,10 +146,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			if d.FnReceive != nil {
-				log.Printf("model: %v\n", hr)
+				// log.Printf("model: %v\n", hr)
 				// var test toolkit.M
 				Parse(hr.Header, bread, hr.ResultObj, d.OutputType, d.DateFormat)
-				// log.Printf("model: %v\n", hr.ResultObj)
+				log.Printf("model: %v\n", hr.ResultObj)
 				d.FnReceive(bread)
 			} else {
 				result = append(result, bread)
