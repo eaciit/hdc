@@ -139,13 +139,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		if isHeader {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
-		}
-
-		if BEE_CLI_STR == peekBeforeStr {
-			isHeader = true
-		}
-
-		if !strings.Contains(bread, BEE_CLI_STR) {
+		} else if !strings.Contains(bread, BEE_CLI_STR) {
 			if d.Fn != nil {
 				fn := reflect.ValueOf(d.Fn)
 				tp := fn.Type().In(0)
@@ -173,6 +167,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			} else {
 				result = append(result, bread)
 			}
+		}
+
+		if BEE_CLI_STR == peekBeforeStr {
+			isHeader = true
 		}
 
 		if d.FnReceive != nil {
