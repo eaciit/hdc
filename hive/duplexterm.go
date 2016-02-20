@@ -151,7 +151,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 				tp := fn.Type().In(0)
 				tmp := reflect.New(tp).Elem()
 
-				Parse(hr.Header, bread, tmp, d.OutputType, d.DateFormat)
+				Parse(hr.Header, bread, &tmp, d.OutputType, d.DateFormat)
 				log.Printf("tmp: %v\n", tmp)
 
 				res := fn.Call([]reflect.Value{tmp})

@@ -204,6 +204,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			appendData := toolkit.M{}
 			iv := reflect.New(v).Interface()
 
+			log.Printf("data: %v\n", data)
 			log.Printf("iv: %v\n", iv)
 
 			splitted := strings.Split(data, "\t")
@@ -211,10 +212,15 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			for i, val := range header {
 				appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
 			}
+
+			log.Printf("appendData: %v\n", appendData)
+			log.Printf("kind: %v\n", v.Kind())
+
 			if v.Kind() == reflect.Struct {
+				log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
-
+					log.Printf("i: %v\n", i)
 					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
 						valthis := appendData[v.Field(i).Name]
 						if valthis == nil {
@@ -248,7 +254,9 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				}
 
 			} else {
+				log.Printf("else: %v\n", v.Kind())
 				for _, val := range header {
+					log.Printf("val: %v\n", val)
 					valthis := appendData[val]
 					dtype := DetectFormat(valthis.(string), dateFormat)
 					if dtype == "int" {
@@ -267,7 +275,9 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			}
 
 			toolkit.Serde(appendData, iv, JSON)
+			log.Printf("iv result: %v\n", iv)
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
+			log.Printf("iv result: %v\n", iv)
 		}
 
 		if slice {
@@ -275,7 +285,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		} else {
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 		}
-
+		log.Printf("result: %v\n", m)
 	}
 	return nil
 }
