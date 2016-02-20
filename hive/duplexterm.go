@@ -131,7 +131,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			hr.constructHeader(bread, delimiter)
 			log.Printf("model: %v\n", hr)
 
-			for _, val = range hr.Header {
+			for _, val := range hr.Header {
 				log.Printf("header: %v\n", val)
 			}
 		}
