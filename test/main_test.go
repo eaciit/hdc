@@ -2,7 +2,7 @@ package test
 
 import (
 	//"fmt"
-	"github.com/eaciit/toolkit"
+	// "github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
@@ -68,7 +68,7 @@ Exec is suitable for long type query that return massive amount of data and requ
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-func TestHivePopulate(t *testing.T) {
+/*func TestHivePopulate(t *testing.T) {
 	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 
@@ -87,7 +87,7 @@ func TestHivePopulate(t *testing.T) {
 
 	h.Conn.Close()
 }
-
+*/
 func TestExec(t *testing.T) {
 	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"

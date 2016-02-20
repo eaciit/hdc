@@ -14,9 +14,10 @@ import (
 )
 
 type HiveResult struct {
-	Header []string
-	Result []string
-	Dup    *DuplexTerm
+	Header    []string
+	Result    []string
+	ResultObj interface{}
+	Dup       *DuplexTerm
 	/*OutputType string
 	DateFormat string
 	JsonPart   string*/

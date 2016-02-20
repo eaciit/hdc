@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"errors"
 	// "fmt"
-	"io"
-	// "log"
 	"github.com/eaciit/errorlib"
+	"io"
+	"log"
 	"os/exec"
 	"strings"
 )
@@ -41,6 +41,8 @@ type DuplexTerm struct {
 	e = d.Cmd.Start()
 	return
 }*/
+
+var hr *HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
@@ -103,14 +105,23 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 
 func (d *DuplexTerm) Wait() (result []string, e error) {
 	for {
+		peekBefore, _ := d.Reader.Peek(14)
+		peekBeforeStr := string(peekBefore)
+		log.Printf("peekBefore: %v\n", peekBefore)
+		log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
+
 		bread, e := d.Reader.ReadString('\n')
 		bread = strings.TrimRight(bread, "\n")
+
 		peek, _ := d.Reader.Peek(14)
 		peekStr := string(peek)
+		log.Printf("peek: %v\n", peek)
+		log.Printf("peekStr: %v\n", peekStr)
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			//result = append(result, bread)
 			if d.FnReceive != nil {
+
 				d.FnReceive(bread)
 			} else {
 				result = append(result, bread)
