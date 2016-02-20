@@ -372,6 +372,14 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	isMatch := false
 	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
 
+	fmt.Println("tempVal")
+
+	if err != nil {
+		return retVal, err
+	}
+
+	fmt.Println("tempVal2")
+
 	if tempVal == nil {
 		tempQuery := ""
 

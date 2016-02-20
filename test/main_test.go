@@ -1,7 +1,7 @@
 package hive
 
 import (
-	//"fmt"
+	"fmt"
 	"github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
@@ -19,6 +19,13 @@ type Sample7 struct {
 	Description string `tag_name:"description"`
 	Total_emp   string `tag_name:"total_emp"`
 	Salary      string `tag_name:"salary"`
+}
+
+type students struct {
+	name    string
+	age     string
+	phone   string
+	address string
 }
 
 func killApp(code int) {
@@ -86,6 +93,23 @@ func TestHivePopulate(t *testing.T) {
 	log.Printf("Result: \n%s", toolkit.JsonString(result))
 
 	h.Conn.Close()
+}
+
+func TestLoad(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+
+	h.Conn.Open()
+
+	ret, err := h.Exec("select '1' from students limit 1")
+	fmt.Println(ret)
+
+	retVal, err := h.Load("students", "|", nil)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(retVal)
 }
 
 func TestExecLine(t *testing.T) {
