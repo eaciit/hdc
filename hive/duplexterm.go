@@ -127,10 +127,6 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			delimiter = ","
 		}
 
-		if BEE_CLI_STR == peekBeforeStr {
-			isHeader = true
-		}
-
 		if isHeader {
 			hr := HiveResult{}
 			hr.constructHeader(bread, delimiter)
@@ -141,6 +137,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			}
 
 			isHeader = false
+		}
+
+		if BEE_CLI_STR == peekBeforeStr {
+			isHeader = true
 		}
 
 		if !strings.Contains(bread, BEE_CLI_STR) {
