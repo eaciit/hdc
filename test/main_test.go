@@ -92,7 +92,7 @@ func TestExec(t *testing.T) {
 	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 	x := "select * from sample_07 limit 10;"
-	var DoSomething = func(res string) (interface{}, error) {
+	var DoSomething = func(res interface{}) (interface{}, error) {
 		tmp := Sample7{}
 		//h.ParseOutput(res, &tmp)
 		log.Println(res)
