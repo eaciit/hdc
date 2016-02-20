@@ -100,7 +100,7 @@ func TestExec(t *testing.T) {
 	}
 
 	// h.Conn.FnReceive = DoSomething
-	h.Conn.SetFnReceive(DoSomething)
+	h.Conn.SetFn(DoSomething)
 	h.Conn.Open()
 
 	h.Exec(q)

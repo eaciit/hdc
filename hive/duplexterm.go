@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
 	"reflect"
 	"strings"
@@ -26,6 +26,7 @@ type DuplexTerm struct {
 	Stdin      io.WriteCloser
 	Stdout     io.ReadCloser
 	FnReceive  FnHiveReceive
+	Fn         interface{}
 	OutputType string
 	DateFormat string
 }
@@ -107,16 +108,14 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	return
 }
 
-func (d *DuplexTerm) SetFnReceive(f interface{}) {
+func (d *DuplexTerm) SetFn(f interface{}) {
 	fn := reflect.ValueOf(f)
 	fnType := fn.Type()
 	if fnType.Kind() != reflect.Func || fnType.NumIn() != 1 || fnType.NumOut() != 1 {
 		panic("Expected a unary function returning a single value")
 	}
-	/*res := fn.Call([]reflect.Value{reflect.ValueOf(d.FnReceive)})
-	_ = res*/
-	log.Printf("fn: %v\n", d.FnReceive)
-	// d.FnReceive = res
+
+	d.Fn = fn
 }
 
 func (d *DuplexTerm) Wait() (result []string, e error) {
@@ -149,7 +148,10 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		if !strings.Contains(bread, BEE_CLI_STR) {
 			if d.FnReceive != nil {
 				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-				d.FnReceive(hr.ResultObj)
+
+				fn := reflect.ValueOf(d.Fn)
+				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
+				d.FnReceive(res)
 			} else {
 				result = append(result, bread)
 			}
