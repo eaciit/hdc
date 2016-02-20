@@ -31,7 +31,7 @@ const (
 	JSON          = "json"
 )
 
-type FnHiveReceive func(interface{}) (interface{}, error)
+type FnHiveReceive func(interface{}) error
 
 type Hive struct {
 	BeePath  string

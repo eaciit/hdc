@@ -7,8 +7,9 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
+	"reflect"
 	"strings"
 )
 
@@ -106,21 +107,29 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	return
 }
 
+func (d *DuplexTerm) SetFnReceive(f interface{}) {
+	fn := reflect.ValueOf(f)
+	fnType := fn.Type()
+	if fnType.Kind() != reflect.Func || fnType.NumIn() != 1 || fnType.NumOut() != 1 {
+		panic("Expected a unary function returning a single value")
+	}
+	/*res := fn.Call([]reflect.Value{reflect.ValueOf(d.FnReceive)})
+	_ = res*/
+	log.Printf("fn: %v\n", d.FnReceive)
+	// d.FnReceive = res
+}
+
 func (d *DuplexTerm) Wait() (result []string, e error) {
 	isHeader := false
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
-		// log.Printf("peekBefore: %v\n", peekBefore)
-		// log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
 
 		bread, e := d.Reader.ReadString('\n')
 		bread = strings.TrimRight(bread, "\n")
 
 		peek, _ := d.Reader.Peek(14)
 		peekStr := string(peek)
-		// log.Printf("peek: %v\n", peek)
-		// log.Printf("peekStr: %v\n", peekStr)
 
 		delimiter := "\t"
 
@@ -129,14 +138,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if isHeader {
-			// hr = HiveResult{}
 			hr.constructHeader(bread, delimiter)
-			/*log.Printf("model: %v\n", hr)
-			log.Printf("headerStr: %v\n", bread)
-			for _, val := range hr.Header {
-				log.Printf("header: %v\n", val)
-			}*/
-
 			isHeader = false
 		}
 
