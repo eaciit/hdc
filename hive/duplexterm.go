@@ -5,7 +5,7 @@ import (
 	"errors"
 	// "fmt"
 	"github.com/eaciit/errorlib"
-	"github.com/eaciit/toolkit"
+	// "github.com/eaciit/toolkit"
 	"io"
 	"log"
 	"os/exec"
@@ -149,12 +149,22 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			if d.Fn != nil {
 				fn := reflect.ValueOf(d.Fn)
 				tp := fn.Type().In(0)
+				tmp := reflect.New(tp).Elem()
+
+				Parse(hr.Header, bread, tmp, d.OutputType, d.DateFormat)
+				log.Printf("tmp: %v\n", tmp)
+
+				res := fn.Call([]reflect.Value{tmp})
+				log.Printf("res: %v\n", res)
+
+				/*fn := reflect.ValueOf(d.Fn)
+				tp := fn.Type().In(0)
 				tmp := reflect.New(tp)
 
 				xTmp := toolkit.M{}
 
 				Parse(hr.Header, bread, &xTmp, d.OutputType, d.DateFormat)
-				log.Printf("tmp: %v\n", xTmp)
+				log.Printf("tmp: %v\n", xTmp)*/
 				// log.Printf("tmp: %v\n", tmp)
 
 				/*res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})

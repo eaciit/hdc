@@ -7,6 +7,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
+	"log"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -189,11 +190,17 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			v = reflect.TypeOf(m).Elem()
 		}
 
+		log.Printf("v: %v\n", v)
+
 		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
+
+		log.Printf("ivs: %v\n", ivs)
 
 		for _, data := range ins {
 			appendData := toolkit.M{}
 			iv := reflect.New(v).Interface()
+
+			log.Printf("iv: %v\n", iv)
 
 			splitted := strings.Split(data, "\t")
 
