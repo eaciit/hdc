@@ -130,7 +130,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			hr := HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			log.Printf("model: %v\n", hr)
-
+			log.Printf("headerStr: %v\n", bread)
 			for _, val := range hr.Header {
 				log.Printf("header: %v\n", val)
 			}
