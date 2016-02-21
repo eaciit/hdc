@@ -2,7 +2,7 @@ package test
 
 import (
 	//"fmt"
-	"github.com/eaciit/toolkit"
+	// "github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
@@ -92,15 +92,15 @@ func TestExec(t *testing.T) {
 	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	q := "select * from sample_07 limit 5;"
 	x := "select * from sample_07 limit 10;"
-	DoSomething := func(res toolkit.M) (e error) {
+	DoSomething := func(res interface{}) (e error) {
 		// tmp := Sample7{}
 		//h.ParseOutput(res, &tmp)
 		log.Println(res)
 		return
 	}
 
-	// h.Conn.FnReceive = DoSomething
-	h.Conn.SetFn(DoSomething)
+	h.Conn.FnReceive = DoSomething
+	// h.Conn.SetFn(DoSomething)
 	h.Conn.Open()
 
 	h.Exec(q)

@@ -39,12 +39,12 @@ func (hr *HiveResult) constructHeader(header string, delimiter string) {
 }
 
 func Parse(header []string, in interface{}, m interface{}, outputType string, dateFormat string) (e error) {
-	log.Printf("start parse:\n")
+	// log.Printf("start parse:\n")
 	if !toolkit.IsPointer(m) {
-		log.Printf("not pointer\n")
+		// log.Printf("not pointer\n")
 		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
 	}
-	log.Printf("pointer\n")
+	// log.Printf("pointer\n")
 	slice := false
 	var ins []string
 	if reflect.ValueOf(m).Elem().Kind() == reflect.Slice || toolkit.TypeName(in) == "[]string" {
@@ -54,7 +54,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		ins = append(ins, in.(string))
 	}
 
-	log.Printf("outputType: %v\n", outputType)
+	// log.Printf("outputType: %v\n", outputType)
 
 	if outputType == CSV {
 		var v reflect.Type
@@ -194,18 +194,18 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			v = reflect.TypeOf(m).Elem()
 		}
 
-		log.Printf("v: %v\n", v)
+		// log.Printf("v: %v\n", v)
 
 		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
 
-		log.Printf("ivs: %v\n", ivs)
+		// log.Printf("ivs: %v\n", ivs)
 
 		for _, data := range ins {
 			appendData := toolkit.M{}
 			iv := reflect.New(v).Interface()
 
-			log.Printf("data: %v\n", data)
-			log.Printf("iv: %v\n", iv)
+			/*log.Printf("data: %v\n", data)
+			log.Printf("iv: %v\n", iv)*/
 
 			splitted := strings.Split(data, "\t")
 
@@ -240,19 +240,19 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				log.Printf("appendData: %v\n", appendData)
 			} else */
 			if v.Kind() == reflect.Struct {
-				log.Printf("struct: %v\n", v.Kind())
+				// log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
-					log.Printf("i: %v\n", i)
+					// log.Printf("i: %v\n", i)
 
-					log.Printf("name: (%v) tag: (%v)\n", appendData.Has(v.Field(i).Name), appendData.Has(tag.Get("tag_name")))
+					// log.Printf("name: (%v) tag: (%v)\n", appendData.Has(v.Field(i).Name), appendData.Has(tag.Get("tag_name")))
 
 					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
 						valthis := appendData[v.Field(i).Name]
 						if valthis == nil {
 							valthis = appendData[tag.Get("tag_name")]
 						}
-						log.Printf("valthis: %v\n", valthis)
+						// log.Printf("valthis: %v\n", valthis)
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
@@ -283,7 +283,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			} else {
 				log.Printf("else: %v\n", v.Kind())
 				for _, val := range header {
-					log.Printf("val: %v\n", val)
+					// log.Printf("val: %v\n", val)
 					valthis := appendData[val]
 					dtype := DetectFormat(valthis.(string), dateFormat)
 					if dtype == "int" {
@@ -302,9 +302,9 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			}
 
 			toolkit.Serde(appendData, iv, JSON)
-			log.Printf("iv result: %v\n", iv)
+			// log.Printf("iv result: %v\n", iv)
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-			log.Printf("ivs result: %v\n", ivs)
+			// log.Printf("ivs result: %v\n", ivs)
 		}
 
 		if slice {

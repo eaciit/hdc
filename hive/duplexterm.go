@@ -7,9 +7,9 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
-	"reflect"
+	// "reflect"
 	"strings"
 )
 
@@ -108,7 +108,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	return
 }
 
-func (d *DuplexTerm) SetFn(f interface{}) {
+/*func (d *DuplexTerm) SetFn(f interface{}) {
 	fn := reflect.ValueOf(f)
 	fnType := fn.Type()
 	if fnType.Kind() != reflect.Func || fnType.NumIn() != 1 || fnType.NumOut() != 1 {
@@ -116,7 +116,7 @@ func (d *DuplexTerm) SetFn(f interface{}) {
 	}
 
 	d.Fn = f
-}
+}*/
 
 func (d *DuplexTerm) Wait() (result []string, e error) {
 	isHeader := false
@@ -140,16 +140,16 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
-			if d.Fn != nil {
-				fn := reflect.ValueOf(d.Fn)
-				tp := fn.Type().In(0)
-				tmp := reflect.New(tp).Elem()
+			if d.FnReceive != nil {
+				/*fn := reflect.ValueOf(d.Fn)
+				// tp := fn.Type().In(0)
+				// tmp := reflect.New(tp).Elem()
 
 				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 				log.Printf("tmp: %v\n", &hr.ResultObj)
 
 				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
-				log.Printf("res: %v\n", res)
+				log.Printf("res: %v\n", res)*/
 
 				/*fn := reflect.ValueOf(d.Fn)
 				tp := fn.Type().In(0)
@@ -164,6 +164,9 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 				/*res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
 				log.Printf("test: %v\n", res)
 				d.FnReceive(res)*/
+
+				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+				d.FnReceive(hr.ResultObj)
 			} else {
 				result = append(result, bread)
 			}
