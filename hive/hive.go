@@ -355,7 +355,12 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		}
 
 		scanner := bufio.NewScanner(file)
+
+		//put depatcher here
+
 		for scanner.Scan() {
+
+			//put worker here
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
 			hr, err = h.fetch(retVal)
 		}
