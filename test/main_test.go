@@ -38,38 +38,13 @@ func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 }
 
-/*func TestHiveExec(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-	q := "select * from sample_07 limit 5;"
-
-	h.Conn.Open()
-
-	result, e := h.Exec(q)
-
-	if e != nil {
-		log.Printf("error: \n%v\n", e)
-
-	} else {
-		log.Printf("result: \n%v\n", result)
-
-		for _, res := range result {
-			var tmp toolkit.M
-			h.ParseOutput(res, &tmp)
-			log.Println(tmp)
-		}
-	}
-
-	h.Conn.Close()
-}*/
-
 /* Populate will exec query and immidiately return the value into object
 Populate is suitable for short type query that return limited data,
 Exec is suitable for long type query that return massive amount of data and require time to produce it
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-/*func TestHivePopulate(t *testing.T) {
-	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
@@ -87,15 +62,21 @@ Ideally Populate should call Exec as well but already have predefined function o
 
 	h.Conn.Close()
 }
-*/
-func TestExec(t *testing.T) {
-	// h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+
+func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 	x := "select * from sample_07 limit 10;"
 	DoSomething := func(res interface{}) (e error) {
-		tmp := Sample7{}
+		tmp := toolkit.M{}
 		toolkit.Serde(res, &tmp, "json")
-		log.Println(res)
+		log.Printf("limit 5: %v", tmp)
+		return
+	}
+
+	DoElse := func(res interface{}) (e error) {
+		tmp := toolkit.M{}
+		toolkit.Serde(res, &tmp, "json")
+		log.Printf("limit 10: %v", tmp)
 		return
 	}
 
@@ -104,50 +85,9 @@ func TestExec(t *testing.T) {
 	h.Conn.Open()
 
 	h.Exec(q)
+
+	h.Conn.FnReceive = DoElse
 	h.Exec(x)
 
 	h.Conn.Close()
 }
-
-//func main() {
-
-/*fmt.Println("---------------------- EXEC LINE ----------------")
-
-//to execute query and read the result per line and then process its result
-
-var DoSomething = func(res string) {
-	tmp := Sample7{}
-	h.ParseOutput(res, &tmp)
-	fmt.Println(tmp)
-}
-
-e = h.ExecLine(q, DoSomething)
-fmt.Printf("error: \n%v\n", e)*/
-
-/*h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", nil)
-h.Header = []string{"code", "description", "total_emp", "salary"}
-// qTest := "00-0000	All Occupations, asdfa,a dadsfasd	134354250	40690"
-//qTest := "00-0000 All Occupations 134354250       40690"
-qTest := "00-0000,All Occupations asdfa a dadsfasd,134354250,40690"
-var result = Sample7{}
-h.ParseOutput(qTest, &result)
-fmt.Printf("result: %s\n", result.Code)
-fmt.Printf("result: %s\n", result.Description)
-fmt.Printf("result: %s\n", result.Total_emp)
-fmt.Printf("result: %s\n", result.Salary)*/
-//}
-
-// test := "00-0000,All Occupations,134354250,40690"
-
-/*var x = Sample7{}
-var z interface{}
-z = x
-s := reflect.ValueOf(&z).Elem()
-typeOfT := s.Type()
-fmt.Println(reflect.ValueOf(&z).Interface())
-for i := 0; i < s.NumField(); i++ {
-	f := s.Field(i)
-	tag := s.Type().Field(i).Tag
-	fmt.Printf("%d: %s %s = %v | tag %s \n", i, typeOfT.Field(i).Name, f.Type(), f.Interface(), tag.Get("tag_name"))
-
-}*/
