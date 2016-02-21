@@ -65,7 +65,7 @@ func TestHivePopulate(t *testing.T) {
 
 func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
-	x := "select * from sample_07 limit 10;"
+	/*x := "select * from sample_07 limit 10;"
 
 	DoSomething := func(res HiveResult) (e error) {
 		toolkit.Serde(res, &res.ResultObj, "json")
@@ -78,7 +78,7 @@ func TestHiveExec(t *testing.T) {
 		toolkit.Serde(res, &res.ResultObj, "json")
 		log.Printf("limit 10: %v", tmp)
 		return
-	}
+	}*/
 
 	/*h.Conn.FnReceive = DoSomething
 
@@ -88,11 +88,11 @@ func TestHiveExec(t *testing.T) {
 	h.Conn.Close()*/
 
 	h.Conn.Open()
-	h.Conn.FnReceive = DoSomething
+	// h.Conn.FnReceive = DoSomething
 	h.Exec(q)
 
-	h.Conn.FnReceive = DoElse
-	h.Exec(x)
+	/*h.Conn.FnReceive = DoElse
+	h.Exec(x)*/
 
 	var res []toolkit.M
 
