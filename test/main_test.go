@@ -51,24 +51,24 @@ Exec is suitable for long type query that return massive amount of data and requ
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-func TestHivePopulate(t *testing.T) {
-	q := "select * from sample_07 limit 5;"
+// func TestHivePopulate(t *testing.T) {
+// 	q := "select * from sample_07 limit 5;"
 
-	var result []toolkit.M
+// 	var result []toolkit.M
 
-	h.Conn.Open()
+// 	h.Conn.Open()
 
-	e := h.Populate(q, &result)
-	fatalCheck(t, "Populate", e)
+// 	e := h.Populate(q, &result)
+// 	fatalCheck(t, "Populate", e)
 
-	if len(result) != 5 {
-		log.Printf("Error want %d got %d", 5, len(result))
-	}
+// 	if len(result) != 5 {
+// 		log.Printf("Error want %d got %d", 5, len(result))
+// 	}
 
-	log.Printf("Result: \n%s", toolkit.JsonString(result))
+// 	log.Printf("Result: \n%s", toolkit.JsonString(result))
 
-	h.Conn.Close()
-}
+// 	h.Conn.Close()
+// }
 
 //<<<<<<< HEAD
 func TestLoad(t *testing.T) {
