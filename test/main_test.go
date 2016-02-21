@@ -67,9 +67,8 @@ func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 	// x := "select * from sample_07 limit 10;"
 	DoSomething := func(res HiveResult) (e error) {
-		tmp := toolkit.M{}
 		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: %v", tmp)
+		log.Printf("limit 5: %v", res.ResultObj)
 		return
 	}
 
