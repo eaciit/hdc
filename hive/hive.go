@@ -6,7 +6,7 @@ import (
 	// "github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	// "log"
+	"log"
 	"os"
 	// "os/exec"
 	// "encoding/csv"
@@ -14,7 +14,7 @@ import (
 	"os/user"
 	"reflect"
 	// "regexp"
-	// "strconv"
+	"strconv"
 	"strings"
 )
 
@@ -208,7 +208,7 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 
 func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -243,7 +243,11 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+
+	if err != nil {
+		return retVal, err
+	}
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -255,12 +259,14 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
 				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") "
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ");"
 				} else {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			hr, err = h.fetch(tempQuery)
+
+			_, err = h.fetch(tempQuery)
+
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
@@ -278,14 +284,21 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if i == (v.NumField() - 1) {
-					insertValues += reflect.ValueOf(TableModel).Field(i).String() + ")"
+				if v.Field(i).Type.String() == "string" {
+					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
+				} else if v.Field(i).Type.String() == "int" {
+					insertValues += string(reflect.ValueOf(TableModel).Elem().Field(i).Int())
+				} else if v.Field(i).Type.String() == "float" {
+					insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
 				} else {
-					insertValues += reflect.ValueOf(TableModel).Field(i).String() + ", "
+					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 				}
 			}
-			retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-			_, err = h.fetch(retVal)
+
+			if insertValues != "" {
+				retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
+				_, err = h.fetch(retVal)
+			}
 		}
 
 		if err == nil {
@@ -296,10 +309,14 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	return retVal, err
 }
 
-func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+
+	if err != nil {
+		return retVal, err
+	}
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -311,12 +328,12 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
 				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") "
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ");"
 				} else {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			hr, err = h.fetch(tempQuery)
+			_, err = h.fetch(tempQuery)
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
@@ -327,22 +344,24 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 	}
 
 	if err == nil {
-		file, err := os.Open(HDFSPath)
+		file, err := os.Open(FilePath)
 		if err != nil {
 			fmt.Println(err)
 		}
 		defer file.Close()
 
+		if err != nil {
+			log.Println(err)
+		}
+
 		scanner := bufio.NewScanner(file)
+
+		//put depatcher here
+
 		for scanner.Scan() {
-			err = Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat)
 
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat))
+			//put worker here
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
 			hr, err = h.fetch(retVal)
 		}
 
@@ -354,7 +373,6 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 	return retVal, err
 }
 
-// func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
 func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
 	hr, err := h.fetch("describe " + Tablename + ";")
@@ -368,10 +386,21 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
+
 			for i := 0; i < v.NumField(); i++ {
-				if hr.Result[i] != "" {
-					lines := strings.Split(hr.Result[i], ",")
-					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
+				if hr.Result != nil {
+					line := strings.Split(strings.Replace(hr.Result[i+1], "'", "", -1), "\t")
+					var tempDataType = ""
+
+					if strings.TrimSpace(line[1]) == "double" {
+						tempDataType = "float"
+					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
+						tempDataType = "string"
+					} else {
+						tempDataType = strings.TrimSpace(line[1])
+					}
+
+					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
 						isMatch = false
@@ -411,19 +440,19 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
 			if clause == "INSERT" {
-				retVal += reflect.ValueOf(TableModel).Field(i).String()
+				retVal += input + ");"
+				break
 			} else if clause == "ADD COLUMN" {
-				retVal += reflect.ValueOf(TableModel).Field(i).String() + " " + v.Field(i).Type.String()
+				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String() + " " + v.Field(i).Type.String()
 			}
 
 			if i < v.NumField()-1 {
 				retVal += ","
 			} else {
-				retVal += ")"
+				retVal += ");"
 			}
 		}
 	}
-
 	return retVal
 }
 

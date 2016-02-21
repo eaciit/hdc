@@ -1,12 +1,13 @@
 package test
 
 import (
-	//"fmt"
-	"github.com/eaciit/toolkit"
-	. "github.com/frezadev/hdc/hive"
-	//. "github.com/eaciit/hdc/hive"
+	"fmt"
+	//"github.com/eaciit/toolkit"
+	//. "github.com/frezadev/hdc/hive"
+	// . "github.com/eaciit/hdc/hive"
+	. "github.com/RyanCi/hdc/hive"
 	// "reflect"
-	"log"
+	//"log"
 	"os"
 	"testing"
 )
@@ -19,6 +20,13 @@ type Sample7 struct {
 	Description string `tag_name:"description"`
 	Total_emp   string `tag_name:"total_emp"`
 	Salary      string `tag_name:"salary"`
+}
+
+type students struct {
+	name    string
+	age     int
+	phone   string
+	address string
 }
 
 func killApp(code int) {
@@ -63,6 +71,58 @@ func TestHivePopulate(t *testing.T) {
 	h.Conn.Close()
 }
 
+func TestLoad(t *testing.T) {
+	h.Conn.Open()
+
+	var student students
+
+	retVal, err := h.Load("students", "|", &student)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	h.Conn.Close()
+	fmt.Println(retVal)
+}
+
+//for now, this function works on simple csv file
+func TestLoadFile(t *testing.T) {
+	h.Conn.Open()
+
+	var student students
+
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	h.Conn.Close()
+	fmt.Println(retVal)
+}
+
+func TestExecLine(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+
+	//func TestHiveExec(t *testing.T) {
+
+	q := "select * from sample_07 limit 5;"
+	// x := "select * from sample_07 limit 10;"
+	DoSomething := func(res HiveResult) (e error) {
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 5: %v", res.ResultObj)
+		return
+	}
+
+	DoElse := func(res HiveResult) (e error) {
+		tmp := toolkit.M{}
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 10: %v", tmp)
+		return
+	}
+
+	// h.Conn.SetFn(DoSomething)
+	h.Conn.FnReceive = DoSomething
+
 func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 1;"
 	// x := "select * from sample_07 limit 3;"
@@ -90,7 +150,32 @@ func TestHiveExec(t *testing.T) {
 	h.Exec(x)
 	h.Conn.Wait()
 
-	var res []toolkit.M
+// 	h.Conn.Open()
+// 	h.Exec(q)
+
+// 	/*h.Conn.FnReceive = DoElse
+// 	h.Exec(x)*/
+
+// 	h.Conn.Close()
+
+// 	/*h.Conn.Exec = true
+// 	h.Conn.Open()
+// 	h.Conn.FnReceive = DoSomething
+// 	h.Exec(q)
+
+// 	h.Conn.FnReceive = DoElse
+// 	h.Exec(x)
+
+// 	h.Conn.Exec = false
+
+// 	var res []toolkit.M
+
+// 	e := h.Populate(q, &res)
+// 	log.Printf("res: %v\n", res)
+// 	log.Printf("e: %v\n", e)
+
+// 	h.Conn.Close()*/
+// }
 
 	e := h.Populate(q, &res)
 	log.Printf("populate res: \n%v\n", res)
