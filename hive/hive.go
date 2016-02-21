@@ -278,8 +278,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	if err == nil {
 		insertValues := ""
 
-		Model := TableModel
-
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
 
@@ -288,9 +286,9 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				if reflect.ValueOf(TableModel).Field(i).IsNil() == false {
 					log.Println(TableModel)
 					if i == (v.NumField() - 1) {
-						insertValues += reflect.ValueOf(Model).Field(i).Interface().(string) + ");"
+						insertValues += reflect.ValueOf(&TableModel).Field(i).String() + ");"
 					} else {
-						insertValues += reflect.ValueOf(Model).Field(i).Interface().(string) + ", "
+						insertValues += reflect.ValueOf(&TableModel).Field(i).String() + ", "
 					}
 				}
 			}
