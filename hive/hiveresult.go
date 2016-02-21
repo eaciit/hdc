@@ -215,8 +215,30 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 
 			log.Printf("appendData: %v\n", appendData)
 			log.Printf("kind: %v\n", v.Kind())
+			log.Printf("test: %v", fmt.Sprintf("%v", v))
+			//log.Printf("v.Name: %T\n", v)
 
-			if v.Kind() == reflect.Struct {
+			if fmt.Sprintf("%v", v) == "reflect.Value" {
+				log.Printf("else: %v\n", "reflect.Value")
+				log.Printf("header: %v\n", header)
+				for _, val := range header {
+					log.Printf("val: %v\n", val)
+					valthis := appendData[val]
+					dtype := DetectFormat(valthis.(string), dateFormat)
+					if dtype == "int" {
+						appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
+					} else if dtype == "float" {
+						valf, _ := strconv.ParseFloat(valthis.(string), 64)
+						appendData.Set(val, valf)
+					} else if dtype == "date" {
+						valf := cast.String2Date(valthis.(string), dateFormat)
+						appendData.Set(val, valf)
+					} else if dtype == "bool" {
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(val, valf)
+					}
+				}
+			} else if v.Kind() == reflect.Struct {
 				log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
@@ -245,8 +267,6 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 						case reflect.Float64:
 							valf, _ := strconv.ParseFloat(valthis.(string), 64)
 							appendData.Set(v.Field(i).Name, valf)
-						default:
-							log.Printf("default: %v\n", v.Field(i).Type.Kind())
 						}
 						dtype := DetectFormat(valthis.(string), dateFormat)
 						if dtype == "date" {
