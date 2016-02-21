@@ -345,13 +345,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
-	log.Println(isMatch)
-
 	if isMatch == false {
 		return retVal, err
 	}
-
-	log.Println(err)
 
 	if err == nil {
 		file, err := os.Open(FilePath)
@@ -367,11 +363,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 
-			log.Println(scanner.Text())
-
 			Parse([]string{}, scanner.Text(), &TableModel, "csv", "")
 
-			log.Println(TableModel)
+			log.Println(QueryBuilder("insert", TableName, scanner.Text(), TableModel))
 
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), TableModel)
 			hr, err = h.fetch(retVal)
