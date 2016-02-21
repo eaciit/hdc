@@ -31,7 +31,7 @@ const (
 	JSON          = "json"
 )
 
-type FnHiveReceive func(interface{}) error
+type FnHiveReceive func(HiveResult) error
 
 type Hive struct {
 	BeePath  string
@@ -110,12 +110,12 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 	return
 }
 
-func (h *Hive) Populate(query string, m interface{}) (hr HiveResult, e error) {
+func (h *Hive) Populate(query string, m interface{}) (e error) {
 	if !toolkit.IsPointer(m) {
 		e = errorlib.Error("", "", "Fetch", "Model object should be pointer")
 		return
 	}
-	hr, e = h.fetch(query)
+	hr, e := h.fetch(query)
 
 	Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
 	return

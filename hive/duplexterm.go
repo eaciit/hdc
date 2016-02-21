@@ -26,7 +26,7 @@ type DuplexTerm struct {
 	Stdin      io.WriteCloser
 	Stdout     io.ReadCloser
 	FnReceive  FnHiveReceive
-	Fn         interface{}
+	Exec       bool
 	OutputType string
 	DateFormat string
 }
@@ -65,11 +65,11 @@ func (d *DuplexTerm) Open() (e error) {
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
 
-		if d.FnReceive != nil {
+		/*if d.Exec {
 			go func() {
 				_, e = d.Wait()
 			}()
-		}
+		}*/
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
@@ -90,6 +90,12 @@ func (d *DuplexTerm) Close() {
 }
 
 func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
+	if d.Exec {
+		go func() {
+			_, e = d.Wait()
+		}()
+	}
+
 	iwrite, e := d.Writer.WriteString(input + "\n")
 	if iwrite == 0 {
 		e = errors.New("Writing only 0 byte")
@@ -101,7 +107,7 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 		return
 	}
 
-	if d.FnReceive == nil {
+	if !d.Exec {
 		result, e = d.Wait()
 	}
 
@@ -140,7 +146,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
-			if d.FnReceive != nil {
+			if d.Exec {
 				/*fn := reflect.ValueOf(d.Fn)
 				// tp := fn.Type().In(0)
 				// tmp := reflect.New(tp).Elem()
@@ -164,9 +170,9 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 				/*res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
 				log.Printf("test: %v\n", res)
 				d.FnReceive(res)*/
-
-				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-				d.FnReceive(hr.ResultObj)
+				hr.Result = append(hr.Result, bread)
+				Parse(hr.Header, hr.Result, &hr.ResultObj, d.OutputType, d.DateFormat)
+				d.FnReceive(hr)
 			} else {
 				result = append(result, bread)
 			}
@@ -176,15 +182,15 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			isHeader = true
 		}
 
-		if d.FnReceive != nil {
+		/*if d.Exec {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
-		} else {
-			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-				break
-			}
+		} else {*/
+		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+			break
 		}
+		// }
 
 	}
 

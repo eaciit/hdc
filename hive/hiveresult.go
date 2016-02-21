@@ -18,8 +18,8 @@ type HiveResult struct {
 	Header     []string
 	Result     []string
 	ResultObj  interface{}
-	Dup        *DuplexTerm
 	DateFormat string
+	//Dup        *DuplexTerm
 	/*OutputType string
 	DateFormat string
 	JsonPart   string*/
