@@ -342,7 +342,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				break
 			}
 
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat))
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), TableModel)
 			hr, err = h.fetch(retVal)
 		}
 
