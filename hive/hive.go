@@ -235,6 +235,8 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
+	log.Println(TableName)
+	log.Println(TableModel)
 	var hr []toolkit.M
 	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
 
