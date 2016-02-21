@@ -275,6 +275,8 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		return retVal, err
 	}
 
+	log.Println(isMatch)
+
 	if err == nil {
 		insertValues := ""
 
@@ -380,9 +382,18 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result[i] != "" {
 					line := strings.Split(lines[i], "\t")
+					var tempDataType = ""
+
 					log.Println(line[1])
 					log.Println(v.Field(i).Type.String())
-					if strings.Replace(strings.TrimSpace(line[1]), "double", "float", 0) == v.Field(i).Type.String() {
+
+					if strings.TrimSpace(line[1]) == "double" {
+						tempDataType = "float"
+					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
+						tempDataType = "string"
+					}
+
+					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
 						isMatch = false
