@@ -213,7 +213,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
 			}
 
-			log.Printf("appendData: %v\n", appendData)
+			/*log.Printf("appendData: %v\n", appendData)
 			log.Printf("kind: %v\n", v.Kind())
 			log.Printf("test: %v", fmt.Sprintf("%v", v))
 			//log.Printf("v.Name: %T\n", v)
@@ -238,7 +238,8 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					}
 				}
 				log.Printf("appendData: %v\n", appendData)
-			} else if v.Kind() == reflect.Struct {
+			} else */
+			if v.Kind() == reflect.Struct {
 				log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
@@ -303,7 +304,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			toolkit.Serde(appendData, iv, JSON)
 			log.Printf("iv result: %v\n", iv)
 			ivs = reflect.Append(ivs, reflect.ValueOf(iv).Elem())
-			log.Printf("iv result: %v\n", iv)
+			log.Printf("ivs result: %v\n", ivs)
 		}
 
 		if slice {
