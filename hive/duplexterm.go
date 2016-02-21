@@ -83,7 +83,7 @@ func (d *DuplexTerm) Close() {
 	d.Stdout.Close()
 }
 
-func (d *DuplexTerm) SendInput(input string) (result []string, err error) {
+func (d *DuplexTerm) SendInput(input string) ([]string, error) {
 	done := make(chan bool)
 	if d.FnReceive != nil {
 		go func() {
@@ -101,12 +101,9 @@ func (d *DuplexTerm) SendInput(input string) (result []string, err error) {
 			e = d.Writer.Flush()
 		}
 
-		if e != nil {
-			err = e
-			return
-		}
-
 		<-done
+
+		return nil, e
 	} else {
 		iwrite, e := d.Writer.WriteString(input + "\n")
 		if iwrite == 0 {
@@ -116,16 +113,15 @@ func (d *DuplexTerm) SendInput(input string) (result []string, err error) {
 		}
 
 		if e != nil {
-			err = e
-			return
+			return nil, e
+		} else {
+			result, e, status := d.Wait()
+			_ = result
+			_ = status
+
+			return result, e
 		}
-
-		result, e, status := d.Wait()
-		_ = result
-		_ = status
 	}
-
-	return
 }
 
 /*func (d *DuplexTerm) SetFn(f interface{}) {
