@@ -182,12 +182,11 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			isHeader = true
 		}
 
-		/*if d.Exec {
+		if d.Exec {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
-		} else {*/
-		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+		} else if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
 			break
 		}
 		// }
