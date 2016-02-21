@@ -117,8 +117,6 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 	}
 	hr, e := h.fetch(query)
 
-	log.Println(hr)
-
 	Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
 	return
 }
@@ -237,18 +235,13 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	var hr []toolkit.M
-	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
-
-	log.Println(hr)
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
 	if err != nil {
 		return retVal, err
 	}
 
-	fmt.Println("tempVal2")
-
-	if hr == nil {
+	if hr.Result == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -264,8 +257,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				}
 			}
 
-			var hr1 []toolkit.M
-			err = h.Populate(tempQuery, &hr1)
+			hr1, err := h.fetch(tempQuery)
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
