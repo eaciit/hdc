@@ -2,7 +2,7 @@ package test
 
 import (
 	//"fmt"
-	// "github.com/eaciit/toolkit"
+	"github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
@@ -93,8 +93,8 @@ func TestExec(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 	x := "select * from sample_07 limit 10;"
 	DoSomething := func(res interface{}) (e error) {
-		// tmp := Sample7{}
-		//h.ParseOutput(res, &tmp)
+		tmp := Sample7{}
+		toolkit.Serde(res, &tmp, "json")
 		log.Println(res)
 		return
 	}

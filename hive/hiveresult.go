@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	"log"
+	// "log"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -281,7 +281,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				}
 
 			} else {
-				log.Printf("else: %v\n", v.Kind())
+				// log.Printf("else: %v\n", v.Kind())
 				for _, val := range header {
 					// log.Printf("val: %v\n", val)
 					valthis := appendData[val]
@@ -312,7 +312,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		} else {
 			reflect.ValueOf(m).Elem().Set(ivs.Index(0))
 		}
-		log.Printf("result: %v\n", m)
+		// log.Printf("result: %v\n", m)
 	}
 	return nil
 }
