@@ -375,11 +375,14 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
+			lines := strings.Split(hr.Result[0], "\n")
+
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result[i] != "" {
-					lines := strings.Split(hr.Result[i], "\n")
-					log.Println(lines)
-					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
+					line := strings.Split(lines[i], "\t")
+					log.Println(line[1])
+					log.Println(v.Field(i).Type.String())
+					if strings.Replace(strings.TrimSpace(line[1]), "double", "float", 0) == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
 						isMatch = false
