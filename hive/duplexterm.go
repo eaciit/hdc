@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -183,6 +183,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 		}
 
 		if d.Exec {
+			log.Printf("d.exec: %v\n", strings.Contains(peekStr, CLOSE_SCRIPT))
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
@@ -190,7 +191,7 @@ func (d *DuplexTerm) Wait() (result []string, e error) {
 			break
 		}
 		// }
-
+		break
 	}
 
 	return
