@@ -285,7 +285,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if reflect.ValueOf(TableModel).Len() > 0 {
+				if reflect.ValueOf(TableModel).IsNil() == false {
 					if i == (v.NumField() - 1) {
 						insertValues += reflect.ValueOf(TableModel).Field(i).String() + ");"
 					} else {
