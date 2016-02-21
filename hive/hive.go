@@ -249,8 +249,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		return retVal, err
 	}
 
-	log.Println(hr)
-
 	if hr.Result == nil {
 		tempQuery := ""
 
@@ -395,8 +393,6 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		return isMatch, err
 	}
 
-	log.Println(hr)
-
 	if hr.Result != nil {
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
@@ -469,7 +465,6 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 			}
 		}
 	}
-	log.Println(retVal)
 	return retVal
 }
 
