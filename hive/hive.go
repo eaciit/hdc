@@ -384,7 +384,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 					line := strings.Split(strings.Replace(lines[i], "'", "", 0), "\t")
 					var tempDataType = ""
 
-					log.Println(line[1])
+					log.Println(line[i])
 					log.Println(v.Field(i).Type.String())
 
 					if strings.TrimSpace(line[1]) == "double" {
