@@ -350,6 +350,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 
+			log.Println(scanner.Text())
+
 			Parse([]string{}, scanner.Text(), &TableModel, "csv", "")
 
 			log.Println(TableModel)
