@@ -293,12 +293,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				} else {
 					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 				}
-
-				if i == (v.NumField() - 1) {
-					insertValues += ");"
-				} else {
-					insertValues += ", "
-				}
 			}
 
 			if insertValues != "" {
@@ -446,7 +440,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
 			if clause == "INSERT" {
-				retVal += input
+				retVal += input + ");"
 				break
 			} else if clause == "ADD COLUMN" {
 				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String() + " " + v.Field(i).Type.String()
