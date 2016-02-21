@@ -84,9 +84,11 @@ func TestHiveExec(t *testing.T) {
 
 	h.Conn.FnReceive = DoSomething
 	h.Exec(q)
+	/*h.Conn.Wait()
 
-	/*h.Conn.FnReceive = DoElse
+	h.Conn.FnReceive = DoElse
 	h.Exec(x)
+	h.Conn.Wait()
 
 	var res []toolkit.M
 
@@ -96,3 +98,29 @@ func TestHiveExec(t *testing.T) {
 
 	h.Conn.Close()
 }
+
+func TestHiveExecMulti(t *testing.T) {
+	var ms1 []HiveResult
+	q := "select * from sample_07 limit 5;"
+
+	DoSomething := func(res HiveResult) (e error) {
+		ms1 = append(ms1, res)
+		return
+	}
+
+	h.Conn.Open()
+
+	h.Conn.FnReceive = DoSomething
+	h.Exec(q)
+	h.Exec(q)
+
+	for _, v1 := range ms1 {
+		log.Println(v1)
+	}
+}
+
+/*func TestHiveClose(t *testing.T) {
+	if h != nil {
+		h.Conn.Close()
+	}
+}*/

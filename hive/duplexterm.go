@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -28,6 +28,7 @@ type DuplexTerm struct {
 	FnReceive  FnHiveReceive
 	OutputType string
 	DateFormat string
+	status     chan bool
 }
 
 /*func (d *DuplexTerm) Open() (e error) {
@@ -63,7 +64,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
-
+		d.status = make(chan bool)
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
@@ -86,15 +87,13 @@ func (d *DuplexTerm) Close() {
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 
 	if d.FnReceive != nil {
-		done := make(chan bool)
-		// log.Printf("fnreceive: \n%d\n", d.FnReceive)
-
+		d.status = make(chan bool)
 		go func() {
-			_, e, status := d.Wait()
+			_, e, status := d.process()
 			_ = e
 			if status {
-				// done <- status
-				close(done)
+				log.Printf("status: %v\n", status)
+				d.status <- status
 			}
 		}()
 
@@ -105,7 +104,6 @@ func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 			e = d.Writer.Flush()
 		}
 		err = e
-		<-done
 	} else {
 		iwrite, e := d.Writer.WriteString(input + "\n")
 		if iwrite == 0 {
@@ -114,25 +112,23 @@ func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 			e = d.Writer.Flush()
 		}
 		if e == nil {
-			res, e, _ = d.Wait()
+			res, e, _ = d.process()
+			// d.status <- true
+		} else {
+			// d.status <- false
 		}
 		err = e
 	}
 	return
 }
 
-/*func (d *DuplexTerm) SetFn(f interface{}) {
-	fn := reflect.ValueOf(f)
-	fnType := fn.Type()
-	if fnType.Kind() != reflect.Func || fnType.NumIn() != 1 || fnType.NumOut() != 1 {
-		panic("Expected a unary function returning a single value")
-	}
+func (d *DuplexTerm) Wait() {
+	<-d.status
+}
 
-	d.Fn = f
-}*/
-
-func (d *DuplexTerm) Wait() (result []string, e error, status bool) {
+func (d *DuplexTerm) process() (result []string, e error, status bool) {
 	isHeader := false
+	status = false
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
@@ -196,7 +192,9 @@ func (d *DuplexTerm) Wait() (result []string, e error, status bool) {
 			}
 		} else {*/
 		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
-			status = true
+			if d.FnReceive != nil {
+				status = true
+			}
 			break
 		}
 		// }
