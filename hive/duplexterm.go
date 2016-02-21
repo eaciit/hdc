@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -83,14 +83,18 @@ func (d *DuplexTerm) Close() {
 	d.Stdout.Close()
 }
 
-func (d *DuplexTerm) SendInput(input string) ([]string, error) {
-	done := make(chan bool)
+func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
+
 	if d.FnReceive != nil {
+		done := make(chan bool)
+		log.Printf("fnreceive: \n%d\n", d.FnReceive)
+
 		go func() {
 			_, e, status := d.Wait()
 			_ = e
 			if status {
-				done <- status
+				// done <- status
+				close(done)
 			}
 		}()
 
@@ -100,10 +104,8 @@ func (d *DuplexTerm) SendInput(input string) ([]string, error) {
 		} else {
 			e = d.Writer.Flush()
 		}
-
+		err = e
 		<-done
-
-		return nil, e
 	} else {
 		iwrite, e := d.Writer.WriteString(input + "\n")
 		if iwrite == 0 {
@@ -111,17 +113,12 @@ func (d *DuplexTerm) SendInput(input string) ([]string, error) {
 		} else {
 			e = d.Writer.Flush()
 		}
-
-		if e != nil {
-			return nil, e
-		} else {
-			result, e, status := d.Wait()
-			_ = result
-			_ = status
-
-			return result, e
+		if e == nil {
+			res, e, _ = d.Wait()
 		}
+		err = e
 	}
+	return
 }
 
 /*func (d *DuplexTerm) SetFn(f interface{}) {
