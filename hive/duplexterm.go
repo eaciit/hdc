@@ -4,10 +4,12 @@ import (
 	"bufio"
 	"errors"
 	// "fmt"
+	"github.com/eaciit/errorlib"
+	// "github.com/eaciit/toolkit"
 	"io"
 	// "log"
-	"github.com/eaciit/errorlib"
 	"os/exec"
+	// "reflect"
 	"strings"
 )
 
@@ -17,13 +19,15 @@ const (
 )
 
 type DuplexTerm struct {
-	Writer    *bufio.Writer
-	Reader    *bufio.Reader
-	Cmd       *exec.Cmd
-	CmdStr    string
-	Stdin     io.WriteCloser
-	Stdout    io.ReadCloser
-	FnReceive FnHiveReceive
+	Writer     *bufio.Writer
+	Reader     *bufio.Reader
+	Cmd        *exec.Cmd
+	CmdStr     string
+	Stdin      io.WriteCloser
+	Stdout     io.ReadCloser
+	FnReceive  FnHiveReceive
+	OutputType string
+	DateFormat string
 }
 
 /*func (d *DuplexTerm) Open() (e error) {
@@ -41,6 +45,8 @@ type DuplexTerm struct {
 	e = d.Cmd.Start()
 	return
 }*/
+
+var hr HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
@@ -60,22 +66,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		if d.FnReceive != nil {
 			go func() {
-				for {
-					bread, e := d.Reader.ReadString('\n')
-					bread = strings.TrimRight(bread, "\n")
-					peek, _ := d.Reader.Peek(14)
-					peekStr := string(peek)
-
-					if !strings.Contains(bread, BEE_CLI_STR) {
-						//result = append(result, bread)
-						d.FnReceive(bread)
-					}
-
-					if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
-						break
-					}
-
-				}
+				_, e = d.Wait()
 			}()
 		}
 		e = d.Cmd.Start()
@@ -110,20 +101,91 @@ func (d *DuplexTerm) SendInput(input string) (result []string, e error) {
 	}
 
 	if d.FnReceive == nil {
-		for {
-			bread, e := d.Reader.ReadString('\n')
-			bread = strings.TrimRight(bread, "\n")
-			peek, _ := d.Reader.Peek(14)
-			peekStr := string(peek)
+		result, e = d.Wait()
+	}
 
-			if !strings.Contains(bread, BEE_CLI_STR) {
+	return
+}
+
+/*func (d *DuplexTerm) SetFn(f interface{}) {
+	fn := reflect.ValueOf(f)
+	fnType := fn.Type()
+	if fnType.Kind() != reflect.Func || fnType.NumIn() != 1 || fnType.NumOut() != 1 {
+		panic("Expected a unary function returning a single value")
+	}
+
+	d.Fn = f
+}*/
+
+func (d *DuplexTerm) Wait() (result []string, e error) {
+	isHeader := false
+	for {
+		peekBefore, _ := d.Reader.Peek(14)
+		peekBeforeStr := string(peekBefore)
+
+		bread, e := d.Reader.ReadString('\n')
+		bread = strings.TrimRight(bread, "\n")
+
+		peek, _ := d.Reader.Peek(14)
+		peekStr := string(peek)
+
+		delimiter := "\t"
+
+		if d.OutputType == CSV {
+			delimiter = ","
+		}
+
+		if isHeader {
+			hr.constructHeader(bread, delimiter)
+			isHeader = false
+		} else if !strings.Contains(bread, BEE_CLI_STR) {
+			if d.FnReceive != nil {
+				/*fn := reflect.ValueOf(d.Fn)
+				// tp := fn.Type().In(0)
+				// tmp := reflect.New(tp).Elem()
+
+				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+				log.Printf("tmp: %v\n", &hr.ResultObj)
+
+				res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
+				log.Printf("res: %v\n", res)*/
+
+				/*fn := reflect.ValueOf(d.Fn)
+				tp := fn.Type().In(0)
+				tmp := reflect.New(tp)
+
+				xTmp := toolkit.M{}
+
+				Parse(hr.Header, bread, &xTmp, d.OutputType, d.DateFormat)
+				log.Printf("tmp: %v\n", xTmp)*/
+				// log.Printf("tmp: %v\n", tmp)
+
+				/*res := fn.Call([]reflect.Value{reflect.ValueOf(hr.ResultObj)})
+				log.Printf("test: %v\n", res)
+				d.FnReceive(res)*/
+
+				hr.Result = append(hr.Result, bread)
+				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+				d.FnReceive(hr)
+			} else {
 				result = append(result, bread)
 			}
+		}
 
+		if BEE_CLI_STR == peekBeforeStr {
+			isHeader = true
+		}
+
+		if d.FnReceive != nil {
+			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
+				break
+			}
+		} else {
 			if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
 				break
 			}
 		}
+
 	}
 
 	return
