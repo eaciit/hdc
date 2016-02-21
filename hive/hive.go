@@ -285,11 +285,23 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
+			if reflect.ValueOf(TableModel).Elem().IsNil()
 			for i := 0; i < v.NumField(); i++ {
-				if i == (v.NumField() - 1) {
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ");"
+				if v.Field(i).Type.String() == "string"{
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String()
+				} else if v.Field(i).Type.String() == "int"{
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Int()
+				} else if v.Field(i).Type.String() == "float"{
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Float()
 				} else {
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ", "
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Interface()
+				}
+
+
+				if i == (v.NumField() - 1) {
+					insertValues += ");"
+				} else {
+					insertValues += ", "
 				}
 			}
 			if insertValues != "" {
@@ -405,8 +417,6 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 						tempDataType = strings.TrimSpace(line[1])
 					}
 
-					log.Println(hr.Result[i] + " " + tempDataType + " " + v.Field(i).Type.String())
-
 					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
@@ -448,7 +458,6 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 		for i := 0; i < v.NumField(); i++ {
 			if clause == "INSERT" {
 				retVal += input
-				retVal += ");"
 				break
 			} else if clause == "ADD COLUMN" {
 				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String() + " " + v.Field(i).Type.String()
