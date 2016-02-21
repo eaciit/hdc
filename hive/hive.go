@@ -384,6 +384,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		return isMatch, err
 	}
 
+	log.Println(hr)
+
 	// if hr != nil {
 	// 	var v reflect.Type
 	// 	v = reflect.TypeOf(TableModel).Elem()
