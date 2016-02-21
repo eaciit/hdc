@@ -342,6 +342,10 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				break
 			}
 
+			Parse([]string{}, scanner.Text(), &TableModel, "csv", "")
+
+			log.Println(TableModel)
+
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), TableModel)
 			hr, err = h.fetch(retVal)
 		}
