@@ -283,13 +283,10 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if reflect.ValueOf(TableModel).Elem().Field(i).IsNil() == false {
-					log.Println(TableModel)
-					if i == (v.NumField() - 1) {
-						insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ");"
-					} else {
-						insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ", "
-					}
+				if i == (v.NumField() - 1) {
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ");"
+				} else {
+					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String() + ", "
 				}
 			}
 			if insertValues != "" {
