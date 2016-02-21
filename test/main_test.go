@@ -72,12 +72,14 @@ func TestHivePopulate(t *testing.T) {
 
 //<<<<<<< HEAD
 func TestLoad(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	h := HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 
 	h.Conn.Open()
 
-	ret, err := h.fetch("select '1' from students limit 1")
-	fmt.Println(ret)
+	//fmt.Println(h.)
+
+	h.Exec("select '1' from students limit 1")
+	//fmt.Println(ret)
 
 	retVal, err := h.Load("students", "|", nil)
 
@@ -88,52 +90,52 @@ func TestLoad(t *testing.T) {
 	fmt.Println(retVal)
 }
 
-func TestExecLine(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-	//=======
-	//func TestHiveExec(t *testing.T) {
-	//>>>>>>> ccf5cbc4dbf71b6702fa10127569b327c853df4a
-	q := "select * from sample_07 limit 5;"
-	// x := "select * from sample_07 limit 10;"
-	DoSomething := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: %v", res.ResultObj)
-		return
-	}
+// func TestExecLine(t *testing.T) {
+// 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+// 	//=======
+// 	//func TestHiveExec(t *testing.T) {
+// 	//>>>>>>> ccf5cbc4dbf71b6702fa10127569b327c853df4a
+// 	q := "select * from sample_07 limit 5;"
+// 	// x := "select * from sample_07 limit 10;"
+// 	DoSomething := func(res HiveResult) (e error) {
+// 		toolkit.Serde(res, &res.ResultObj, "json")
+// 		log.Printf("limit 5: %v", res.ResultObj)
+// 		return
+// 	}
 
-	/*DoElse := func(res HiveResult) (e error) {
-		tmp := toolkit.M{}
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 10: %v", tmp)
-		return
-	}*/
+// 	DoElse := func(res HiveResult) (e error) {
+// 		tmp := toolkit.M{}
+// 		toolkit.Serde(res, &res.ResultObj, "json")
+// 		log.Printf("limit 10: %v", tmp)
+// 		return
+// 	}
 
-	// h.Conn.SetFn(DoSomething)
-	h.Conn.FnReceive = DoSomething
+// 	// h.Conn.SetFn(DoSomething)
+// 	h.Conn.FnReceive = DoSomething
 
-	h.Conn.Open()
-	h.Exec(q)
+// 	h.Conn.Open()
+// 	h.Exec(q)
 
-	/*h.Conn.FnReceive = DoElse
-	h.Exec(x)*/
+// 	/*h.Conn.FnReceive = DoElse
+// 	h.Exec(x)*/
 
-	h.Conn.Close()
+// 	h.Conn.Close()
 
-	/*h.Conn.Exec = true
-	h.Conn.Open()
-	h.Conn.FnReceive = DoSomething
-	h.Exec(q)
+// 	/*h.Conn.Exec = true
+// 	h.Conn.Open()
+// 	h.Conn.FnReceive = DoSomething
+// 	h.Exec(q)
 
-	h.Conn.FnReceive = DoElse
-	h.Exec(x)
+// 	h.Conn.FnReceive = DoElse
+// 	h.Exec(x)
 
-	h.Conn.Exec = false
+// 	h.Conn.Exec = false
 
-	var res []toolkit.M
+// 	var res []toolkit.M
 
-	e := h.Populate(q, &res)
-	log.Printf("res: %v\n", res)
-	log.Printf("e: %v\n", e)
+// 	e := h.Populate(q, &res)
+// 	log.Printf("res: %v\n", res)
+// 	log.Printf("e: %v\n", e)
 
-	h.Conn.Close()*/
-}
+// 	h.Conn.Close()*/
+// }

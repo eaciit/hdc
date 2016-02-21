@@ -237,7 +237,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
 
-	fmt.Println("tempVal")
+	fmt.Println(hr)
 
 	if err != nil {
 		return retVal, err
