@@ -422,6 +422,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 		for i := 0; i < v.NumField(); i++ {
 			if clause == "INSERT" {
 				retVal += input
+				retVal += ");"
 				break
 			} else if clause == "ADD COLUMN" {
 				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String() + " " + v.Field(i).Type.String()
