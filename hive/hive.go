@@ -378,8 +378,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
-	var hr []toolkit.M
-	err = h.Populate("describe "+Tablename+";", &hr)
+	hr, err := h.fetch("describe " + Tablename + ";")
 
 	if err != nil {
 		return isMatch, err
@@ -387,46 +386,46 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 	log.Println(hr)
 
-	// if hr != nil {
-	// 	var v reflect.Type
-	// 	v = reflect.TypeOf(TableModel).Elem()
+	if hr.Result != nil {
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
 
-	// 	if v.Kind() == reflect.Struct {
+		if v.Kind() == reflect.Struct {
 
-	// 		for i := 0; i < v.NumField(); i++ {
-	// 			if hr != nil {
-	// 				line := strings.Split(strings.Replace(hr[i], "'", "", -1), "\t")
-	// 				var tempDataType = ""
+			for i := 0; i < v.NumField(); i++ {
+				if hr.Result != nil {
+					line := strings.Split(strings.Replace(hr.Result[i+1], "'", "", -1), "\t")
+					var tempDataType = ""
 
-	// 				if strings.TrimSpace(line[1]) == "double" {
-	// 					tempDataType = "float"
-	// 				} else if strings.TrimSpace(line[1]) == "varchar(64)" {
-	// 					tempDataType = "string"
-	// 				} else {
-	// 					tempDataType = strings.TrimSpace(line[1])
-	// 				}
+					if strings.TrimSpace(line[1]) == "double" {
+						tempDataType = "float"
+					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
+						tempDataType = "string"
+					} else {
+						tempDataType = strings.TrimSpace(line[1])
+					}
 
-	// 				log.Println(hr.Result[i] + " " + tempDataType + " " + v.Field(i).Type.String())
+					log.Println(hr.Result[i] + " " + tempDataType + " " + v.Field(i).Type.String())
 
-	// 				if tempDataType == v.Field(i).Type.String() {
-	// 					isMatch = true
-	// 				} else {
-	// 					isMatch = false
-	// 					break
-	// 				}
-	// 			} else {
-	// 				// handle new column
-	// 				_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
+					if tempDataType == v.Field(i).Type.String() {
+						isMatch = true
+					} else {
+						isMatch = false
+						break
+					}
+				} else {
+					// handle new column
+					_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
 
-	// 				if err != nil {
-	// 					break
-	// 				}
+					if err != nil {
+						break
+					}
 
-	// 				isMatch = true
-	// 			}
-	// 		}
-	// 	}
-	// }
+					isMatch = true
+				}
+			}
+		}
+	}
 	return isMatch, err
 }
 
