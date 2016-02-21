@@ -275,8 +275,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		return retVal, err
 	}
 
-	log.Println(isMatch)
-
 	if err == nil {
 		insertValues := ""
 
@@ -285,7 +283,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if reflect.ValueOf(TableModel).IsNil() == false {
+				if TableModel != nil {
 					if i == (v.NumField() - 1) {
 						insertValues += reflect.ValueOf(TableModel).Field(i).String() + ");"
 					} else {
@@ -374,8 +372,6 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		return isMatch, err
 	}
 
-	log.Println(hr)
-
 	if hr.Result != nil {
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
@@ -394,8 +390,6 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 					} else {
 						tempDataType = strings.TrimSpace(line[1])
 					}
-
-					log.Println(tempDataType + " " + v.Field(i).Type.String())
 
 					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
