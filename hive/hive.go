@@ -381,7 +381,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result[i] != "" {
-					line := strings.Split(lines[i], "\t")
+					line := strings.Split(strings.Replace(lines[i], "\'", "", 0), "\t")
 					var tempDataType = ""
 
 					log.Println(line[1])
