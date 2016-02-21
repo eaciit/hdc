@@ -24,7 +24,7 @@ type Sample7 struct {
 
 type students struct {
 	name    string
-	age     string
+	age     int
 	phone   string
 	address string
 }
