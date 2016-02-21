@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -87,7 +87,7 @@ func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 
 	if d.FnReceive != nil {
 		done := make(chan bool)
-		log.Printf("fnreceive: \n%d\n", d.FnReceive)
+		// log.Printf("fnreceive: \n%d\n", d.FnReceive)
 
 		go func() {
 			_, e, status := d.Wait()
