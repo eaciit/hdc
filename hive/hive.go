@@ -285,14 +285,18 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if i == (v.NumField() - 1) {
-					insertValues += reflect.ValueOf(TableModel).Field(i).String() + ");"
-				} else {
-					insertValues += reflect.ValueOf(TableModel).Field(i).String() + ", "
+				if reflect.ValueOf(TableModel).Field(i) != nil {
+					if i == (v.NumField() - 1) {
+						insertValues += reflect.ValueOf(TableModel).Field(i).String() + ");"
+					} else {
+						insertValues += reflect.ValueOf(TableModel).Field(i).String() + ", "
+					}
 				}
 			}
-			retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-			_, err = h.fetch(retVal)
+			if insertValues != "" {
+				retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
+				_, err = h.fetch(retVal)
+			}
 		}
 
 		if err == nil {
