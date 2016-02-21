@@ -25,6 +25,8 @@ type HiveResult struct {
 	JsonPart   string*/
 }
 
+var JsonPart string
+
 func (hr *HiveResult) constructHeader(header string, delimiter string) {
 	var tmpHeader []string
 	for _, header := range strings.Split(header, delimiter) {
@@ -81,10 +83,10 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				return e
 			}
 
-			for i, val := range header {
-				appendData[val] = strings.TrimSpace(record[i])
-			}
 			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					appendData[v.Field(i).Name] = strings.TrimSpace(record[i])
+				}
 
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
@@ -123,6 +125,15 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					}
 				}
 			} else {
+				for i, val := range header {
+					appendData[val] = strings.TrimSpace(record[i])
+				}
+
+				if len(header) == 0 {
+					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
+					return e
+				}
+
 				for _, val := range header {
 					valthis := appendData[val]
 					dtype := DetectFormat(valthis.(string), dateFormat)
@@ -151,15 +162,14 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		}
 	} else if outputType == JSON {
 		var temp interface{}
-		ins, jsonPart := InspectJson(ins)
+		ins = InspectJson(ins)
 
 		//for catch multi json in one line
-		if jsonPart != "" && slice {
+		if JsonPart != "" && slice {
 			for {
-				tempjsonpart := jsonPart
-				jsonPart = ""
-				tempIn, jsonPart := InspectJson([]string{tempjsonpart})
-				_ = jsonPart
+				tempjsonpart := JsonPart
+				JsonPart = ""
+				tempIn := InspectJson([]string{tempjsonpart})
 				if len(tempIn) == 0 {
 					break
 				} else {
@@ -174,13 +184,12 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 		if slice {
 			forSerde = fmt.Sprintf("[%s]", strings.Join(ins, ","))
 		}
-
 		if len(ins) > 0 {
 			e := json.Unmarshal([]byte(forSerde), &temp)
 			if e != nil {
 				return e
 			}
-			e = toolkit.Serde(temp, m, JSON)
+			e = toolkit.Serde(temp, m, "json")
 			if e != nil {
 				return e
 			}
@@ -209,10 +218,6 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 
 			splitted := strings.Split(data, "\t")
 
-			for i, val := range header {
-				appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
-			}
-
 			/*log.Printf("appendData: %v\n", appendData)
 			log.Printf("kind: %v\n", v.Kind())
 			log.Printf("test: %v", fmt.Sprintf("%v", v))
@@ -240,6 +245,10 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				log.Printf("appendData: %v\n", appendData)
 			} else */
 			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					appendData[v.Field(i).Name] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
+				}
+
 				// log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
@@ -281,6 +290,15 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				}
 
 			} else {
+				for i, val := range header {
+					appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
+				}
+
+				if len(header) == 0 {
+					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
+					return e
+				}
+
 				// log.Printf("else: %v\n", v.Kind())
 				for _, val := range header {
 					// log.Printf("val: %v\n", val)
@@ -317,10 +335,12 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 	return nil
 }
 
-func InspectJson(ins []string) (re []string, jsonPart string) {
+func InspectJson(ins []string) (out []string) {
+	var re []string
+
 	for _, in := range ins {
-		if jsonPart != "" {
-			in = jsonPart + in
+		if JsonPart != "" {
+			in = JsonPart + in
 		}
 		in = strings.Trim(strings.TrimSpace(in), " ,")
 		charopen := 0
@@ -335,20 +355,20 @@ func InspectJson(ins []string) (re []string, jsonPart string) {
 
 			if charopen == charclose && (charclose != 0 && charopen != 0) {
 				if len(in) == i+1 {
-					jsonPart = ""
+					JsonPart = ""
 				} else {
-					jsonPart = in[i+1:]
+					JsonPart = in[i+1:]
 				}
 				re = append(re, strings.Trim(strings.TrimSpace(in[:i+1]), " ,"))
 				break
 			}
 			if charopen != charclose || (charclose == 0 && charopen == 0) {
-				jsonPart = in
+				JsonPart = in
 			}
 		}
 
 	}
-	return
+	return re
 }
 
 func DetectFormat(in string, dateFormat string) (res string) {
