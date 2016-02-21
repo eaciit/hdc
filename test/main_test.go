@@ -3,8 +3,9 @@ package test
 import (
 	"fmt"
 	//"github.com/eaciit/toolkit"
-	. "github.com/frezadev/hdc/hive"
-	//. "github.com/eaciit/hdc/hive"
+	//. "github.com/frezadev/hdc/hive"
+	// . "github.com/eaciit/hdc/hive"
+	. "github.com/RyanCi/hdc/hive"
 	// "reflect"
 	//"log"
 	"os"
@@ -72,7 +73,7 @@ Ideally Populate should call Exec as well but already have predefined function o
 
 //<<<<<<< HEAD
 func TestLoad(t *testing.T) {
-	h := HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	//h := HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 
 	h.Conn.Open()
 
@@ -87,6 +88,7 @@ func TestLoad(t *testing.T) {
 		fmt.Println(err)
 	}
 
+	h.Conn.Close()
 	fmt.Println(retVal)
 }
 

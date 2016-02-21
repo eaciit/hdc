@@ -238,7 +238,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	var hr []toolkit.M
 	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
 
-	fmt.Println(hr)
+	log.Println(hr)
 
 	if err != nil {
 		return retVal, err
