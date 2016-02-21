@@ -200,7 +200,7 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 
 func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -235,7 +235,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
 	fmt.Println(hr)
 

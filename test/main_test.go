@@ -78,7 +78,7 @@ func TestLoad(t *testing.T) {
 
 	//fmt.Println(h.)
 
-	h.Exec("select '1' from students limit 1")
+	//h.Exec("select '1' from students limit 1")
 	//fmt.Println(ret)
 
 	retVal, err := h.Load("students", "|", nil)
