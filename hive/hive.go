@@ -243,13 +243,14 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+	var hr []toolkit.M
+	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
 
 	if err != nil {
 		return retVal, err
 	}
 
-	if hr.Result == nil {
+	if hr == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -376,52 +377,53 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
-	hr, err := h.fetch("describe " + Tablename + ";")
+	var hr []toolkit.M
+	err = h.Populate("describe "+Tablename+";", &hr)
 
 	if err != nil {
 		return isMatch, err
 	}
 
-	if hr.Result != nil {
-		var v reflect.Type
-		v = reflect.TypeOf(TableModel).Elem()
+	// if hr != nil {
+	// 	var v reflect.Type
+	// 	v = reflect.TypeOf(TableModel).Elem()
 
-		if v.Kind() == reflect.Struct {
+	// 	if v.Kind() == reflect.Struct {
 
-			for i := 0; i < v.NumField(); i++ {
-				if hr.Result[i] != "" {
-					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
-					var tempDataType = ""
+	// 		for i := 0; i < v.NumField(); i++ {
+	// 			if hr != nil {
+	// 				line := strings.Split(strings.Replace(hr[i], "'", "", -1), "\t")
+	// 				var tempDataType = ""
 
-					if strings.TrimSpace(line[1]) == "double" {
-						tempDataType = "float"
-					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
-						tempDataType = "string"
-					} else {
-						tempDataType = strings.TrimSpace(line[1])
-					}
+	// 				if strings.TrimSpace(line[1]) == "double" {
+	// 					tempDataType = "float"
+	// 				} else if strings.TrimSpace(line[1]) == "varchar(64)" {
+	// 					tempDataType = "string"
+	// 				} else {
+	// 					tempDataType = strings.TrimSpace(line[1])
+	// 				}
 
-					log.Println(hr.Result[i] + " " + tempDataType + " " + v.Field(i).Type.String())
+	// 				log.Println(hr.Result[i] + " " + tempDataType + " " + v.Field(i).Type.String())
 
-					if tempDataType == v.Field(i).Type.String() {
-						isMatch = true
-					} else {
-						isMatch = false
-						break
-					}
-				} else {
-					// handle new column
-					_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
+	// 				if tempDataType == v.Field(i).Type.String() {
+	// 					isMatch = true
+	// 				} else {
+	// 					isMatch = false
+	// 					break
+	// 				}
+	// 			} else {
+	// 				// handle new column
+	// 				_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
 
-					if err != nil {
-						break
-					}
+	// 				if err != nil {
+	// 					break
+	// 				}
 
-					isMatch = true
-				}
-			}
-		}
-	}
+	// 				isMatch = true
+	// 			}
+	// 		}
+	// 	}
+	// }
 	return isMatch, err
 }
 
