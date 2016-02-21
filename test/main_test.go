@@ -2,11 +2,11 @@ package test
 
 import (
 	"fmt"
-	"github.com/eaciit/toolkit"
+	//"github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	// "reflect"
-	"log"
+	//"log"
 	"os"
 	"testing"
 )
