@@ -429,9 +429,9 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	if v.Kind() == reflect.Struct {
 		for i := 0; i < v.NumField(); i++ {
 			if clause == "INSERT" {
-				retVal += reflect.ValueOf(TableModel).Field(i).String()
+				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String()
 			} else if clause == "ADD COLUMN" {
-				retVal += reflect.ValueOf(TableModel).Field(i).String() + " " + v.Field(i).Type.String()
+				retVal += reflect.ValueOf(TableModel).Elem().Field(i).String() + " " + v.Field(i).Type.String()
 			}
 
 			if i < v.NumField()-1 {
