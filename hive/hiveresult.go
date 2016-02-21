@@ -221,11 +221,15 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
 					log.Printf("i: %v\n", i)
+
+					log.Printf("name: (%v) tag: (%v)\n", appendData.Has(v.Field(i).Name), appendData.Has(tag.Get("tag_name")))
+
 					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
 						valthis := appendData[v.Field(i).Name]
 						if valthis == nil {
 							valthis = appendData[tag.Get("tag_name")]
 						}
+						log.Printf("valthis: %v\n", valthis)
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
@@ -241,6 +245,8 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 						case reflect.Float64:
 							valf, _ := strconv.ParseFloat(valthis.(string), 64)
 							appendData.Set(v.Field(i).Name, valf)
+						default:
+							log.Printf("default: %v\n", v.Field(i).Type.Kind())
 						}
 						dtype := DetectFormat(valthis.(string), dateFormat)
 						if dtype == "date" {
