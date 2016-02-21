@@ -220,7 +220,6 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 
 			if fmt.Sprintf("%v", v) == "reflect.Value" {
 				log.Printf("else: %v\n", "reflect.Value")
-				log.Printf("header: %v\n", header)
 				for _, val := range header {
 					log.Printf("val: %v\n", val)
 					valthis := appendData[val]
@@ -238,6 +237,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 						appendData.Set(val, valf)
 					}
 				}
+				log.Printf("appendData: %v\n", appendData)
 			} else if v.Kind() == reflect.Struct {
 				log.Printf("struct: %v\n", v.Kind())
 				for i := 0; i < v.NumField(); i++ {
