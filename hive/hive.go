@@ -14,7 +14,7 @@ import (
 	"os/user"
 	"reflect"
 	// "regexp"
-	// "strconv"
+	"strconv"
 	"strings"
 )
 
@@ -285,25 +285,26 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
-			if reflect.ValueOf(TableModel).Elem().IsNil()
-			for i := 0; i < v.NumField(); i++ {
-				if v.Field(i).Type.String() == "string"{
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String()
-				} else if v.Field(i).Type.String() == "int"{
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Int()
-				} else if v.Field(i).Type.String() == "float"{
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Float()
-				} else {
-					insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Interface()
-				}
+			if reflect.ValueOf(TableModel).Elem().IsNil() == false {
+				for i := 0; i < v.NumField(); i++ {
+					if v.Field(i).Type.String() == "string" {
+						insertValues += reflect.ValueOf(TableModel).Elem().Field(i).String()
+					} else if v.Field(i).Type.String() == "int" {
+						insertValues += string(reflect.ValueOf(TableModel).Elem().Field(i).Int())
+					} else if v.Field(i).Type.String() == "float" {
+						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
+					} else {
+						insertValues += reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string)
+					}
 
-
-				if i == (v.NumField() - 1) {
-					insertValues += ");"
-				} else {
-					insertValues += ", "
+					if i == (v.NumField() - 1) {
+						insertValues += ");"
+					} else {
+						insertValues += ", "
+					}
 				}
 			}
+
 			if insertValues != "" {
 				retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
 				_, err = h.fetch(retVal)
