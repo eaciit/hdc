@@ -322,7 +322,7 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 			hr, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, &TableModel)
 	}
 
 	if isMatch == false {
