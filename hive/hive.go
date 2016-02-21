@@ -235,7 +235,8 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+	var hr []toolkit.M
+	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
 
 	fmt.Println(hr)
 
@@ -245,7 +246,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 	fmt.Println("tempVal2")
 
-	if hr.Result == nil {
+	if err == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -260,7 +261,9 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			hr, err = h.fetch(tempQuery)
+
+			var hr1 []toolkit.M
+			err = h.Populate(tempQuery, &hr1)
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
