@@ -75,23 +75,23 @@ func TestParseOutputOneStruct(t *testing.T) {
 	h.OutputType = "csv"
 	h.DateFormat = "yyyy-MM-dd"
 	res := "'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"
-	tmp := SampleParse{}
+	var tmp interface{}
 	h.ParseOutput(res, &tmp)
 	log.Println(tmp)
 
 	h.OutputType = "csv"
 	h.DateFormat = "YYYY-MM-dd"
 	res = "00-0000,All Occupations CSV2,134354250,40690,2014-05-01"
-	tmp = SampleParse{}
-	h.ParseOutput(res, &tmp)
-	log.Println(tmp)
+	var tmpt interface{}
+	h.ParseOutput(res, &tmpt)
+	log.Println(tmpt)
 
 	h.OutputType = "tsv"
 	h.DateFormat = "YYYY-MMM-dd"
-	res = "'00-0000'\t'All Occupations TSV'\t'134354250'\t'40690'\t'2014-Dec-05'"
-	tmp = SampleParse{}
-	h.ParseOutput(res, &tmp)
-	log.Println(tmp)
+	res = "'00-0000'\t'All Occupations TSV'\t'13.4354.250'\t'40690'\t'2014-Dec-05'"
+	var tmpz interface{}
+	h.ParseOutput(res, &tmpz)
+	log.Println(tmpz)
 
 	//try to parse json with different line
 	h.OutputType = "json"
