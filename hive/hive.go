@@ -237,8 +237,6 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	log.Println(TableName)
-	log.Println(TableModel)
 	var hr []toolkit.M
 	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
 
@@ -267,7 +265,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			}
 
 			var hr1 []toolkit.M
-			log.Println(tempQuery)
 			err = h.Populate(tempQuery, &hr1)
 		}
 	} else {
@@ -380,7 +377,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result[i] != "" {
-					lines := strings.Split(hr.Result[i], ",")
+					lines := strings.Split(hr.Result[i], "\n")
+					log.Println(lines)
 					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
