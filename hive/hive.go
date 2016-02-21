@@ -387,6 +387,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 						tempDataType = "float"
 					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
 						tempDataType = "string"
+					} else {
+						tempDataType = strings.TrimSpace(line[1])
 					}
 
 					log.Println(tempDataType + " " + v.Field(i).Type.String())
