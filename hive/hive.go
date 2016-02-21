@@ -308,7 +308,10 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
-	log.Println("aaaaaa")
+
+	if err != nil {
+		return retVal, err
+	}
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -330,6 +333,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	log.Println(isMatch)
 
 	if isMatch == false {
 		return retVal, err
