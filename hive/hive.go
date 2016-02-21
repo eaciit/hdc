@@ -393,6 +393,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 						tempDataType = "string"
 					}
 
+					log.Println(tempDataType + " " + v.Field(i).Type.String())
+
 					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
