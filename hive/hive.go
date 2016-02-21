@@ -378,6 +378,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 		if v.Kind() == reflect.Struct {
 			lines := strings.Split(hr.Result[0], "\n")
+			log.Println(lines)
 
 			for i := 0; i < v.NumField(); i++ {
 				log.Println(lines[i])
