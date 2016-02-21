@@ -1,6 +1,6 @@
 package hive
 
-type HiveSession struct {
+/*type HiveSession struct {
 	result    chan string
 	FnReceive FnHiveReceive
 	Status    string
@@ -20,4 +20,4 @@ func (hs *HiveSession) Wait() {
 	//--- loop this process until session is completed
 
 	hs.Status = "Successfull"
-}
+}*/
