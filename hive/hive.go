@@ -377,13 +377,10 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
-			lines := strings.Split(hr.Result[0], "\n")
-			log.Println(lines)
 
 			for i := 0; i < v.NumField(); i++ {
-				log.Println(lines[i])
-				if lines[i] != "" {
-					line := strings.Split(strings.Replace(lines[i], "'", "", -1), "\t")
+				if hr.Result[i] != "" {
+					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
 					var tempDataType = ""
 
 					if strings.TrimSpace(line[1]) == "double" {
