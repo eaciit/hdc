@@ -71,24 +71,30 @@ Ideally Populate should call Exec as well but already have predefined function o
 // 	h.Conn.Close()
 // }
 
-//<<<<<<< HEAD
-func TestLoad(t *testing.T) {
-	//h := HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+// func TestLoad(t *testing.T) {
+// 	h.Conn.Open()
 
+// 	var student students
+
+// 	retVal, err := h.Load("students", "|", &student)
+
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	h.Conn.Close()
+// 	fmt.Println(retVal)
+// }
+
+func TestLoadFile(t *testing.T) {
 	h.Conn.Open()
 
-	//fmt.Println(h.)
-
-	//h.Exec("select '1' from students limit 1")
-	//fmt.Println(ret)
 	var student students
 
-	retVal, err := h.Load("students", "|", &student)
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
 
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	h.Conn.Close()
 	fmt.Println(retVal)
 }

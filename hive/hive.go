@@ -296,10 +296,10 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	return retVal, err
 }
 
-func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
 	if hr.Result == nil {
 		tempQuery := ""
@@ -311,15 +311,15 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
 				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") "
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ");"
 				} else {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			hr, err = h.fetch(tempQuery)
+			_, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, &TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
@@ -327,7 +327,7 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 	}
 
 	if err == nil {
-		file, err := os.Open(HDFSPath)
+		file, err := os.Open(FilePath)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -354,7 +354,6 @@ func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interfa
 	return retVal, err
 }
 
-// func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
 func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
 	hr, err := h.fetch("describe " + Tablename + ";")
