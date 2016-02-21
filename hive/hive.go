@@ -250,7 +250,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 	fmt.Println("tempVal2")
 
-	if err == nil {
+	if hr == nil {
 		tempQuery := ""
 
 		var v reflect.Type
