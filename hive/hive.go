@@ -244,7 +244,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	retVal = "process failed"
 	isMatch := false
 	var hr []toolkit.M
-	err = h.Populate("select '1' from "+TableName+" limit 1;", &hr)
+	err = h.Populate("select 1 from "+TableName+" limit 1;", &hr)
 
 	if err != nil {
 		return retVal, err
