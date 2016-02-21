@@ -257,7 +257,6 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 		if v.Kind() == reflect.Struct {
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
-				log.Println(v.Field(i).Name)
 				if i == (v.NumField() - 1) {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") "
 				} else {
@@ -266,6 +265,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			}
 
 			var hr1 []toolkit.M
+			log.Println(tempQuery)
 			err = h.Populate(tempQuery, &hr1)
 		}
 	} else {
