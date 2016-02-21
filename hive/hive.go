@@ -117,6 +117,8 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 	}
 	hr, e := h.fetch(query)
 
+	log.Println(hr)
+
 	Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
 	return
 }
@@ -258,7 +260,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			tempQuery = "create table " + TableName + " ("
 			for i := 0; i < v.NumField(); i++ {
 				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") "
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ");"
 				} else {
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
