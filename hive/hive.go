@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	"log"
+	//"log"
 	"os"
 	// "os/exec"
 	"os/user"
@@ -257,7 +257,8 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				}
 			}
 
-			hr1, err := h.fetch(tempQuery)
+			_, err = h.fetch(tempQuery)
+
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
