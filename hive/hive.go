@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	// "log"
+	"log"
 	"os"
 	// "os/exec"
 	"os/user"
@@ -116,8 +116,10 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return
 	}
 	hr, e := h.fetch(query)
-
-	Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
+	log.Printf("hr: %v\n", hr)
+	if len(hr.Header) != 0 && len(hr.Result) > 2 {
+		Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
+	}
 	return
 }
 
