@@ -80,10 +80,10 @@ func TestHiveExec(t *testing.T) {
 		return
 	}
 
-	h.Conn.FnReceive = DoSomething
 	// h.Conn.SetFn(DoSomething)
 	h.Conn.Open()
 
+	h.Conn.FnReceive = DoSomething
 	h.Exec(q)
 
 	h.Conn.FnReceive = DoElse
