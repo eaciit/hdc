@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	//"log"
+	"log"
 	"os"
 	// "os/exec"
 	"os/user"
@@ -433,6 +433,6 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 			}
 		}
 	}
-
+	log.Println(retVal)
 	return retVal
 }
