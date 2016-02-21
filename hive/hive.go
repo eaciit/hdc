@@ -2,19 +2,14 @@ package hive
 
 import (
 	"bufio"
-	"encoding/csv"
-	"encoding/json"
 	"fmt"
-	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
 	// "log"
 	"os"
-	"os/exec"
+	// "os/exec"
 	"os/user"
 	"reflect"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -33,22 +28,22 @@ const (
 	DSV_DELIMITER = "|\t"
 	TSV           = "tsv"
 	CSV           = "csv"
+	JSON          = "json"
 )
 
-type FnHiveReceive func(string) (interface{}, error)
+type FnHiveReceive func(HiveResult) error
 
 type Hive struct {
-	BeePath     string
-	Server      string
-	User        string
-	Password    string
-	DBName      string
-	HiveCommand string
-	Header      []string
-	OutputType  string
-	DateFormat  string
-	JsonPart    string
-	Conn        DuplexTerm
+	BeePath  string
+	Server   string
+	User     string
+	Password string
+	DBName   string
+	Conn     *DuplexTerm
+	// HiveCommand string
+	// Header      []string
+	OutputType string
+	DateFormat string
 }
 
 func HiveConfig(server, dbName, userid, password, path string, delimiter ...string) *Hive {
@@ -72,18 +67,22 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	hv.User = userid
 
+	hv.Conn = &DuplexTerm{}
+
 	hv.OutputType = TSV
+	hv.Conn.OutputType = TSV
 	if len(delimiter) > 0 && delimiter[0] == CSV {
 		hv.OutputType = CSV
+		hv.Conn.OutputType = TSV
 	}
-
-	hv.Conn = DuplexTerm{}
 
 	if hv.Conn.Cmd == nil {
 		if hv.OutputType == CSV {
-			hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
+			//hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
+			hv.Conn.CmdStr = hv.cmdStr(CSV_FORMAT)
 		} else {
-			hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
+			// hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
+			hv.Conn.CmdStr = hv.cmdStr(TSV_FORMAT)
 		}
 	}
 
@@ -105,72 +104,24 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 		out += value
 	}
 
-	if h.HiveCommand != "" {
+	/*if h.HiveCommand != "" {
 		out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
-	}
-	return
-}
-
-func (h *Hive) command(cmd ...string) *exec.Cmd {
-	arg := append([]string{"-c"}, cmd...)
-	return exec.Command("sh", arg...)
-}
-
-func (h *Hive) constructHeader(header string, delimiter string) {
-	var tmpHeader []string
-	for _, header := range strings.Split(header, delimiter) {
-		split := strings.Split(header, ".")
-		if len(split) > 1 {
-			tmpHeader = append(tmpHeader, strings.Trim(split[1], " '"))
-		} else {
-			tmpHeader = append(tmpHeader, strings.Trim(header, " '"))
-		}
-	}
-	h.Header = tmpHeader
-}
-
-func (h *Hive) Exec(query string) (out []string, e error) {
-	delimiter := "\t"
-
-	if h.OutputType == CSV {
-		delimiter = ","
-	}
-
-	if !strings.HasPrefix(query, ";") {
-		query += ";"
-	}
-
-	result, e := h.Conn.SendInput(query)
-
-	if e != nil {
-		return
-	}
-
-	if len(result) > 0 {
-		h.constructHeader(result[:1][0], delimiter)
-	}
-
-	if len(result) > 1 {
-		out = result[1:]
-	}
+	}*/
 	return
 }
 
 func (h *Hive) Populate(query string, m interface{}) (e error) {
 	if !toolkit.IsPointer(m) {
-		return errorlib.Error("", "", "Fetch", "Model object should be pointer")
+		e = errorlib.Error("", "", "Fetch", "Model object should be pointer")
+		return
 	}
+	hr, e := h.fetch(query)
 
-	/*
+	Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
+	return
+}
 
-		var v reflect.Type
-		v = reflect.TypeOf(m).Elem()
-		log.Printf("v: %v\n", v)
-		ivs := reflect.MakeSlice(reflect.SliceOf(v), 0, 0)
-
-		appendData := toolkit.M{}
-		iv := reflect.New(v).Interface()*/
-
+func (h *Hive) fetch(query string) (hr HiveResult, e error) {
 	delimiter := "\t"
 
 	if h.OutputType == CSV {
@@ -187,52 +138,15 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return
 	}
 
-	if len(result) > 0 {
-		h.constructHeader(result[:1][0], delimiter)
+	hr.Result = result
+
+	if len(hr.Result) > 0 {
+		hr.constructHeader(hr.Result[:1][0], delimiter)
 	}
-
-	h.ParseOutput(result[1:], m)
-
-	/*if len(result) > 1 {
-		rows := result[1:]
-		for _, val := range rows {
-			h.ParseOutput(val, m)
-			out = append(out, obj)
-		}
-
-	}*/
-
 	return
 }
 
-/*func (h *Hive) Exec(query string) (out []string, e error) {
-	h.HiveCommand = query
-	cmd := h.command()
-
-	delimiter := "\t"
-	if h.OutputType == CSV {
-		cmd = h.command(h.cmdStr(CSV_FORMAT))
-		delimiter = ","
-	} else {
-		cmd = h.command(h.cmdStr(TSV_FORMAT))
-	}
-
-	outByte, e := cmd.Output()
-	result := strings.Split(string(outByte), "\n")
-
-	if len(result) > 0 {
-		h.constructHeader(result[:1][0], delimiter)
-	}
-
-	//fmt.Printf("header: %v\n", h.Header)
-
-	if len(result) > 1 {
-		out = result[1:]
-	}
-	return
-}*/
-
-func (h *Hive) ExecLineX(query string) {
+func (h *Hive) Exec(query string) {
 	delimiter := "\t"
 	_ = delimiter
 
@@ -253,56 +167,7 @@ func (h *Hive) ExecLineX(query string) {
 	return
 }
 
-func (h *Hive) ExecLine(query string, DoResult func(result string)) (e error) {
-	h.HiveCommand = query
-	cmd := h.command()
-
-	delimiter := "\t"
-	if h.OutputType == CSV {
-		cmd = h.command(h.cmdStr(CSV_FORMAT))
-		delimiter = ","
-	} else {
-		cmd = h.command(h.cmdStr(TSV_FORMAT))
-	}
-
-	cmdReader, e := cmd.StdoutPipe()
-
-	if e != nil {
-		fmt.Fprintln(os.Stderr, "Error creating stdoutPipe for cmd", e)
-	}
-
-	scanner := bufio.NewScanner(cmdReader)
-
-	idx := 1
-
-	go func(idx int) {
-		for scanner.Scan() {
-			resStr := scanner.Text()
-			if idx == 1 {
-				h.constructHeader(resStr, delimiter)
-			} else {
-				DoResult(resStr)
-			}
-			idx += 1
-		}
-	}(idx)
-
-	e = cmd.Start()
-
-	if e != nil {
-		fmt.Fprintln(os.Stderr, "Error starting Cmd", e)
-	}
-
-	e = cmd.Wait()
-
-	if e != nil {
-		fmt.Fprintln(os.Stderr, "Error waiting Cmd", e)
-	}
-
-	return
-}
-
-func (h *Hive) ExecFile(filepath string) (e error) {
+/*func (h *Hive) ExecFile(filepath string) (e error) {
 	file, e := os.Open(filepath)
 	if e != nil {
 		fmt.Println(e)
@@ -331,13 +196,13 @@ func (h *Hive) ExecNonQuery(query string) (e error) {
 		fmt.Printf("result: %s\n", err)
 	}
 	return err
-}
+}*/
 
 func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
-	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
 
-	if tempVal == nil {
+	if hr.Result == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -352,12 +217,12 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			tempVal, err = h.Exec(tempQuery)
+			hr, err = h.fetch(tempQuery)
 		}
 	}
 
 	if err != nil {
-		tempVal, err = h.Exec("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
+		hr, err = h.fetch("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
 
 		if err != nil {
 			retVal = "success"
@@ -370,9 +235,9 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
 
-	if tempVal == nil {
+	if hr.Result == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -387,10 +252,10 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			tempVal, err = h.Exec(tempQuery)
+			hr, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, Delimiter, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
@@ -412,7 +277,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				}
 			}
 			retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-			_, err = h.Exec(retVal)
+			_, err = h.fetch(retVal)
 		}
 
 		if err == nil {
@@ -423,12 +288,12 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	return retVal, err
 }
 
-func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) LoadFile(HDFSPath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
-	tempVal, err := h.Exec("select '1' from " + TableName + " limit 1")
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1")
 
-	if tempVal == nil {
+	if hr.Result == nil {
 		tempQuery := ""
 
 		var v reflect.Type
@@ -443,10 +308,10 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
 				}
 			}
-			tempVal, err = h.Exec(tempQuery)
+			hr, err = h.fetch(tempQuery)
 		}
 	} else {
-		isMatch, err = h.CheckDataStructure(TableName, Delimiter, TableModel)
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
 	if isMatch == false {
@@ -454,23 +319,23 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 	}
 
 	if err == nil {
-		file, e := os.Open(HDFSPath)
-		if e != nil {
-			fmt.Println(e)
+		file, err := os.Open(HDFSPath)
+		if err != nil {
+			fmt.Println(err)
 		}
 		defer file.Close()
 
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			err = h.ParseOutput(scanner.Text(), TableModel)
+			err = Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat)
 
 			if err != nil {
 				fmt.Println(err)
 				break
 			}
 
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), h.ParseOutput(scanner.Text(), TableModel))
-			_, err = h.Exec(retVal)
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat))
+			hr, err = h.fetch(retVal)
 		}
 
 		if err == nil {
@@ -481,23 +346,23 @@ func (h *Hive) LoadFile(HDFSPath, TableName, Delimiter string, TableModel interf
 	return retVal, err
 }
 
-func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
+// func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interface{}) (isMatch bool, err error) {
+func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isMatch bool, err error) {
 	isMatch = false
-	res, err := h.Exec("describe " + Tablename + ";")
+	hr, err := h.fetch("describe " + Tablename + ";")
 
 	if err != nil {
 		return isMatch, err
 	}
 
-	if res != nil {
+	if hr.Result != nil {
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if res[i] != "" {
-					lines := strings.Split(res[i], Delimiter)
-
+				if hr.Result[i] != "" {
+					lines := strings.Split(hr.Result[i], ",")
 					if strings.Replace(strings.TrimSpace(lines[1]), "double", "float", 0) == v.Field(i).Type.String() {
 						isMatch = true
 					} else {
@@ -506,7 +371,7 @@ func (h *Hive) CheckDataStructure(Tablename, Delimiter string, TableModel interf
 					}
 				} else {
 					// handle new column
-					_, err := h.Exec(QueryBuilder("add column", Tablename, "", TableModel))
+					_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
 
 					if err != nil {
 						break
@@ -553,6 +418,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 
 	return retVal
 }
+
 
 func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
@@ -881,3 +747,5 @@ type UnsupportedType struct {
 func (e *UnsupportedType) Error() string {
 	return "Unsupported type: " + e.Type
 }
+=======
+>>>>>>> ccf5cbc4dbf71b6702fa10127569b327c853df4a
