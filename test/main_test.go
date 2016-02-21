@@ -52,39 +52,40 @@ Exec is suitable for long type query that return massive amount of data and requ
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-// func TestHivePopulate(t *testing.T) {
-// 	q := "select * from sample_07 limit 5;"
+func TestHivePopulate(t *testing.T) {
+	q := "select * from sample_07 limit 5;"
 
-// 	var result []toolkit.M
+	var result []toolkit.M
 
-// 	h.Conn.Open()
+	h.Conn.Open()
 
-// 	e := h.Populate(q, &result)
-// 	fatalCheck(t, "Populate", e)
+	e := h.Populate(q, &result)
+	fatalCheck(t, "Populate", e)
 
-// 	if len(result) != 5 {
-// 		log.Printf("Error want %d got %d", 5, len(result))
-// 	}
+	if len(result) != 5 {
+		log.Printf("Error want %d got %d", 5, len(result))
+	}
 
-// 	log.Printf("Result: \n%s", toolkit.JsonString(result))
+	log.Printf("Result: \n%s", toolkit.JsonString(result))
 
-// 	h.Conn.Close()
-// }
+	h.Conn.Close()
+}
 
-// func TestLoad(t *testing.T) {
-// 	h.Conn.Open()
+func TestLoad(t *testing.T) {
+	h.Conn.Open()
 
-// 	var student students
+	var student students
 
-// 	retVal, err := h.Load("students", "|", &student)
+	retVal, err := h.Load("students", "|", &student)
 
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	h.Conn.Close()
-// 	fmt.Println(retVal)
-// }
+	if err != nil {
+		fmt.Println(err)
+	}
+	h.Conn.Close()
+	fmt.Println(retVal)
+}
 
+//for now, this function works on simple csv file
 func TestLoadFile(t *testing.T) {
 	h.Conn.Open()
 
@@ -99,109 +100,109 @@ func TestLoadFile(t *testing.T) {
 	fmt.Println(retVal)
 }
 
-// func TestExecLine(t *testing.T) {
-// 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+func TestExecLine(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 
-// 	//func TestHiveExec(t *testing.T) {
+	//func TestHiveExec(t *testing.T) {
 
-// 	q := "select * from sample_07 limit 5;"
-// 	// x := "select * from sample_07 limit 10;"
-// 	DoSomething := func(res HiveResult) (e error) {
-// 		toolkit.Serde(res, &res.ResultObj, "json")
-// 		log.Printf("limit 5: %v", res.ResultObj)
-// 		return
-// 	}
+	q := "select * from sample_07 limit 5;"
+	// x := "select * from sample_07 limit 10;"
+	DoSomething := func(res HiveResult) (e error) {
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 5: %v", res.ResultObj)
+		return
+	}
 
-// 	DoElse := func(res HiveResult) (e error) {
-// 		tmp := toolkit.M{}
-// 		toolkit.Serde(res, &res.ResultObj, "json")
-// 		log.Printf("limit 10: %v", tmp)
-// 		return
-// 	}
+	DoElse := func(res HiveResult) (e error) {
+		tmp := toolkit.M{}
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 10: %v", tmp)
+		return
+	}
 
-// 	// h.Conn.SetFn(DoSomething)
-// 	h.Conn.FnReceive = DoSomething
+	// h.Conn.SetFn(DoSomething)
+	h.Conn.FnReceive = DoSomething
 
-// func TestHiveExec(t *testing.T) {
-// 	q := "select * from sample_07 limit 1;"
-// 	// x := "select * from sample_07 limit 3;"
+func TestHiveExec(t *testing.T) {
+	q := "select * from sample_07 limit 1;"
+	// x := "select * from sample_07 limit 3;"
 
-// 	DoSomething := func(res HiveResult) (e error) {
-// 		toolkit.Serde(res, &res.ResultObj, "json")
-// 		log.Printf("limit 1: \n%v\n", res.ResultObj)
-// 		return
-// 	}
+	DoSomething := func(res HiveResult) (e error) {
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 1: \n%v\n", res.ResultObj)
+		return
+	}
 
-// 	/*DoElse := func(res HiveResult) (e error) {
-// 		tmp := toolkit.M{}
-// 		toolkit.Serde(res, &res.ResultObj, "json")
-// 		log.Printf("limit 3: \n%v\n", tmp)
-// 		return
-// 	}*/
+	/*DoElse := func(res HiveResult) (e error) {
+		tmp := toolkit.M{}
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 3: \n%v\n", tmp)
+		return
+	}*/
+
+	h.Conn.Open()
+
+	h.Conn.FnReceive = DoSomething
+	h.Exec(q)
+	/*h.Conn.Wait()
+
+	h.Conn.FnReceive = DoElse
+	h.Exec(x)
+	h.Conn.Wait()
 
 // 	h.Conn.Open()
+// 	h.Exec(q)
 
+// 	/*h.Conn.FnReceive = DoElse
+// 	h.Exec(x)*/
+
+// 	h.Conn.Close()
+
+// 	/*h.Conn.Exec = true
+// 	h.Conn.Open()
 // 	h.Conn.FnReceive = DoSomething
 // 	h.Exec(q)
-// 	/*h.Conn.Wait()
 
 // 	h.Conn.FnReceive = DoElse
 // 	h.Exec(x)
-// 	h.Conn.Wait()
 
-// // 	h.Conn.Open()
-// // 	h.Exec(q)
+// 	h.Conn.Exec = false
 
-// // 	/*h.Conn.FnReceive = DoElse
-// // 	h.Exec(x)*/
-
-// // 	h.Conn.Close()
-
-// // 	/*h.Conn.Exec = true
-// // 	h.Conn.Open()
-// // 	h.Conn.FnReceive = DoSomething
-// // 	h.Exec(q)
-
-// // 	h.Conn.FnReceive = DoElse
-// // 	h.Exec(x)
-
-// // 	h.Conn.Exec = false
-
-// // 	var res []toolkit.M
-
-// // 	e := h.Populate(q, &res)
-// // 	log.Printf("res: %v\n", res)
-// // 	log.Printf("e: %v\n", e)
-
-// // 	h.Conn.Close()*/
-// // }
+// 	var res []toolkit.M
 
 // 	e := h.Populate(q, &res)
-// 	log.Printf("populate res: \n%v\n", res)
-// 	log.Printf("populate e: \n%v\n", e)*/
+// 	log.Printf("res: %v\n", res)
+// 	log.Printf("e: %v\n", e)
 
-// 	h.Conn.Close()
+// 	h.Conn.Close()*/
 // }
 
-// func TestHiveExecMulti(t *testing.T) {
-// 	var ms1 []HiveResult
-// 	q := "select * from sample_07 limit 5;"
+	e := h.Populate(q, &res)
+	log.Printf("populate res: \n%v\n", res)
+	log.Printf("populate e: \n%v\n", e)*/
 
-// 	DoSomething := func(res HiveResult) (e error) {
-// 		ms1 = append(ms1, res)
-// 		return
-// 	}
+	h.Conn.Close()
+}
 
-// 	h.Conn.Open()
+func TestHiveExecMulti(t *testing.T) {
+	var ms1 []HiveResult
+	q := "select * from sample_07 limit 5;"
 
-// 	h.Conn.FnReceive = DoSomething
-// 	h.Exec(q)
-// 	h.Exec(q)
+	DoSomething := func(res HiveResult) (e error) {
+		ms1 = append(ms1, res)
+		return
+	}
 
-// 	for _, v1 := range ms1 {
-// 		log.Println(v1)
-// 	}
-// }
+	h.Conn.Open()
+
+	h.Conn.FnReceive = DoSomething
+	h.Exec(q)
+	h.Exec(q)
+
+	for _, v1 := range ms1 {
+		log.Println(v1)
+	}
+}
 
 /*func TestHiveClose(t *testing.T) {
 	if h != nil {
