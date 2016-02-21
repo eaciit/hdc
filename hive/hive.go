@@ -381,11 +381,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 			for i := 0; i < v.NumField(); i++ {
 				if lines[i] != "" {
-					line := strings.Split(strings.Replace(lines[i], "'", "", 0), "\t")
+					line := strings.Split(strings.Replace(lines[i], "'", "", -1), "\t")
 					var tempDataType = ""
-
-					log.Println(strings.Replace(line[1], "'", "", -1))
-					log.Println(v.Field(i).Type.String())
 
 					if strings.TrimSpace(line[1]) == "double" {
 						tempDataType = "float"
