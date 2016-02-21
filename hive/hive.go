@@ -3,13 +3,18 @@ package hive
 import (
 	"bufio"
 	"fmt"
+	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
 	// "log"
 	"os"
 	// "os/exec"
+	"encoding/csv"
+	"encoding/json"
 	"os/user"
 	"reflect"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -41,7 +46,8 @@ type Hive struct {
 	DBName   string
 	Conn     *DuplexTerm
 	// HiveCommand string
-	// Header      []string
+	Header     []string
+	JsonPart   string
 	OutputType string
 	DateFormat string
 }
@@ -419,7 +425,6 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	return retVal
 }
 
-
 func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
 	if !toolkit.IsPointer(m) {
@@ -459,10 +464,10 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 				return e
 			}
 
-			for i, val := range h.Header {
-				appendData[val] = strings.TrimSpace(record[i])
-			}
 			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					appendData[v.Field(i).Name] = strings.TrimSpace(record[i])
+				}
 
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
@@ -501,6 +506,15 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 					}
 				}
 			} else {
+				if len(h.Header) == 0 {
+					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
+					return e
+				}
+
+				for i, val := range h.Header {
+					appendData[val] = strings.TrimSpace(record[i])
+				}
+
 				for _, val := range h.Header {
 					valthis := appendData[val]
 					dtype := h.DetectFormat(valthis.(string))
@@ -579,10 +593,11 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 
 			splitted := strings.Split(data, "\t")
 
-			for i, val := range h.Header {
-				appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
-			}
 			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					appendData[v.Field(i).Name] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
+				}
+
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
 
@@ -619,6 +634,15 @@ func (h *Hive) ParseOutput(in interface{}, m interface{}) (e error) {
 				}
 
 			} else {
+				if len(h.Header) == 0 {
+					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
+					return e
+				}
+
+				for i, val := range h.Header {
+					appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
+				}
+
 				for _, val := range h.Header {
 					valthis := appendData[val]
 					dtype := h.DetectFormat(valthis.(string))
@@ -732,20 +756,18 @@ func (h *Hive) DetectFormat(in string) (out string) {
 	return res
 }
 
-type FieldMismatch struct {
-	expected, found int
-}
+// type FieldMismatch struct {
+// 	expected, found int
+// }
 
-func (e *FieldMismatch) Error() string {
-	return "CSV line fields mismatch. Expected " + strconv.Itoa(e.expected) + " found " + strconv.Itoa(e.found)
-}
+// func (e *FieldMismatch) Error() string {
+// 	return "CSV line fields mismatch. Expected " + strconv.Itoa(e.expected) + " found " + strconv.Itoa(e.found)
+// }
 
-type UnsupportedType struct {
-	Type string
-}
+// type UnsupportedType struct {
+// 	Type string
+// }
 
-func (e *UnsupportedType) Error() string {
-	return "Unsupported type: " + e.Type
-}
-=======
->>>>>>> ccf5cbc4dbf71b6702fa10127569b327c853df4a
+// func (e *UnsupportedType) Error() string {
+// 	return "Unsupported type: " + e.Type
+// }
