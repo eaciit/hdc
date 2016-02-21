@@ -334,6 +334,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		return retVal, err
 	}
 
+	log.Println(err)
+
 	if err == nil {
 		file, err := os.Open(FilePath)
 		if err != nil {
@@ -341,16 +343,14 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		}
 		defer file.Close()
 
+		if err != nil {
+			log.Println(err)
+		}
+
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
-			err = Parse(nil, scanner.Text(), TableModel, fileType, h.DateFormat)
 
-			if err != nil {
-				fmt.Println(err)
-				break
-			}
-
-			Parse([]string{}, scanner.Text(), TableModel, "csv", "")
+			Parse([]string{}, scanner.Text(), &TableModel, "csv", "")
 
 			log.Println(TableModel)
 
