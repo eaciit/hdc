@@ -76,8 +76,8 @@ func TestLoad(t *testing.T) {
 
 	h.Conn.Open()
 
-	//ret, err := h.Exec("select '1' from students limit 1")
-	//fmt.Println(ret)
+	ret, err := h.fetch("select '1' from students limit 1")
+	fmt.Println(ret)
 
 	retVal, err := h.Load("students", "|", nil)
 
