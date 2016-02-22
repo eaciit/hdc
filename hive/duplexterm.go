@@ -64,7 +64,13 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
-		// d.status = make(chan bool)
+		if d.FnReceive != nil {
+			go func() {
+				_, e, _ := d.process()
+				_ = e
+			}()
+		}
+
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
@@ -85,13 +91,6 @@ func (d *DuplexTerm) Close() {
 }
 
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
-	if d.FnReceive != nil {
-		go func() {
-			_, e, _ := d.process()
-			_ = e
-		}()
-	}
-
 	iwrite, e := d.Writer.WriteString(input + "\n")
 	if iwrite == 0 {
 		e = errors.New("Writing only 0 byte")
