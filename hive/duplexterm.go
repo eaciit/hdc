@@ -79,7 +79,7 @@ func (d *DuplexTerm) Close() {
 	_ = result
 	_ = e
 
-	// d.FnReceive = nil
+	d.FnReceive = nil
 	d.Cmd.Wait()
 	d.Stdin.Close()
 	d.Stdout.Close()
