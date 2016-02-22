@@ -129,6 +129,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 				hr.Result = append(hr.Result, bread)
 				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 				d.FnReceive(hr)
+				result = append(result, bread)
 			} else {
 				result = append(result, bread)
 			}
@@ -138,6 +139,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			isHeader = true
 		}
 		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+			// hr.Result =
 			break
 		}
 

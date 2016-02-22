@@ -72,7 +72,31 @@ func TestHivePopulate(t *testing.T) {
 }
 
 func TestHiveExec(t *testing.T) {
-	q := "select * from sample_07 limit 1;"
+	h.Conn.Open()
+
+	var ms1, ms2 []HiveResult
+	q := "select * from sample_07 limit 5"
+
+	h.Conn.FnReceive = func(x HiveResult) error {
+		ms1 = append(ms1, x)
+		return nil
+	}
+	h.Exec(q)
+
+	// fatalCheck(t, "HS1 exec", e)
+
+	h.Conn.FnReceive = func(x HiveResult) error {
+		ms2 = append(ms2, x)
+		return nil
+	}
+	h.Exec(q)
+
+	// fatalCheck(t, "HS2 Exec", e)
+
+	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
+
+	h.Conn.Close()
+	/*q := "select * from sample_07 limit 1;"
 	x := "select * from sample_07 limit 3;"
 
 	DoSomething := func(res HiveResult) (e error) {
@@ -95,7 +119,7 @@ func TestHiveExec(t *testing.T) {
 	h.Conn.FnReceive = DoElse
 	h.Exec(x)
 
-	h.Conn.Close()
+	h.Conn.Close()*/
 }
 
 func TestHiveExecMulti(t *testing.T) {
