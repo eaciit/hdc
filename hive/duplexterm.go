@@ -51,6 +51,12 @@ var hr HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
+		if d.FnReceive != nil {
+			go func() {
+				_, e, _ := d.process()
+				_ = e
+			}()
+		}
 		arg := append([]string{"-c"}, d.CmdStr)
 		d.Cmd = exec.Command("sh", arg...)
 
@@ -64,12 +70,6 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
-		if d.FnReceive != nil {
-			go func() {
-				_, e, _ := d.process()
-				_ = e
-			}()
-		}
 
 		e = d.Cmd.Start()
 	} else {
@@ -174,10 +174,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 				break
 			}
 		} else {
-			if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-				if d.FnReceive != nil {
-					// status = true
-				}
+			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, BEE_CLI_STR)) {
 				break
 			}
 		}
