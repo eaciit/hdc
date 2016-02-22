@@ -109,10 +109,6 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 	for _, value := range arg {
 		out += value
 	}
-
-	/*if h.HiveCommand != "" {
-		out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
-	}*/
 	return
 }
 
@@ -130,32 +126,16 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 }
 
 func (h *Hive) fetch(query string) (hr HiveResult, e error) {
-	delimiter := "\t"
-
-	if h.OutputType == CSV {
-		delimiter = ","
-	}
-
 	if !strings.HasPrefix(query, ";") {
 		query += ";"
 	}
 
-	// h.Conn.FnReceive = nil
-	result, e := h.Conn.SendInput(query)
+	hr, e = h.Conn.SendInput(query)
 
-	if e != nil {
-		return
-	}
-
-	hr.Result = result
-
-	if len(hr.Result) > 0 {
-		hr.constructHeader(hr.Result[:1][0], delimiter)
-	}
 	return
 }
 
-func (h *Hive) Exec(query string) {
+func (h *Hive) Exec(query string, fn FnHiveReceive) (hr HiveResult, e error) {
 	delimiter := "\t"
 	_ = delimiter
 
@@ -167,11 +147,8 @@ func (h *Hive) Exec(query string) {
 		query += ";"
 	}
 
-	_, e := h.Conn.SendInput(query)
-
-	if e != nil {
-		return
-	}
+	h.Conn.FnReceive = fn
+	hr, e = h.Conn.SendInput(query)
 
 	return
 }

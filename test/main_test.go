@@ -77,13 +77,17 @@ func TestHiveExec(t *testing.T) {
 
 	h.Conn.Open()
 
-	h.Conn.FnReceive = func(x HiveResult) error {
+	hr, e := h.Exec(q, func(x HiveResult) error {
 		i++
 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
 		return nil
-	}
+	})
 
-	h.Exec(q)
+	_ = hr
+
+	if e != nil {
+		t.Fatalf("Error exec query: %s", e.Error())
+	}
 
 	if i < 5 {
 		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
@@ -98,21 +102,21 @@ func TestHiveExecMulti(t *testing.T) {
 	var ms1, ms2 []HiveResult
 	q := "select * from sample_07 limit 5"
 
-	h.Conn.FnReceive = func(x HiveResult) error {
+	hr, e := h.Exec(q, func(x HiveResult) error {
 		ms1 = append(ms1, x)
 		return nil
-	}
-	h.Exec(q)
+	})
 
-	// fatalCheck(t, "HS1 exec", e)
+	_ = hr
 
-	h.Conn.FnReceive = func(x HiveResult) error {
+	fatalCheck(t, "HS1 exec", e)
+
+	hr, e = h.Exec(q, func(x HiveResult) error {
 		ms2 = append(ms2, x)
 		return nil
-	}
-	h.Exec(q)
+	})
 
-	// fatalCheck(t, "HS2 Exec", e)
+	fatalCheck(t, "HS2 Exec", e)
 
 	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
 

@@ -63,45 +63,44 @@ func (d *DuplexTerm) Close() {
 	d.Stdout.Close()
 }
 
-func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
+func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 	if d.FnReceive != nil {
 		done := make(chan bool)
 		go func() {
-			_, e, _ := d.process()
-			_ = e
+			res, err = d.process()
 			done <- true
 		}()
 		iwrite, e := d.Writer.WriteString(input + "\n")
+		err = e
 		if iwrite == 0 {
-			e = errors.New("Writing only 0 byte")
+			err = errors.New("Writing only 0 byte")
 		} else {
-			e = d.Writer.Flush()
+			err = d.Writer.Flush()
 		}
 
 		<-done
 		d.FnReceive = nil
-		err = e
 	} else {
 		iwrite, e := d.Writer.WriteString(input + "\n")
+		err = e
 		if iwrite == 0 {
-			e = errors.New("Writing only 0 byte")
+			err = errors.New("Writing only 0 byte")
 		} else {
-			e = d.Writer.Flush()
+			err = d.Writer.Flush()
 		}
-		if e == nil && d.FnReceive == nil {
+		if err == nil && d.FnReceive == nil {
 			done := make(chan bool)
 			go func() {
-				res, e, _ = d.process()
+				res, err = d.process()
 				done <- true
 			}()
 			<-done
 		}
-		err = e
 	}
 	return
 }
 
-func (d *DuplexTerm) process() (result []string, e error, status bool) {
+func (d *DuplexTerm) process() (result HiveResult, e error) {
 	isHeader := false
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
@@ -124,22 +123,18 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
+			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+			hr.Result = append(hr.Result, bread)
 			if d.FnReceive != nil {
-
-				hr.Result = append(hr.Result, bread)
-				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 				d.FnReceive(hr)
-				result = append(result, bread)
-			} else {
-				result = append(result, bread)
 			}
 		}
 
-		if d.FnReceive != nil && strings.Contains(peekBeforeStr, BEE_CLI_STR) {
+		if strings.Contains(peekBeforeStr, BEE_CLI_STR) {
 			isHeader = true
 		}
 		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-			// hr.Result =
+			result = hr
 			break
 		}
 
