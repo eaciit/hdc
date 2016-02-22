@@ -6,8 +6,6 @@ import (
 	. "github.com/frezadev/hdc/hive"
 	// . "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
-	// "reflect"
-	"log"
 	"os"
 	"testing"
 )
@@ -63,10 +61,10 @@ func TestHivePopulate(t *testing.T) {
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
-		log.Printf("Error want %d got %d", 5, len(result))
+		t.Logf("Error want %d got %d", 5, len(result))
 	}
 
-	log.Printf("Result: \n%s", toolkit.JsonString(result))
+	t.Logf("Result: \n%s", toolkit.JsonString(result))
 
 	h.Conn.Close()
 }
@@ -102,7 +100,6 @@ func TestHiveExecMulti(t *testing.T) {
 
 	e := h.Exec(q, func(x HiveResult) error {
 		ms1 = append(ms1, x)
-		t.Logf("Data 1: %s", toolkit.JsonString(x))
 		return nil
 	})
 
@@ -110,7 +107,6 @@ func TestHiveExecMulti(t *testing.T) {
 
 	e = h.Exec(q, func(x HiveResult) error {
 		ms2 = append(ms2, x)
-		t.Logf("Data 2: %s", toolkit.JsonString(x))
 		return nil
 	})
 
@@ -129,10 +125,10 @@ func TestLoad(t *testing.T) {
 	retVal, err := h.Load("students", "|", &student)
 
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 	}
 	h.Conn.Close()
-	fmt.Println(retVal)
+	t.Log(retVal)
 }
 
 //for now, this function works on simple csv file
@@ -144,8 +140,8 @@ func TestLoadFile(t *testing.T) {
 	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
 
 	if err != nil {
-		fmt.Println(err)
+		t.Log(err)
 	}
 	h.Conn.Close()
-	fmt.Println(retVal)
+	t.Log(retVal)
 }
