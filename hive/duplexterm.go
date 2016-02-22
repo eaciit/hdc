@@ -64,7 +64,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
-		d.status = make(chan bool)
+		// d.status = make(chan bool)
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
@@ -87,13 +87,13 @@ func (d *DuplexTerm) Close() {
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 
 	if d.FnReceive != nil {
-		d.status = make(chan bool)
+		// d.status = make(chan bool)
 		go func() {
 			_, e, status := d.process()
 			_ = e
 			if status {
-				log.Printf("status: %v\n", status)
-				d.status <- status
+				// log.Printf("status: %v\n", status)
+				// d.status <- status
 			}
 		}()
 
@@ -128,7 +128,7 @@ func (d *DuplexTerm) Wait() {
 
 func (d *DuplexTerm) process() (result []string, e error, status bool) {
 	isHeader := false
-	status = false
+	// status = false
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
@@ -175,6 +175,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 				d.FnReceive(res)*/
 
 				hr.Result = append(hr.Result, bread)
+				log.Printf("process: %v\n", hr.Result)
 				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 				d.FnReceive(hr)
 			} else {
@@ -193,7 +194,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 		} else {*/
 		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
 			if d.FnReceive != nil {
-				status = true
+				// status = true
 			}
 			break
 		}
