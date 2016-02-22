@@ -79,6 +79,7 @@ func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
 		}
 
 		<-done
+		d.FnReceive = nil
 		err = e
 	} else {
 		iwrite, e := d.Writer.WriteString(input + "\n")
@@ -119,6 +120,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 		}
 
 		if isHeader {
+			hr = HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
