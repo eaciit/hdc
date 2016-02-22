@@ -124,9 +124,11 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
 			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-			hr.Result = append(hr.Result, bread)
 			if d.FnReceive != nil {
+				hr.Result = []string{bread}
 				d.FnReceive(hr)
+			} else {
+				hr.Result = append(hr.Result, bread)
 			}
 		}
 
@@ -134,7 +136,9 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			isHeader = true
 		}
 		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-			result = hr
+			if d.FnReceive == nil {
+				result = hr
+			}
 			break
 		}
 

@@ -135,7 +135,7 @@ func (h *Hive) fetch(query string) (hr HiveResult, e error) {
 	return
 }
 
-func (h *Hive) Exec(query string, fn FnHiveReceive) (hr HiveResult, e error) {
+func (h *Hive) Exec(query string, fn FnHiveReceive) (e error) {
 	delimiter := "\t"
 	_ = delimiter
 
@@ -148,7 +148,7 @@ func (h *Hive) Exec(query string, fn FnHiveReceive) (hr HiveResult, e error) {
 	}
 
 	h.Conn.FnReceive = fn
-	hr, e = h.Conn.SendInput(query)
+	_, e = h.Conn.SendInput(query)
 
 	return
 }
