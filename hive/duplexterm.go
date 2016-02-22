@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -157,7 +157,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 				d.FnReceive(res)*/
 
 				hr.Result = append(hr.Result, bread)
-				log.Printf("process: %v\n", hr.Result)
+				// log.Printf("process: %v\n", hr.Result)
 				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 				d.FnReceive(hr)
 			} else {

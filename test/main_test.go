@@ -129,8 +129,8 @@ func TestHiveExec(t *testing.T) {
 	// x := "select * from sample_07 limit 3;"
 
 	DoSomething := func(res HiveResult) (e error) {
-		/*toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: \n%v\n", res.ResultObj)*/
+		toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 5: \n%v\n", res.ResultObj)
 		return
 	}
 
