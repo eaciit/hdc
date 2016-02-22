@@ -1,7 +1,7 @@
 package parse_test
 
 import (
-	. "github.com/yanda15/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	"log"
 	"testing"
 	"time"
