@@ -388,15 +388,16 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 					}
 				}
-
-				if insertValues != "" {
-					retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-					_, err = h.fetch(retVal)
-				}
 			}
 
-			retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
-			hr, err = h.fetch(retVal)
+			if insertValues != "" {
+				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+				log.Println(retQuery)
+				_, err = h.fetch(retQuery)
+			}
+
+			//retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
+			//hr, err = h.fetch(retVal)
 		}
 
 		if err == nil {
