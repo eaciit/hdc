@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"github.com/eaciit/toolkit"
 	. "github.com/frezadev/hdc/hive"
 	// . "github.com/eaciit/hdc/hive"
