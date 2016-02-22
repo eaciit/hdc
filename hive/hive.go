@@ -340,6 +340,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
+	log.Println(isMatch)
+
 	if isMatch == false {
 		return retVal, err
 	}
@@ -360,6 +362,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		//put depatcher here
 
 		for scanner.Scan() {
+
+			log.Println(scanner.Text())
 
 			//put worker here
 
