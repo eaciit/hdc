@@ -371,6 +371,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				log.Println(err)
 			}
 
+			log.Println(QueryBuilder("insert", TableName, scanner.Text(), TableModel))
+
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), TableModel)
 			hr, err = h.fetch(retVal)
 		}
