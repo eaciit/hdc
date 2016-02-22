@@ -319,6 +319,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		return retVal, err
 	}
 
+	log.Println(retVal)
+
 	if hr.Result == nil {
 		tempQuery := ""
 
@@ -335,6 +337,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				}
 			}
 			_, err = h.fetch(tempQuery)
+
+			log.Println(err)
 		}
 	} else {
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
