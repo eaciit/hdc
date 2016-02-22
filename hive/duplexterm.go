@@ -128,6 +128,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 		}
 
 		if isHeader {
+			hr = HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
@@ -169,7 +170,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			isHeader = true
 		}
 
-		if d.FnReceive != nil {
+		/*if d.FnReceive != nil {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
@@ -177,7 +178,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, BEE_CLI_STR)) {
 				break
 			}
-		}
+		}*/
 
 	}
 

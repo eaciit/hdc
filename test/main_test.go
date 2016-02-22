@@ -52,7 +52,7 @@ Exec is suitable for long type query that return massive amount of data and requ
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-func TestHivePopulate(t *testing.T) {
+/*func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
@@ -98,7 +98,7 @@ func TestLoadFile(t *testing.T) {
 	}
 	h.Conn.Close()
 	fmt.Println(retVal)
-}
+}*/
 
 /*func TestExecLine(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
@@ -185,7 +185,7 @@ func TestHiveExec(t *testing.T) {
 	h.Conn.Close()
 }
 
-func TestHiveExecMulti(t *testing.T) {
+/*func TestHiveExecMulti(t *testing.T) {
 	var ms1 []HiveResult
 	q := "select * from sample_07 limit 5;"
 
@@ -204,7 +204,7 @@ func TestHiveExecMulti(t *testing.T) {
 	}
 
 	h.Conn.Close()
-}
+}*/
 
 /*func TestHiveClose(t *testing.T) {
 	if h != nil {
