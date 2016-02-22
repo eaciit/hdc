@@ -95,13 +95,14 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					case reflect.Bool:
 						valf, _ := strconv.ParseBool(valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
+					default:
+						dtype := DetectDataType(valthis.(string), dateFormat)
+						if dtype == "date" {
+							valf := cast.String2Date(valthis.(string), dateFormat)
+							appendData.Set(v.Field(i).Name, valf)
+						}
 					}
 
-					dtype := DetectDataType(valthis.(string), dateFormat)
-					if dtype == "date" {
-						valf := cast.String2Date(valthis.(string), dateFormat)
-						appendData.Set(v.Field(i).Name, valf)
-					}
 				}
 
 			} else {
@@ -210,12 +211,14 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					case reflect.Bool:
 						valf, _ := strconv.ParseBool(valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
+					default:
+						dtype := DetectDataType(valthis.(string), dateFormat)
+						if dtype == "date" {
+							valf := cast.String2Date(valthis.(string), dateFormat)
+							appendData.Set(v.Field(i).Name, valf)
+						}
 					}
-					dtype := DetectDataType(valthis.(string), dateFormat)
-					if dtype == "date" {
-						valf := cast.String2Date(valthis.(string), dateFormat)
-						appendData.Set(v.Field(i).Name, valf)
-					}
+
 				}
 
 			} else {
