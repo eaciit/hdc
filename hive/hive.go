@@ -357,12 +357,26 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		scanner := bufio.NewScanner(file)
 
 		//put depatcher here
+		// define total worker
+		totalWorker := 10
+
+		// init manager
+		manager := w.NewManager(totalWorker, 3)
+
+		// define free workers
+		for i := 0; i < totalWorker; i++ {
+			manager.FreeWorkers <- &w.Worker{i, manager.FreeWorkers}
+		}
+
+		// monitoring workers
+		go manager.DoMonitor()
 
 		for scanner.Scan() {
-
 			//put worker here
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
-			hr, err = h.fetch(retVal)
+			manager.Tasks <- func() {
+				retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
+				hr, err = h.fetch(retVal)
+			}
 		}
 
 		if err == nil {
