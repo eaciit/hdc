@@ -125,12 +125,12 @@ func TestLoadFile(t *testing.T) {
 }*/
 
 func TestHiveExec(t *testing.T) {
-	q := "select * from sample_07 limit 1;"
+	q := "select * from sample_07 limit 5;"
 	// x := "select * from sample_07 limit 3;"
 
 	DoSomething := func(res HiveResult) (e error) {
 		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 1: \n%v\n", res.ResultObj)
+		log.Printf("limit 5: \n%v\n", res.ResultObj)
 		return
 	}
 
@@ -151,32 +151,32 @@ func TestHiveExec(t *testing.T) {
 		h.Exec(x)
 		h.Conn.Wait()
 
-	// 	h.Conn.Open()
-	// 	h.Exec(q)
+		h.Conn.Open()
+		h.Exec(q)
 
-	// 	/*h.Conn.FnReceive = DoElse
-	// 	h.Exec(x)*/
+		h.Conn.FnReceive = DoElse
+		h.Exec(x)
 
-	// 	h.Conn.Close()
+		h.Conn.Close()
 
-	// 	/*h.Conn.Exec = true
-	// 	h.Conn.Open()
-	// 	h.Conn.FnReceive = DoSomething
-	// 	h.Exec(q)
+		/*h.Conn.Exec = true
+		h.Conn.Open()
+		h.Conn.FnReceive = DoSomething
+		h.Exec(q)
 
-	// 	h.Conn.FnReceive = DoElse
-	// 	h.Exec(x)
+		h.Conn.FnReceive = DoElse
+		h.Exec(x)
 
-	// 	h.Conn.Exec = false
+		h.Conn.Exec = false
 
-	// 	var res []toolkit.M
+		var res []toolkit.M
 
-	// 	e := h.Populate(q, &res)
-	// 	log.Printf("res: %v\n", res)
-	// 	log.Printf("e: %v\n", e)
+		e := h.Populate(q, &res)
+		log.Printf("res: %v\n", res)
+		log.Printf("e: %v\n", e)
 
-	// 	h.Conn.Close()*/
-	// }
+		h.Conn.Close()
+	}*/
 
 	/*e := h.Populate(q, &res)
 	log.Printf("populate res: \n%v\n", res)
