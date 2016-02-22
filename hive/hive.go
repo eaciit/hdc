@@ -5,9 +5,11 @@ import (
 	"fmt"
 	// "github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
+	w "github.com/eaciit/hdc/worker"
 	"github.com/eaciit/toolkit"
 	"log"
 	"os"
+
 	// "os/exec"
 	// "encoding/csv"
 	// "encoding/json"
@@ -363,6 +365,87 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
 			hr, err = h.fetch(retVal)
 		}
+
+		if err == nil {
+			retVal = "success"
+		}
+	}
+
+	return retVal, err
+}
+
+// loading file with worker
+func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+	retVal = "process failed"
+	isMatch := false
+	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+
+	if err != nil {
+		return retVal, err
+	}
+
+	if hr.Result == nil {
+		tempQuery := ""
+
+		var v reflect.Type
+		v = reflect.TypeOf(TableModel).Elem()
+
+		if v.Kind() == reflect.Struct {
+			tempQuery = "create table " + TableName + " ("
+			for i := 0; i < v.NumField(); i++ {
+				if i == (v.NumField() - 1) {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ");"
+				} else {
+					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
+				}
+			}
+			_, err = h.fetch(tempQuery)
+		}
+	} else {
+		isMatch, err = h.CheckDataStructure(TableName, TableModel)
+	}
+
+	if isMatch == false {
+		return retVal, err
+	}
+
+	if err == nil {
+		file, err := os.Open(FilePath)
+		if err != nil {
+			fmt.Println(err)
+		}
+		defer file.Close()
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		scanner := bufio.NewScanner(file)
+
+		// initiate dispatcher
+		manager := w.NewManager(TotalWorker, 1)
+
+		// initiate workers
+		for w := 0; w < TotalWorker; w++ {
+			manager.FreeWorkers <- &w.Worker{w, manager.TimeProcess, manager.FreeWorkers}
+		}
+
+		// monitoring worker whos free
+		go manager.DoMonitor()
+
+		for scanner.Scan() {
+			// get data to parse into task
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
+
+			// do task with worker
+			manager.Tasks <- func() {
+				hr, err = h.fetch(retVal)
+			}
+		}
+
+		// waiting for tasks has been done
+		go manager.Timeout(1)
+		<-manager.Done
 
 		if err == nil {
 			retVal = "success"
