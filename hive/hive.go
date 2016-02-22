@@ -362,7 +362,14 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		for scanner.Scan() {
 
 			//put worker here
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
+
+			err = Parse([]string{}, scanner.Text(), &TableModel, "csv", "")
+
+			if err != nil {
+				log.Println(err)
+			}
+
+			retVal := QueryBuilder("insert", TableName, scanner.Text(), TableModel)
 			hr, err = h.fetch(retVal)
 		}
 
