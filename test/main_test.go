@@ -2,12 +2,12 @@ package test
 
 import (
 	"fmt"
-	//"github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
-	// . "github.com/eaciit/hdc/hive"
-	. "github.com/RyanCi/hdc/hive"
+	// "github.com/eaciit/toolkit"
+	// . "github.com/frezadev/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
+	//. "github.com/RyanCi/hdc/hive"
 	// "reflect"
-	//"log"
+	"log"
 	"os"
 	"testing"
 )
@@ -100,7 +100,7 @@ func TestLoadFile(t *testing.T) {
 	fmt.Println(retVal)
 }
 
-func TestExecLine(t *testing.T) {
+/*func TestExecLine(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 
 	//func TestHiveExec(t *testing.T) {
@@ -122,6 +122,7 @@ func TestExecLine(t *testing.T) {
 
 	// h.Conn.SetFn(DoSomething)
 	h.Conn.FnReceive = DoSomething
+}*/
 
 func TestHiveExec(t *testing.T) {
 	q := "select * from sample_07 limit 1;"
@@ -146,38 +147,38 @@ func TestHiveExec(t *testing.T) {
 	h.Exec(q)
 	/*h.Conn.Wait()
 
-	h.Conn.FnReceive = DoElse
-	h.Exec(x)
-	h.Conn.Wait()
+		h.Conn.FnReceive = DoElse
+		h.Exec(x)
+		h.Conn.Wait()
 
-// 	h.Conn.Open()
-// 	h.Exec(q)
+	// 	h.Conn.Open()
+	// 	h.Exec(q)
 
-// 	/*h.Conn.FnReceive = DoElse
-// 	h.Exec(x)*/
+	// 	/*h.Conn.FnReceive = DoElse
+	// 	h.Exec(x)*/
 
-// 	h.Conn.Close()
+	// 	h.Conn.Close()
 
-// 	/*h.Conn.Exec = true
-// 	h.Conn.Open()
-// 	h.Conn.FnReceive = DoSomething
-// 	h.Exec(q)
+	// 	/*h.Conn.Exec = true
+	// 	h.Conn.Open()
+	// 	h.Conn.FnReceive = DoSomething
+	// 	h.Exec(q)
 
-// 	h.Conn.FnReceive = DoElse
-// 	h.Exec(x)
+	// 	h.Conn.FnReceive = DoElse
+	// 	h.Exec(x)
 
-// 	h.Conn.Exec = false
+	// 	h.Conn.Exec = false
 
-// 	var res []toolkit.M
+	// 	var res []toolkit.M
 
-// 	e := h.Populate(q, &res)
-// 	log.Printf("res: %v\n", res)
-// 	log.Printf("e: %v\n", e)
+	// 	e := h.Populate(q, &res)
+	// 	log.Printf("res: %v\n", res)
+	// 	log.Printf("e: %v\n", e)
 
-// 	h.Conn.Close()*/
-// }
+	// 	h.Conn.Close()*/
+	// }
 
-	e := h.Populate(q, &res)
+	/*e := h.Populate(q, &res)
 	log.Printf("populate res: \n%v\n", res)
 	log.Printf("populate e: \n%v\n", e)*/
 
