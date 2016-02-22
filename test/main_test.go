@@ -22,11 +22,11 @@ type Sample7 struct {
 	Salary      string `tag_name:"salary"`
 }
 
-type students struct {
-	name    string
-	age     int
-	phone   string
-	address string
+type Students struct {
+	Name    string
+	Age     int
+	Phone   string
+	Address string
 }
 
 func killApp(code int) {
