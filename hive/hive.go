@@ -140,6 +140,7 @@ func (h *Hive) fetch(query string) (hr HiveResult, e error) {
 		query += ";"
 	}
 
+	// h.Conn.FnReceive = nil
 	result, e := h.Conn.SendInput(query)
 
 	if e != nil {
