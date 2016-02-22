@@ -203,6 +203,8 @@ func TestHiveExecMulti(t *testing.T) {
 	for _, v1 := range ms1 {
 		log.Println(v1)
 	}
+
+	h.Conn.Close()
 }
 
 /*func TestHiveClose(t *testing.T) {

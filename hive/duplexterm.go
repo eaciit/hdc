@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	BEE_CLI_STR  = "0: jdbc:hive2:"
+	BEE_CLI_STR  = "jdbc:hive2:"
 	CLOSE_SCRIPT = "!quit"
 )
 
@@ -183,7 +183,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			}
 		}
 
-		if d.FnReceive != nil && BEE_CLI_STR == peekBeforeStr {
+		if d.FnReceive != nil && strings.Contains(peekBeforeStr, BEE_CLI_STR) {
 			isHeader = true
 		}
 
@@ -192,7 +192,7 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 				break
 			}
 		} else {*/
-		if (e != nil && e.Error() == "EOF") || (BEE_CLI_STR == peekStr) {
+		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
 			if d.FnReceive != nil {
 				// status = true
 			}
