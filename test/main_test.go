@@ -5,6 +5,7 @@ import (
 	//. "github.com/frezadev/hdc/hive"
 	. "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
+	"log"
 	"os"
 	"testing"
 )
@@ -46,7 +47,6 @@ func TestHiveConnect(t *testing.T) {
 /* Populate will exec query and immidiately return the value into object
 Populate is suitable for short type query that return limited data,
 Exec is suitable for long type query that return massive amount of data and require time to produce it
-
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
 func TestHivePopulate(t *testing.T) {
@@ -143,4 +143,19 @@ func TestLoadFile(t *testing.T) {
 	}
 	h.Conn.Close()
 	t.Log(retVal)
+}
+
+func TestLoadFileWithWorker(t *testing.T) {
+	h.Conn.Open()
+
+	var student Students
+
+	totalWorker := 10
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
+
+	if err != nil {
+		log.Println(err)
+	}
+	h.Conn.Close()
+	log.Println(retVal)
 }

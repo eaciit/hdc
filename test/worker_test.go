@@ -16,7 +16,7 @@ func TestWorker(t *testing.T) {
 
 	// initialize manager and workers
 	totalworker := 1
-	manager := w.NewManager(totalworker, 2)
+	manager := w.NewManager(totalworker, 1)
 	for i := 0; i < totalworker; i++ {
 		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers}
 	}
