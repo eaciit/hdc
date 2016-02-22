@@ -1,13 +1,10 @@
 package test
 
 import (
-	"fmt"
-	//"github.com/eaciit/toolkit"
+	"github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
-	// . "github.com/eaciit/hdc/hive"
-	. "github.com/RyanCi/hdc/hive"
-	// "reflect"
-	//"log"
+	. "github.com/eaciit/hdc/hive"
+	//. "github.com/RyanCi/hdc/hive"
 	"os"
 	"testing"
 )
@@ -22,11 +19,11 @@ type Sample7 struct {
 	Salary      string `tag_name:"salary"`
 }
 
-type students struct {
-	name    string
-	age     int
-	phone   string
-	address string
+type Students struct {
+	Name    string
+	Age     int
+	Phone   string
+	Address string
 }
 
 func killApp(code int) {
@@ -63,35 +60,25 @@ func TestHivePopulate(t *testing.T) {
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
-		log.Printf("Error want %d got %d", 5, len(result))
+		t.Logf("Error want %d got %d", 5, len(result))
 	}
 
-	log.Printf("Result: \n%s", toolkit.JsonString(result))
+	t.Logf("Result: \n%s", toolkit.JsonString(result))
 
 	h.Conn.Close()
 }
 
-func TestLoad(t *testing.T) {
+func TestHiveExec(t *testing.T) {
+	i := 0
+	q := "select * from sample_07 limit 5;"
+
 	h.Conn.Open()
 
-	var student students
-
-	retVal, err := h.Load("students", "|", &student)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	h.Conn.Close()
-	fmt.Println(retVal)
-}
-
-//for now, this function works on simple csv file
-func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
-
-	var student students
-
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
+	e := h.Exec(q, func(x HiveResult) error {
+		i++
+		t.Logf("Receiving data: %s", toolkit.JsonString(x))
+		return nil
+	})
 
 	if err != nil {
 		fmt.Println(err)
@@ -135,92 +122,67 @@ func TestExecLine(t *testing.T) {
 		return
 	}
 
-	// h.Conn.SetFn(DoSomething)
-	h.Conn.FnReceive = DoSomething
-
-func TestHiveExec(t *testing.T) {
-	q := "select * from sample_07 limit 1;"
-	// x := "select * from sample_07 limit 3;"
-
-	DoSomething := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 1: \n%v\n", res.ResultObj)
-		return
+	if e != nil {
+		t.Fatalf("Error exec query: %s", e.Error())
 	}
 
-	/*DoElse := func(res HiveResult) (e error) {
-		tmp := toolkit.M{}
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 3: \n%v\n", tmp)
-		return
-	}*/
-
-	h.Conn.Open()
-
-	h.Conn.FnReceive = DoSomething
-	h.Exec(q)
-	/*h.Conn.Wait()
-
-	h.Conn.FnReceive = DoElse
-	h.Exec(x)
-	h.Conn.Wait()
-
-// 	h.Conn.Open()
-// 	h.Exec(q)
-
-// 	/*h.Conn.FnReceive = DoElse
-// 	h.Exec(x)*/
-
-// 	h.Conn.Close()
-
-// 	/*h.Conn.Exec = true
-// 	h.Conn.Open()
-// 	h.Conn.FnReceive = DoSomething
-// 	h.Exec(q)
-
-// 	h.Conn.FnReceive = DoElse
-// 	h.Exec(x)
-
-// 	h.Conn.Exec = false
-
-// 	var res []toolkit.M
-
-// 	e := h.Populate(q, &res)
-// 	log.Printf("res: %v\n", res)
-// 	log.Printf("e: %v\n", e)
-
-// 	h.Conn.Close()*/
-// }
-
-	e := h.Populate(q, &res)
-	log.Printf("populate res: \n%v\n", res)
-	log.Printf("populate e: \n%v\n", e)*/
+	if i < 5 {
+		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
+	}
 
 	h.Conn.Close()
 }
 
 func TestHiveExecMulti(t *testing.T) {
-	var ms1 []HiveResult
-	q := "select * from sample_07 limit 5;"
-
-	DoSomething := func(res HiveResult) (e error) {
-		ms1 = append(ms1, res)
-		return
-	}
-
 	h.Conn.Open()
 
-	h.Conn.FnReceive = DoSomething
-	h.Exec(q)
-	h.Exec(q)
+	var ms1, ms2 []HiveResult
+	q := "select * from sample_07 limit 5"
 
-	for _, v1 := range ms1 {
-		log.Println(v1)
-	}
+	e := h.Exec(q, func(x HiveResult) error {
+		ms1 = append(ms1, x)
+		return nil
+	})
+
+	fatalCheck(t, "HS1 exec", e)
+
+	e = h.Exec(q, func(x HiveResult) error {
+		ms2 = append(ms2, x)
+		return nil
+	})
+
+	fatalCheck(t, "HS2 Exec", e)
+
+	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
+
+	h.Conn.Close()
 }
 
-/*func TestHiveClose(t *testing.T) {
-	if h != nil {
-		h.Conn.Close()
+func TestLoad(t *testing.T) {
+	h.Conn.Open()
+
+	var Student Students
+
+	retVal, err := h.Load("students", "|", &Student)
+
+	if err != nil {
+		t.Log(err)
 	}
-}*/
+	h.Conn.Close()
+	t.Log(retVal)
+}
+
+//for now, this function works on simple csv file
+func TestLoadFile(t *testing.T) {
+	h.Conn.Open()
+
+	var Student Students
+
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &Student)
+
+	if err != nil {
+		t.Log(err)
+	}
+	h.Conn.Close()
+	t.Log(retVal)
+}
