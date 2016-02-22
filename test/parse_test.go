@@ -9,13 +9,6 @@ import (
 
 var h *Hive
 
-type Sample7 struct {
-	Code        string `tag_name:"code"`
-	Description string `tag_name:"description"`
-	Total_emp   int    `tag_name:"total_emp"`
-	Salary      int    `tag_name:"salary"`
-}
-
 type SampleParse struct {
 	Code        string    `tag_name:"code"`
 	Description string    `tag_name:"description"`
@@ -83,6 +76,7 @@ func TestParseOutput(t *testing.T) {
 
 func TestParseOutputOneStruct(t *testing.T) {
 
+	//require fill header, because using interface as parameter
 	res := "'00-0000','All Occupations CSV','134354250','40690','2014-05-01'"
 	var tmp interface{}
 	e := Parse([]string{"code", "desc", "emp", "sal", "date"}, res, &tmp, "csv", "yyyy-MM-dd")
