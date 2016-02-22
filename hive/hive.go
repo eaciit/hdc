@@ -19,14 +19,11 @@ import (
 )
 
 const (
-	BEE_TEMPLATE = "%sbeeline -u jdbc:hive2://%s/%s"
-	BEE_USER     = " -n %s"
-	BEE_PASSWORD = " -p %s"
-	BEE_QUERY    = " -e \"%s\""
-	PACKAGENAME  = "Hive"
-
-	/*SHOW_HEADER  = " --showHeader=true"
-	HIDE_HEADER  = " --showHeader=false"*/
+	BEE_TEMPLATE  = "%sbeeline -u jdbc:hive2://%s/%s"
+	BEE_USER      = " -n %s"
+	BEE_PASSWORD  = " -p %s"
+	BEE_QUERY     = " -e \"%s\""
+	PACKAGENAME   = "Hive"
 	CSV_FORMAT    = " --outputFormat=csv"
 	TSV_FORMAT    = " --outputFormat=tsv"
 	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
@@ -39,15 +36,12 @@ const (
 type FnHiveReceive func(HiveResult) error
 
 type Hive struct {
-	BeePath  string
-	Server   string
-	User     string
-	Password string
-	DBName   string
-	Conn     *DuplexTerm
-	// HiveCommand string
-	// Header     []string
-	// JsonPart   string
+	BeePath    string
+	Server     string
+	User       string
+	Password   string
+	DBName     string
+	Conn       *DuplexTerm
 	OutputType string
 	DateFormat string
 }
@@ -84,10 +78,8 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	if hv.Conn.Cmd == nil {
 		if hv.OutputType == CSV {
-			//hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
 			hv.Conn.CmdStr = hv.cmdStr(CSV_FORMAT)
 		} else {
-			// hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
 			hv.Conn.CmdStr = hv.cmdStr(TSV_FORMAT)
 		}
 	}
@@ -109,10 +101,6 @@ func (h *Hive) cmdStr(arg ...string) (out string) {
 	for _, value := range arg {
 		out += value
 	}
-
-	/*if h.HiveCommand != "" {
-		out += fmt.Sprintf(BEE_QUERY, h.HiveCommand)
-	}*/
 	return
 }
 
@@ -124,38 +112,22 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 	hr, e := h.fetch(query)
 
 	if len(hr.Header) != 0 && len(hr.Result) > 2 {
-		Parse(hr.Header, hr.Result[1:], m, h.OutputType, "")
+		Parse(hr.Header, hr.Result, m, h.OutputType, "")
 	}
 	return
 }
 
 func (h *Hive) fetch(query string) (hr HiveResult, e error) {
-	delimiter := "\t"
-
-	if h.OutputType == CSV {
-		delimiter = ","
-	}
-
 	if !strings.HasPrefix(query, ";") {
 		query += ";"
 	}
 
-	// h.Conn.FnReceive = nil
-	result, e := h.Conn.SendInput(query)
+	hr, e = h.Conn.SendInput(query)
 
-	if e != nil {
-		return
-	}
-
-	hr.Result = result
-
-	if len(hr.Result) > 0 {
-		hr.constructHeader(hr.Result[:1][0], delimiter)
-	}
 	return
 }
 
-func (h *Hive) Exec(query string) {
+func (h *Hive) Exec(query string, fn FnHiveReceive) (e error) {
 	delimiter := "\t"
 	_ = delimiter
 
@@ -167,11 +139,8 @@ func (h *Hive) Exec(query string) {
 		query += ";"
 	}
 
-	_, e := h.Conn.SendInput(query)
-
-	if e != nil {
-		return
-	}
+	h.Conn.FnReceive = fn
+	_, e = h.Conn.SendInput(query)
 
 	return
 }
@@ -431,7 +400,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result != nil {
-					line := strings.Split(strings.Replace(hr.Result[i+1], "'", "", -1), "\t")
+					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
 					var tempDataType = ""
 
 					if strings.TrimSpace(line[1]) == "double" {

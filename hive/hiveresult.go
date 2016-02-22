@@ -7,7 +7,6 @@ import (
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	"github.com/eaciit/toolkit"
-	// "log"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -19,10 +18,6 @@ type HiveResult struct {
 	Result     []string
 	ResultObj  interface{}
 	DateFormat string
-	//Dup        *DuplexTerm
-	/*OutputType string
-	DateFormat string
-	JsonPart   string*/
 }
 
 var JsonPart string
