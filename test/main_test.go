@@ -79,11 +79,11 @@ func TestHiveExec(t *testing.T) {
 
 	hr, e := h.Exec(q, func(x HiveResult) error {
 		i++
-		t.Logf("Receiving data: %s", toolkit.JsonString(x))
+		// t.Logf("Receiving data: %s", toolkit.JsonString(x))
 		return nil
 	})
 
-	_ = hr
+	t.Logf("hr-1: %v\n", hr)
 
 	if e != nil {
 		t.Fatalf("Error exec query: %s", e.Error())
@@ -107,7 +107,7 @@ func TestHiveExecMulti(t *testing.T) {
 		return nil
 	})
 
-	_ = hr
+	t.Logf("hr-1: %v\n", hr)
 
 	fatalCheck(t, "HS1 exec", e)
 
@@ -116,9 +116,11 @@ func TestHiveExecMulti(t *testing.T) {
 		return nil
 	})
 
+	t.Logf("hr-2: %v\n", hr)
+
 	fatalCheck(t, "HS2 Exec", e)
 
-	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
+	// t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
 
 	h.Conn.Close()
 }
