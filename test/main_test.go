@@ -102,6 +102,7 @@ func TestHiveExecMulti(t *testing.T) {
 
 	e := h.Exec(q, func(x HiveResult) error {
 		ms1 = append(ms1, x)
+		t.Logf("Data 1: %s", toolkit.JsonString(x))
 		return nil
 	})
 
@@ -109,6 +110,7 @@ func TestHiveExecMulti(t *testing.T) {
 
 	e = h.Exec(q, func(x HiveResult) error {
 		ms2 = append(ms2, x)
+		t.Logf("Data 2: %s", toolkit.JsonString(x))
 		return nil
 	})
 
