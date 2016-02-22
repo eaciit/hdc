@@ -186,9 +186,9 @@ func TestHiveExec(t *testing.T) {
 func TestLoad(t *testing.T) {
 	h.Conn.Open()
 
-	var student students
+	var Student Students
 
-	retVal, err := h.Load("students", "|", &student)
+	retVal, err := h.Load("students", "|", &Student)
 
 	if err != nil {
 		fmt.Println(err)
@@ -201,9 +201,9 @@ func TestLoad(t *testing.T) {
 func TestLoadFile(t *testing.T) {
 	h.Conn.Open()
 
-	var student students
+	var Student Students
 
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &Student)
 
 	if err != nil {
 		fmt.Println(err)
