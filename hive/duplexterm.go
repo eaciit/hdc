@@ -85,46 +85,29 @@ func (d *DuplexTerm) Close() {
 }
 
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
-
 	if d.FnReceive != nil {
-		// d.status = make(chan bool)
 		go func() {
-			_, e, status := d.process()
+			_, e, _ := d.process()
 			_ = e
-			if status {
-				// log.Printf("status: %v\n", status)
-				// d.status <- status
-			}
 		}()
-
-		iwrite, e := d.Writer.WriteString(input + "\n")
-		if iwrite == 0 {
-			e = errors.New("Writing only 0 byte")
-		} else {
-			e = d.Writer.Flush()
-		}
-		err = e
-	} else {
-		iwrite, e := d.Writer.WriteString(input + "\n")
-		if iwrite == 0 {
-			e = errors.New("Writing only 0 byte")
-		} else {
-			e = d.Writer.Flush()
-		}
-		if e == nil {
-			res, e, _ = d.process()
-			// d.status <- true
-		} else {
-			// d.status <- false
-		}
-		err = e
 	}
+
+	iwrite, e := d.Writer.WriteString(input + "\n")
+	if iwrite == 0 {
+		e = errors.New("Writing only 0 byte")
+	} else {
+		e = d.Writer.Flush()
+	}
+	if e == nil && d.FnReceive == nil {
+		res, e, _ = d.process()
+	}
+	err = e
 	return
 }
 
-func (d *DuplexTerm) Wait() {
+/*func (d *DuplexTerm) Wait() {
 	<-d.status
-}
+}*/
 
 func (d *DuplexTerm) process() (result []string, e error, status bool) {
 	isHeader := false

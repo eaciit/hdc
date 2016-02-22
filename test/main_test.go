@@ -125,12 +125,12 @@ func TestLoadFile(t *testing.T) {
 }*/
 
 func TestHiveExec(t *testing.T) {
-	q := "select * from sample_07 limit 5;"
+	q := "select * from sample_07 limit 1;"
 	// x := "select * from sample_07 limit 3;"
 
 	DoSomething := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: \n%v\n", res.ResultObj)
+		/*toolkit.Serde(res, &res.ResultObj, "json")
+		log.Printf("limit 5: \n%v\n", res.ResultObj)*/
 		return
 	}
 
@@ -141,9 +141,9 @@ func TestHiveExec(t *testing.T) {
 		return
 	}*/
 
+	h.Conn.FnReceive = DoSomething
 	h.Conn.Open()
 
-	h.Conn.FnReceive = DoSomething
 	h.Exec(q)
 	/*h.Conn.Wait()
 
@@ -194,9 +194,8 @@ func TestHiveExecMulti(t *testing.T) {
 		return
 	}
 
-	h.Conn.Open()
-
 	h.Conn.FnReceive = DoSomething
+	h.Conn.Open()
 	h.Exec(q)
 	h.Exec(q)
 
