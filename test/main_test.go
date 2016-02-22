@@ -101,7 +101,7 @@ func TestHiveExec(t *testing.T) {
 
 	DoSomething := func(res HiveResult) (e error) {
 		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: \n%v\n", res.ResultObj)
+		log.Printf("result: \n%v\n", res.ResultObj)
 		return
 	}
 
