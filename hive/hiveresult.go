@@ -56,7 +56,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 	if outputType == CSV {
 		var v reflect.Type
 
-		if slice {
+		if slice && toolkit.TypeName(m) != "*interface {}" {
 			v = reflect.TypeOf(m).Elem().Elem()
 		} else {
 			v = reflect.TypeOf(m).Elem()
@@ -97,14 +97,14 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					case reflect.Float64:
 						valf, _ := strconv.ParseFloat(valthis.(string), 64)
 						appendData.Set(v.Field(i).Name, valf)
+					case reflect.Bool:
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
 					}
 
 					dtype := DetectDataType(valthis.(string), dateFormat)
 					if dtype == "date" {
 						valf := cast.String2Date(valthis.(string), dateFormat)
-						appendData.Set(v.Field(i).Name, valf)
-					} else if dtype == "bool" {
-						valf, _ := strconv.ParseBool(valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					}
 				}
@@ -179,7 +179,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 	} else {
 		var v reflect.Type
 
-		if slice {
+		if slice && toolkit.TypeName(m) != "*interface {}" {
 			v = reflect.TypeOf(m).Elem().Elem()
 		} else {
 			v = reflect.TypeOf(m).Elem()
@@ -212,13 +212,13 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 					case reflect.Float64:
 						valf, _ := strconv.ParseFloat(valthis.(string), 64)
 						appendData.Set(v.Field(i).Name, valf)
+					case reflect.Bool:
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
 					}
 					dtype := DetectDataType(valthis.(string), dateFormat)
 					if dtype == "date" {
 						valf := cast.String2Date(valthis.(string), dateFormat)
-						appendData.Set(v.Field(i).Name, valf)
-					} else if dtype == "bool" {
-						valf, _ := strconv.ParseBool(valthis.(string))
 						appendData.Set(v.Field(i).Name, valf)
 					}
 				}
