@@ -3,7 +3,7 @@ package worker
 import (
 	"bufio"
 	"fmt"
-	w "github.com/masmeka/hdc/worker"
+	w "github.com/eaciit/hdc/worker"
 	"os"
 	"testing"
 )
