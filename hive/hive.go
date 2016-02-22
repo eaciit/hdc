@@ -385,8 +385,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 					if v.Field(i).Type.String() == "string" {
 						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
 					} else if v.Field(i).Type.String() == "int" {
-						log.Println(reflect.ValueOf(TableModel).Elem().Field(i).Int())
-						insertValues += string(reflect.ValueOf(TableModel).Elem().Field(i).Int())
+						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+						insertValues += strconv.FormatInt(temp, 10)
 					} else if v.Field(i).Type.String() == "float" {
 						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
 					} else {
