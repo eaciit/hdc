@@ -95,9 +95,9 @@ func TestParseOutputOneStruct(t *testing.T) {
 		t.Error(e)
 	}
 
-	res = "'00-0000'\t'All Occupations TSV'\t'13.4354.250'\t'40690'\t'2014-Dec-05'"
+	res = "'00-0000'\t'All Occupations TSV'\t'13.4354250'\t'40690'\t'2014-Dec-05'"
 	var tmpz interface{}
-	e = Parse([]string{"code", "desc", "emp", "sal", "date"}, res, &tmpz, "tsv", "yyyy-MM-dd")
+	e = Parse([]string{"code", "desc", "emp", "sal", "date"}, res, &tmpz, "tsv", "yyyy-MMM-dd")
 	log.Println(tmpz)
 
 	if e != nil {

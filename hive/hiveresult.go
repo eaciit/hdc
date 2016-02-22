@@ -76,57 +76,44 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			if v.Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
 					appendData[v.Field(i).Name] = strings.TrimSpace(record[i])
-				}
+					valthis := appendData[v.Field(i).Name]
+					switch v.Field(i).Type.Kind() {
+					case reflect.Int:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int16:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int32:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int64:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Float32:
+						valf, _ := strconv.ParseFloat(valthis.(string), 32)
+						appendData.Set(v.Field(i).Name, valf)
+					case reflect.Float64:
+						valf, _ := strconv.ParseFloat(valthis.(string), 64)
+						appendData.Set(v.Field(i).Name, valf)
+					}
 
-				for i := 0; i < v.NumField(); i++ {
-					tag := v.Field(i).Tag
-
-					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-						valthis := appendData[v.Field(i).Name]
-						if valthis == nil {
-							valthis = appendData[tag.Get("tag_name")]
-						}
-
-						switch v.Field(i).Type.Kind() {
-						case reflect.Int:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int16:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int32:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int64:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Float32:
-							valf, _ := strconv.ParseFloat(valthis.(string), 32)
-							appendData.Set(v.Field(i).Name, valf)
-						case reflect.Float64:
-							valf, _ := strconv.ParseFloat(valthis.(string), 64)
-							appendData.Set(v.Field(i).Name, valf)
-						}
-
-						dtype := DetectFormat(valthis.(string), dateFormat)
-						if dtype == "date" {
-							valf := cast.String2Date(valthis.(string), dateFormat)
-							appendData.Set(v.Field(i).Name, valf)
-						} else if dtype == "bool" {
-							valf, _ := strconv.ParseBool(valthis.(string))
-							appendData.Set(v.Field(i).Name, valf)
-						}
+					dtype := DetectDataType(valthis.(string), dateFormat)
+					if dtype == "date" {
+						valf := cast.String2Date(valthis.(string), dateFormat)
+						appendData.Set(v.Field(i).Name, valf)
+					} else if dtype == "bool" {
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
 					}
 				}
-			} else {
-				for i, val := range header {
-					appendData[val] = strings.TrimSpace(record[i])
-				}
 
+			} else {
 				if len(header) == 0 {
 					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
 					return e
 				}
 
-				for _, val := range header {
+				for i, val := range header {
+					appendData[val] = strings.TrimSpace(record[i])
 					valthis := appendData[val]
-					dtype := DetectFormat(valthis.(string), dateFormat)
+					dtype := DetectDataType(valthis.(string), dateFormat)
 					if dtype == "int" {
 						appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
 					} else if dtype == "float" {
@@ -204,56 +191,44 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 			if v.Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
 					appendData[v.Field(i).Name] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
-				}
-
-				for i := 0; i < v.NumField(); i++ {
-					tag := v.Field(i).Tag
-
-					if appendData.Has(v.Field(i).Name) || appendData.Has(tag.Get("tag_name")) {
-						valthis := appendData[v.Field(i).Name]
-						if valthis == nil {
-							valthis = appendData[tag.Get("tag_name")]
-						}
-						switch v.Field(i).Type.Kind() {
-						case reflect.Int:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int16:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int32:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Int64:
-							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
-						case reflect.Float32:
-							valf, _ := strconv.ParseFloat(valthis.(string), 32)
-							appendData.Set(v.Field(i).Name, valf)
-						case reflect.Float64:
-							valf, _ := strconv.ParseFloat(valthis.(string), 64)
-							appendData.Set(v.Field(i).Name, valf)
-						}
-						dtype := DetectFormat(valthis.(string), dateFormat)
-						if dtype == "date" {
-							valf := cast.String2Date(valthis.(string), dateFormat)
-							appendData.Set(v.Field(i).Name, valf)
-						} else if dtype == "bool" {
-							valf, _ := strconv.ParseBool(valthis.(string))
-							appendData.Set(v.Field(i).Name, valf)
-						}
+					valthis := appendData[v.Field(i).Name]
+					switch v.Field(i).Type.Kind() {
+					case reflect.Int:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int16:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int32:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Int64:
+						appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))
+					case reflect.Float32:
+						valf, _ := strconv.ParseFloat(valthis.(string), 32)
+						appendData.Set(v.Field(i).Name, valf)
+					case reflect.Float64:
+						valf, _ := strconv.ParseFloat(valthis.(string), 64)
+						appendData.Set(v.Field(i).Name, valf)
+					}
+					dtype := DetectDataType(valthis.(string), dateFormat)
+					if dtype == "date" {
+						valf := cast.String2Date(valthis.(string), dateFormat)
+						appendData.Set(v.Field(i).Name, valf)
+					} else if dtype == "bool" {
+						valf, _ := strconv.ParseBool(valthis.(string))
+						appendData.Set(v.Field(i).Name, valf)
 					}
 				}
 
 			} else {
-				for i, val := range header {
-					appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
-				}
 
 				if len(header) == 0 {
 					e = errorlib.Error("", "", "Parse Out", "Header cant be null because object is not struct")
 					return e
 				}
 
-				for _, val := range header {
+				for i, val := range header {
+					appendData[val] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
 					valthis := appendData[val]
-					dtype := DetectFormat(valthis.(string), dateFormat)
+					dtype := DetectDataType(valthis.(string), dateFormat)
 					if dtype == "int" {
 						appendData.Set(val, cast.ToInt(valthis, cast.RoundingAuto))
 					} else if dtype == "float" {
@@ -318,7 +293,7 @@ func InspectJson(ins []string) (out []string) {
 	return re
 }
 
-func DetectFormat(in string, dateFormat string) (res string) {
+func DetectDataType(in string, dateFormat string) (res string) {
 	if in != "" {
 		matchNumber := false
 		matchFloat := false
@@ -359,7 +334,6 @@ func DetectFormat(in string, dateFormat string) (res string) {
 			}
 		}
 	}
-
 	return res
 }
 
