@@ -288,7 +288,8 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				if v.Field(i).Type.String() == "string" {
 					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
 				} else if v.Field(i).Type.String() == "int" {
-					insertValues += string(reflect.ValueOf(TableModel).Elem().Field(i).Int())
+					temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+					insertValues += strconv.FormatInt(temp, 10)
 				} else if v.Field(i).Type.String() == "float" {
 					insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
 				} else {
@@ -369,8 +370,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
 
-			log.Println(TableModel)
-
 			if err != nil {
 				log.Println(err)
 			}
@@ -401,7 +400,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 			if insertValues != "" {
 				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
-				log.Println(retQuery)
 				_, err = h.fetch(retQuery)
 			}
 
