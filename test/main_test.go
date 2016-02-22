@@ -3,8 +3,9 @@ package test
 import (
 	"github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/masmeka/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
+	"log"
 	"os"
 	"testing"
 )
@@ -46,7 +47,6 @@ func TestHiveConnect(t *testing.T) {
 /* Populate will exec query and immidiately return the value into object
 Populate is suitable for short type query that return limited data,
 Exec is suitable for long type query that return massive amount of data and require time to produce it
-
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
 func TestHivePopulate(t *testing.T) {
@@ -79,48 +79,6 @@ func TestHiveExec(t *testing.T) {
 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
 		return nil
 	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	h.Conn.Close()
-	fmt.Println(retVal)
-}
-
-func TestLoadFileWithWorker(t *testing.T) {
-	h.Conn.Open()
-
-	var student students
-
-	totalWorker := 10
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	h.Conn.Close()
-	fmt.Println(retVal)
-}
-
-func TestExecLine(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-
-	//func TestHiveExec(t *testing.T) {
-
-	q := "select * from sample_07 limit 5;"
-	// x := "select * from sample_07 limit 10;"
-	DoSomething := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 5: %v", res.ResultObj)
-		return
-	}
-
-	DoElse := func(res HiveResult) (e error) {
-		tmp := toolkit.M{}
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 10: %v", tmp)
-		return
-	}
 
 	if e != nil {
 		t.Fatalf("Error exec query: %s", e.Error())
@@ -185,4 +143,19 @@ func TestLoadFile(t *testing.T) {
 	}
 	h.Conn.Close()
 	t.Log(retVal)
+}
+
+func TestLoadFileWithWorker(t *testing.T) {
+	h.Conn.Open()
+
+	var student Students
+
+	totalWorker := 10
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
+
+	if err != nil {
+		log.Println(err)
+	}
+	h.Conn.Close()
+	log.Println(retVal)
 }
