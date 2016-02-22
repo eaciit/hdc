@@ -72,6 +72,27 @@ func TestHivePopulate(t *testing.T) {
 }
 
 func TestHiveExec(t *testing.T) {
+	i := 0
+	q := "select * from sample_07 limit 5;"
+
+	h.Conn.Open()
+
+	h.Conn.FnReceive = func(x HiveResult) error {
+		i++
+		t.Logf("Receiving data: %s", toolkit.JsonString(x))
+		return nil
+	}
+
+	h.Exec(q)
+
+	if i < 5 {
+		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
+	}
+
+	h.Conn.Close()
+}
+
+func TestHiveExecMulti(t *testing.T) {
 	h.Conn.Open()
 
 	var ms1, ms2 []HiveResult
@@ -94,51 +115,6 @@ func TestHiveExec(t *testing.T) {
 	// fatalCheck(t, "HS2 Exec", e)
 
 	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
-
-	h.Conn.Close()
-	/*q := "select * from sample_07 limit 1;"
-	x := "select * from sample_07 limit 3;"
-
-	DoSomething := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("result: \n%v\n", res.ResultObj)
-		return
-	}
-
-	DoElse := func(res HiveResult) (e error) {
-		toolkit.Serde(res, &res.ResultObj, "json")
-		log.Printf("limit 3: \n%v\n", res.ResultObj)
-		return
-	}
-
-	h.Conn.Open()
-
-	h.Conn.FnReceive = DoSomething
-	h.Exec(q)
-
-	h.Conn.FnReceive = DoElse
-	h.Exec(x)
-
-	h.Conn.Close()*/
-}
-
-func TestHiveExecMulti(t *testing.T) {
-	var ms1 []HiveResult
-	q := "select * from sample_07 limit 5;"
-
-	DoSomething := func(res HiveResult) (e error) {
-		ms1 = append(ms1, res)
-		return
-	}
-
-	h.Conn.FnReceive = DoSomething
-	h.Conn.Open()
-	h.Exec(q)
-	h.Exec(q)
-
-	for _, v1 := range ms1 {
-		log.Println(v1)
-	}
 
 	h.Conn.Close()
 }
