@@ -19,11 +19,11 @@ type Sample7 struct {
 	Salary      string `tag_name:"salary"`
 }
 
-type students struct {
-	name    string
-	age     int
-	phone   string
-	address string
+type Students struct {
+	Name    string
+	Age     int
+	Phone   string
+	Address string
 }
 
 func killApp(code int) {
@@ -119,9 +119,9 @@ func TestHiveExecMulti(t *testing.T) {
 func TestLoad(t *testing.T) {
 	h.Conn.Open()
 
-	var student students
+	var Student Students
 
-	retVal, err := h.Load("students", "|", &student)
+	retVal, err := h.Load("students", "|", &Student)
 
 	if err != nil {
 		t.Log(err)
@@ -134,9 +134,9 @@ func TestLoad(t *testing.T) {
 func TestLoadFile(t *testing.T) {
 	h.Conn.Open()
 
-	var student students
+	var Student Students
 
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &Student)
 
 	if err != nil {
 		t.Log(err)

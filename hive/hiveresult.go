@@ -205,6 +205,7 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 				for i := 0; i < v.NumField(); i++ {
 					appendData[v.Field(i).Name] = strings.TrimSpace(strings.Trim(splitted[i], " '"))
 				}
+
 				for i := 0; i < v.NumField(); i++ {
 					tag := v.Field(i).Tag
 
@@ -213,7 +214,6 @@ func Parse(header []string, in interface{}, m interface{}, outputType string, da
 						if valthis == nil {
 							valthis = appendData[tag.Get("tag_name")]
 						}
-
 						switch v.Field(i).Type.Kind() {
 						case reflect.Int:
 							appendData.Set(v.Field(i).Name, cast.ToInt(valthis, cast.RoundingAuto))

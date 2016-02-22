@@ -19,14 +19,11 @@ import (
 )
 
 const (
-	BEE_TEMPLATE = "%sbeeline -u jdbc:hive2://%s/%s"
-	BEE_USER     = " -n %s"
-	BEE_PASSWORD = " -p %s"
-	BEE_QUERY    = " -e \"%s\""
-	PACKAGENAME  = "Hive"
-
-	/*SHOW_HEADER  = " --showHeader=true"
-	HIDE_HEADER  = " --showHeader=false"*/
+	BEE_TEMPLATE  = "%sbeeline -u jdbc:hive2://%s/%s"
+	BEE_USER      = " -n %s"
+	BEE_PASSWORD  = " -p %s"
+	BEE_QUERY     = " -e \"%s\""
+	PACKAGENAME   = "Hive"
 	CSV_FORMAT    = " --outputFormat=csv"
 	TSV_FORMAT    = " --outputFormat=tsv"
 	DSV_FORMAT    = " --outputFormat=dsv --delimiterForDSV=|\t"
@@ -39,15 +36,12 @@ const (
 type FnHiveReceive func(HiveResult) error
 
 type Hive struct {
-	BeePath  string
-	Server   string
-	User     string
-	Password string
-	DBName   string
-	Conn     *DuplexTerm
-	// HiveCommand string
-	// Header     []string
-	// JsonPart   string
+	BeePath    string
+	Server     string
+	User       string
+	Password   string
+	DBName     string
+	Conn       *DuplexTerm
 	OutputType string
 	DateFormat string
 }
@@ -84,10 +78,8 @@ func HiveConfig(server, dbName, userid, password, path string, delimiter ...stri
 
 	if hv.Conn.Cmd == nil {
 		if hv.OutputType == CSV {
-			//hv.Conn.Cmd = hv.command(hv.cmdStr(CSV_FORMAT))
 			hv.Conn.CmdStr = hv.cmdStr(CSV_FORMAT)
 		} else {
-			// hv.Conn.Cmd = hv.command(hv.cmdStr(TSV_FORMAT))
 			hv.Conn.CmdStr = hv.cmdStr(TSV_FORMAT)
 		}
 	}
@@ -265,11 +257,16 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 				if v.Field(i).Type.String() == "string" {
 					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
 				} else if v.Field(i).Type.String() == "int" {
-					insertValues += string(reflect.ValueOf(TableModel).Elem().Field(i).Int())
+					temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+					insertValues += strconv.FormatInt(temp, 10)
 				} else if v.Field(i).Type.String() == "float" {
 					insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
 				} else {
 					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
+				}
+
+				if i < v.NumField()-1 {
+					insertValues += ", "
 				}
 			}
 
@@ -339,8 +336,44 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		for scanner.Scan() {
 
 			//put worker here
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
-			hr, err = h.fetch(retVal)
+
+			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
+
+			if err != nil {
+				log.Println(err)
+			}
+
+			insertValues := ""
+
+			var v reflect.Type
+			v = reflect.TypeOf(TableModel).Elem()
+
+			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					if v.Field(i).Type.String() == "string" {
+						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
+					} else if v.Field(i).Type.String() == "int" {
+						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+						insertValues += strconv.FormatInt(temp, 10)
+					} else if v.Field(i).Type.String() == "float" {
+						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
+					} else {
+						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
+					}
+
+					if i < v.NumField()-1 {
+						insertValues += ", "
+					}
+				}
+			}
+
+			if insertValues != "" {
+				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+				_, err = h.fetch(retQuery)
+			}
+
+			//retVal := QueryBuilder("insert", TableName, insertValues, TableModel)
+			//hr, err = h.fetch(retVal)
 		}
 
 		if err == nil {
