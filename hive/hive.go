@@ -295,7 +295,9 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 				}
 
-				insertValues += ", "
+				if i < v.NumField()-1 {
+					insertValues += ", "
+				}
 			}
 
 			if insertValues != "" {
@@ -390,7 +392,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 					}
 
-					insertValues += ", "
+					if i < v.NumField()-1 {
+						insertValues += ", "
+					}
 				}
 			}
 
