@@ -298,7 +298,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		//put depatcher here
 
 		for scanner.Scan() {
-
 			//put worker here
 
 			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
