@@ -52,7 +52,7 @@ Exec is suitable for long type query that return massive amount of data and requ
 
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-/*func TestHivePopulate(t *testing.T) {
+func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
@@ -70,35 +70,6 @@ Ideally Populate should call Exec as well but already have predefined function o
 
 	h.Conn.Close()
 }
-
-func TestLoad(t *testing.T) {
-	h.Conn.Open()
-
-	var student students
-
-	retVal, err := h.Load("students", "|", &student)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	h.Conn.Close()
-	fmt.Println(retVal)
-}
-
-//for now, this function works on simple csv file
-func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
-
-	var student students
-
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-	h.Conn.Close()
-	fmt.Println(retVal)
-}*/
 
 /*func TestExecLine(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
@@ -211,3 +182,32 @@ func TestHiveExec(t *testing.T) {
 		h.Conn.Close()
 	}
 }*/
+
+func TestLoad(t *testing.T) {
+	h.Conn.Open()
+
+	var student students
+
+	retVal, err := h.Load("students", "|", &student)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	h.Conn.Close()
+	fmt.Println(retVal)
+}
+
+//for now, this function works on simple csv file
+func TestLoadFile(t *testing.T) {
+	h.Conn.Open()
+
+	var student students
+
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &student)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	h.Conn.Close()
+	fmt.Println(retVal)
+}

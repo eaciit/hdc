@@ -7,7 +7,7 @@ import (
 	"github.com/eaciit/errorlib"
 	// "github.com/eaciit/toolkit"
 	"io"
-	// "log"
+	"log"
 	"os/exec"
 	// "reflect"
 	"strings"
@@ -51,12 +51,6 @@ var hr HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
-		if d.FnReceive != nil {
-			go func() {
-				_, e, _ := d.process()
-				_ = e
-			}()
-		}
 		arg := append([]string{"-c"}, d.CmdStr)
 		d.Cmd = exec.Command("sh", arg...)
 
@@ -70,7 +64,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
-
+		// d.status = make(chan bool)
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
@@ -91,6 +85,13 @@ func (d *DuplexTerm) Close() {
 }
 
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
+	if d.FnReceive != nil {
+		go func() {
+			_, e, _ := d.process()
+			_ = e
+		}()
+	}
+
 	iwrite, e := d.Writer.WriteString(input + "\n")
 	if iwrite == 0 {
 		e = errors.New("Writing only 0 byte")
@@ -128,7 +129,6 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 		}
 
 		if isHeader {
-			hr = HiveResult{}
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
@@ -174,11 +174,14 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
-		} else {
-			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, BEE_CLI_STR)) {
-				break
+		} else {*/
+		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+			if d.FnReceive != nil {
+				// status = true
 			}
-		}*/
+			break
+		}
+		// }
 
 	}
 
