@@ -51,13 +51,6 @@ var hr HiveResult
 
 func (d *DuplexTerm) Open() (e error) {
 	if d.CmdStr != "" {
-		if d.FnReceive != nil {
-			go func() {
-				_, e, _ := d.process()
-				_ = e
-			}()
-		}
-
 		arg := append([]string{"-c"}, d.CmdStr)
 		d.Cmd = exec.Command("sh", arg...)
 
@@ -93,16 +86,39 @@ func (d *DuplexTerm) Close() {
 }
 
 func (d *DuplexTerm) SendInput(input string) (res []string, err error) {
-	iwrite, e := d.Writer.WriteString(input + "\n")
-	if iwrite == 0 {
-		e = errors.New("Writing only 0 byte")
+	if d.FnReceive != nil {
+		done := make(chan bool)
+		go func() {
+			_, e, _ := d.process()
+			_ = e
+			done <- true
+		}()
+		iwrite, e := d.Writer.WriteString(input + "\n")
+		if iwrite == 0 {
+			e = errors.New("Writing only 0 byte")
+		} else {
+			e = d.Writer.Flush()
+		}
+
+		<-done
+		err = e
 	} else {
-		e = d.Writer.Flush()
+		iwrite, e := d.Writer.WriteString(input + "\n")
+		if iwrite == 0 {
+			e = errors.New("Writing only 0 byte")
+		} else {
+			e = d.Writer.Flush()
+		}
+		if e == nil && d.FnReceive == nil {
+			done := make(chan bool)
+			go func() {
+				res, e, _ = d.process()
+				done <- true
+			}()
+			<-done
+		}
+		err = e
 	}
-	if e == nil && d.FnReceive == nil {
-		res, e, _ = d.process()
-	}
-	err = e
 	return
 }
 
@@ -171,18 +187,18 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			isHeader = true
 		}
 
-		if d.FnReceive != nil {
+		/*if d.FnReceive != nil {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
-		} else {
-			if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-				if d.FnReceive != nil {
-					// status = true
-				}
-				break
+		} else {*/
+		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+			if d.FnReceive != nil {
+				// status = true
 			}
+			break
 		}
+		// }
 
 	}
 
