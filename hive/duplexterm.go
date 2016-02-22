@@ -43,6 +43,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 		d.Writer = bufio.NewWriter(d.Stdin)
 		d.Reader = bufio.NewReader(d.Stdout)
+		d.FnReceive = nil
 		e = d.Cmd.Start()
 	} else {
 		errorlib.Error("", "", "Open", "The Connection Config not Set")
