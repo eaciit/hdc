@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/eaciit/errorlib"
-	w "github.com/eaciit/hdc/worker"
+	wk "github.com/eaciit/hdc/worker"
 	"github.com/eaciit/toolkit"
 	"log"
 	"os"
@@ -395,11 +395,11 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		scanner := bufio.NewScanner(file)
 
 		// initiate dispatcher
-		manager := w.NewManager(TotalWorker, 1)
+		manager := wk.NewManager(TotalWorker, 1)
 
 		// initiate workers
-		for w := 0; w < TotalWorker; w++ {
-			manager.FreeWorkers <- &w.Worker{w, manager.TimeProcess, manager.FreeWorkers}
+		for x := 0; x < TotalWorker; x++ {
+			manager.FreeWorkers <- &wk.Worker{x, manager.TimeProcess, manager.FreeWorkers}
 		}
 
 		// monitoring worker whos free
