@@ -169,18 +169,18 @@ func (d *DuplexTerm) process() (result []string, e error, status bool) {
 			isHeader = true
 		}
 
-		/*if d.FnReceive != nil {
+		if d.FnReceive != nil {
 			if (e != nil && e.Error() == "EOF") || (strings.Contains(peekStr, CLOSE_SCRIPT)) {
 				break
 			}
-		} else {*/
-		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-			if d.FnReceive != nil {
-				// status = true
+		} else {
+			if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+				if d.FnReceive != nil {
+					// status = true
+				}
+				break
 			}
-			break
 		}
-		// }
 
 	}
 
