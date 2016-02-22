@@ -17,10 +17,37 @@ type SampleParse struct {
 	Date        time.Time `tag_name:"date"`
 }
 
+type SampleParseBool struct {
+	Code        string    `tag_name:"code"`
+	Description string    `tag_name:"description"`
+	Total_emp   int       `tag_name:"total_emp"`
+	Salary      int       `tag_name:"salary"`
+	Date        time.Time `tag_name:"date"`
+	IsOk        bool
+}
+
 func TestParseOutput(t *testing.T) {
+	resb := []string{"'00-0000','All Occupations CSV','134354250','40690','2014-05-01','true'", "'00-0000','All Occupations NEXT','134354250','40690','2014-05-01','false'"}
+	tmpb := []SampleParseBool{}
+	e := Parse([]string{}, resb, &tmpb, "csv", "yyyy-MM-dd")
+	log.Println(tmpb)
+
+	if e != nil {
+		t.Error(e)
+	}
+
+	resb = []string{"'00-0000','All Occupations CSV','134354250','40690','2014-05-01','true'", "'00-0000','All Occupations NEXT','134354250','40690','2014-05-01','false'"}
+	var tmpd interface{}
+	e = Parse([]string{"code", "desc", "emp", "sal", "date", "Isok"}, resb, &tmpd, "csv", "yyyy-MM-dd")
+	log.Println(tmpd)
+
+	if e != nil {
+		t.Error(e)
+	}
+
 	res := []string{"'00-0000','All Occupations CSV','134354250','40690','2014-05-01'", "'00-0000','All Occupations NEXT','134354250','40690','2014-05-01'"}
 	tmp := []SampleParse{}
-	e := Parse([]string{}, res, &tmp, "csv", "yyyy-MM-dd")
+	e = Parse([]string{}, res, &tmp, "csv", "yyyy-MM-dd")
 	log.Println(tmp)
 
 	if e != nil {
