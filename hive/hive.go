@@ -395,7 +395,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		scanner := bufio.NewScanner(file)
 
 		// initiate dispatcher
-		manager := wk.NewManager(TotalWorker, 2)
+		manager := wk.NewManager(TotalWorker)
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
@@ -406,12 +406,40 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		go manager.DoMonitor()
 
 		for scanner.Scan() {
-			// get data to parse into task
-			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
+			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
 
-			// do task with worker
+			if err != nil {
+				log.Println(err)
+			}
+			insertValues := ""
+
+			var v reflect.Type
+			v = reflect.TypeOf(TableModel).Elem()
+
+			if v.Kind() == reflect.Struct {
+				for i := 0; i < v.NumField(); i++ {
+					if v.Field(i).Type.String() == "string" {
+						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
+					} else if v.Field(i).Type.String() == "int" {
+						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+						insertValues += strconv.FormatInt(temp, 10)
+					} else if v.Field(i).Type.String() == "float" {
+						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
+					} else {
+						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
+					}
+
+					if i < v.NumField()-1 {
+						insertValues += ", "
+					}
+				}
+			}
+
 			manager.Tasks <- func() {
-				hr, err = h.fetch(retVal)
+				if insertValues != "" {
+					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+					_, err = h.fetch(retQuery)
+				}
 			}
 		}
 
