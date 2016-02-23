@@ -395,7 +395,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		scanner := bufio.NewScanner(file)
 
 		// initiate dispatcher
-		manager := wk.NewManager(TotalWorker, 1)
+		manager := wk.NewManager(TotalWorker, 2)
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
@@ -416,7 +416,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		}
 
 		// waiting for tasks has been done
-		go manager.Timeout(1)
+		go manager.Timeout(3)
 		<-manager.Done
 
 		if err == nil {
