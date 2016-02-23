@@ -279,6 +279,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
 
+	log.Println(isMatch)
+
 	if isMatch == false {
 		return retVal, err
 	}
@@ -331,7 +333,12 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				}
 			}
 
+			log.Println(insertValues)
+
 			if insertValues != "" {
+
+				log.Println(QueryBuilder("insert", TableName, insertValues, TableModel))
+
 				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 				_, err = h.fetch(retQuery)
 			}
@@ -453,6 +460,8 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 					} else {
 						tempDataType = strings.TrimSpace(line[1])
 					}
+
+					log.Println(tempDataType + " " + line)
 
 					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
