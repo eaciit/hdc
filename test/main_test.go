@@ -154,8 +154,8 @@ func TestLoadFileWithWorker(t *testing.T) {
 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
 
 	if err != nil {
-		log.Println(err)
+		t.Log(err)
 	}
 	h.Conn.Close()
-	log.Println(retVal)
+	t.Log(retVal)
 }
