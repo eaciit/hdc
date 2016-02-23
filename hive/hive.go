@@ -408,7 +408,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		for scanner.Scan() {
 			// get data to parse into task
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
-
+			log.Printf("retVal: %v\n", retVal)
 			// do task with worker
 			manager.Tasks <- func() {
 				hr, err = h.fetch(retVal)
