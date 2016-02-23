@@ -41,6 +41,21 @@ func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 }
 
+func TestLoadFile(t *testing.T) {
+	h.Conn.Open()
+
+	var student Students
+
+	retVal, err := h.LoadFile("/home/developer/contoh2.txt", "students", "txt", &student)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	h.Conn.Close()
+	log.Println(retVal)
+}
+
 func TestLoadFileWithWorker(t *testing.T) {
 	h.Conn.Open()
 
