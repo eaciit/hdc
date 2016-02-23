@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/eaciit/errorlib"
 	"io"
+	"log"
 	"os/exec"
 	"strings"
 )
@@ -115,6 +116,12 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 
 		delimiter := "\t"
 
+		log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
+
+		log.Printf("bread: %v\n", bread)
+
+		log.Printf("peekStr: %v\n", peekStr)
+
 		if d.OutputType == CSV {
 			delimiter = ","
 		}
@@ -124,7 +131,7 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
-			log.Printf("process before parse: %v  --- %v --- %v --- %v --- %v\n", hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+			log.Printf("process before parse: %v  --- %v --- %v --- %v\n", hr.Header, bread, d.OutputType, d.DateFormat)
 			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 			if d.FnReceive != nil {
 				hr.Result = []string{bread}
