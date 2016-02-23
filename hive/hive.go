@@ -277,9 +277,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 			}
 			_, err = h.fetch(tempQuery)
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	log.Println(isMatch)
 
