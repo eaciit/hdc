@@ -150,7 +150,7 @@ func TestLoadFileWithWorker(t *testing.T) {
 
 	var student Students
 
-	totalWorker := 10
+	totalWorker := 1
 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
 
 	if err != nil {
