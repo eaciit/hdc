@@ -124,6 +124,7 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			hr.constructHeader(bread, delimiter)
 			isHeader = false
 		} else if !strings.Contains(bread, BEE_CLI_STR) {
+			log.Printf("process before parse: %v  --- %v --- %v --- %v --- %v\n", hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
 			if d.FnReceive != nil {
 				hr.Result = []string{bread}

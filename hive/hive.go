@@ -106,7 +106,7 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return
 	}
 	hr, e := h.fetch(query)
-	log.Printf("fetch HR: %v", hr)
+
 	if len(hr.Header) != 0 && len(hr.Result) > 2 {
 		Parse(hr.Header, hr.Result, m, h.OutputType, "")
 	}
