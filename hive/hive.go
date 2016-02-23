@@ -262,7 +262,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 	if hr.Result == nil {
 		tempQuery := ""
-
+		log.Println(hr.Result)
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
 
