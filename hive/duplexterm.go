@@ -117,9 +117,7 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 		delimiter := "\t"
 
 		log.Printf("peekBeforeStr: %v\n", peekBeforeStr)
-
 		log.Printf("bread: %v\n", bread)
-
 		log.Printf("peekStr: %v\n", peekStr)
 
 		if d.OutputType == CSV {
@@ -151,6 +149,7 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			break
 		}
 
+		log.Println("--------------")
 	}
 
 	return
