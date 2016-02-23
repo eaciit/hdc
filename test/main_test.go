@@ -5,7 +5,7 @@ import (
 	//. "github.com/frezadev/hdc/hive"
 	. "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
-	"log"
+	// "log"
 	"os"
 	"testing"
 )
