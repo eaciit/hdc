@@ -1,0 +1,5 @@
+Ryan, 28, 5000000, Menjemput pasangan
+Faisal, 28, 5000000, Menunggu waktu
+Christ, 25, 4000000, Berkelana
+Yanda, 25, 4000000, Galau
+Hanafie, 27, 3000000, Bimbang

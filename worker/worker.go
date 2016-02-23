@@ -23,7 +23,7 @@ type Worker struct {
 
 // initiate new manager
 func NewManager(numWorkers int) Manager {
-	var totaltimeout int64 = 3
+	var totaltimeout int64 = 10
 
 	m := Manager{}
 	m.FreeWorkers = make(chan *Worker, numWorkers)

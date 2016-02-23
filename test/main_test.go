@@ -156,6 +156,7 @@ func TestLoadFileWithWorker(t *testing.T) {
 	if err != nil {
 		log.Println(err)
 	}
+
 	h.Conn.Close()
 	log.Println(retVal)
 }
