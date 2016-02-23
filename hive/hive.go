@@ -413,35 +413,33 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 				log.Println(err)
 			}
 
-			insertValues := ""
+			manager.Tasks <- func() {
+				insertValues := ""
 
-			var v reflect.Type
-			v = reflect.TypeOf(TableModel).Elem()
+				var v reflect.Type
+				v = reflect.TypeOf(TableModel).Elem()
 
-			if v.Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
-					if v.Field(i).Type.String() == "string" {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
-					} else if v.Field(i).Type.String() == "int" {
-						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
-						insertValues += strconv.FormatInt(temp, 10)
-					} else if v.Field(i).Type.String() == "float" {
-						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
-					} else {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
-					}
+				if v.Kind() == reflect.Struct {
+					for i := 0; i < v.NumField(); i++ {
+						if v.Field(i).Type.String() == "string" {
+							insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
+						} else if v.Field(i).Type.String() == "int" {
+							temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+							insertValues += strconv.FormatInt(temp, 10)
+						} else if v.Field(i).Type.String() == "float" {
+							insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
+						} else {
+							insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
+						}
 
-					if i < v.NumField()-1 {
-						insertValues += ", "
+						if i < v.NumField()-1 {
+							insertValues += ", "
+						}
 					}
 				}
-			}
 
-			if insertValues != "" {
-				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
-
-				// do task with worker
-				manager.Tasks <- func() {
+				if insertValues != "" {
+					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 					_, err = h.fetch(retQuery)
 				}
 			}
