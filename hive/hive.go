@@ -258,6 +258,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		return retVal, err
 	}
 
+	log.Println(hr.Result)
+
 	if hr.Result == nil {
 		tempQuery := ""
 
