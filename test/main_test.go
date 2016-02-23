@@ -2,8 +2,8 @@ package test
 
 import (
 	"github.com/eaciit/toolkit"
-	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
+	. "github.com/frezadev/hdc/hive"
+	// . "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
 	// "log"
 	"os"

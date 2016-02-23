@@ -106,7 +106,7 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 		return
 	}
 	hr, e := h.fetch(query)
-
+	log.Printf("fetch HR: %v", hr)
 	if len(hr.Header) != 0 && len(hr.Result) > 2 {
 		Parse(hr.Header, hr.Result, m, h.OutputType, "")
 	}
@@ -408,7 +408,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		for scanner.Scan() {
 			// get data to parse into task
 			retVal := QueryBuilder("insert", TableName, scanner.Text(), Parse([]string{}, scanner.Text(), &TableModel, "csv", ""))
-
+			log.Printf("retVal: %v", retVal)
 			// do task with worker
 			manager.Tasks <- func() {
 				hr, err = h.fetch(retVal)
