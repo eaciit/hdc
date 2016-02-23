@@ -203,9 +203,9 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			_, err = h.fetch(tempQuery)
 
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	if isMatch == false {
 		return retVal, err
@@ -275,9 +275,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 			}
 			_, err = h.fetch(tempQuery)
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	if isMatch == false {
 		return retVal, err
@@ -373,9 +373,9 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 			}
 			_, err = h.fetch(tempQuery)
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	if isMatch == false {
 		return retVal, err
