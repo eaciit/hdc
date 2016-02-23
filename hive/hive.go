@@ -203,9 +203,9 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 			_, err = h.fetch(tempQuery)
 
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	if isMatch == false {
 		return retVal, err
@@ -258,11 +258,9 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		return retVal, err
 	}
 
-	log.Println(hr.Result)
-
 	if hr.Result == nil {
 		tempQuery := ""
-		log.Println(hr.Result)
+
 		var v reflect.Type
 		v = reflect.TypeOf(TableModel).Elem()
 
@@ -280,8 +278,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 	}
 
 	isMatch, err = h.CheckDataStructure(TableName, TableModel)
-
-	log.Println(isMatch)
 
 	if isMatch == false {
 		return retVal, err
@@ -335,12 +331,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 				}
 			}
 
-			log.Println(insertValues)
-
 			if insertValues != "" {
-
-				log.Println(QueryBuilder("insert", TableName, insertValues, TableModel))
-
 				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 				_, err = h.fetch(retQuery)
 			}
@@ -382,9 +373,9 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 			}
 			_, err = h.fetch(tempQuery)
 		}
-	} else {
-		isMatch, err = h.CheckDataStructure(TableName, TableModel)
 	}
+
+	isMatch, err = h.CheckDataStructure(TableName, TableModel)
 
 	if isMatch == false {
 		return retVal, err
@@ -462,8 +453,6 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 					} else {
 						tempDataType = strings.TrimSpace(line[1])
 					}
-
-					log.Println(tempDataType + " " + line[1])
 
 					if tempDataType == v.Field(i).Type.String() {
 						isMatch = true
