@@ -449,7 +449,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 
 		// waiting for tasks has been done
 		wg.Add(1)
-		go manager.Timeout(3, wg)
+		go manager.Timeout(3, &wg)
 		<-manager.Done
 
 		if err == nil {
