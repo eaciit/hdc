@@ -57,7 +57,7 @@ func (d *DuplexTerm) Open() (e error) {
 
 func (d *DuplexTerm) TestConnection() (e error) {
 	if d.CmdStr != "" {
-		hr, e = SendInput(TEST_CONN_SCRIPT)
+		hr, e = d.SendInput(TEST_CONN_SCRIPT)
 	} else {
 		e = errorlib.Error("", "", "Open", "The Connection Config not Set")
 	}
