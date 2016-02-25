@@ -316,8 +316,11 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 			} else {
 				tempString = InspectJson([]string{scanner.Text()})
 
+				log.Println(scanner.Text())
+
 				if len(tempString) > 0 {
-					err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
+					log.Println(strings.Join(tempString, ","))
+					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
 
 					if err != nil {
 						log.Println(err)
