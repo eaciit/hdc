@@ -12,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -348,6 +349,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 // loading file with worker
 func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+	var wg sync.WaitGroup
+
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -403,7 +406,8 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		}
 
 		// monitoring worker whos free
-		go manager.DoMonitor()
+		wg.Add(1)
+		go manager.DoMonitor(&wg)
 
 		for scanner.Scan() {
 			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
@@ -444,7 +448,8 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		}
 
 		// waiting for tasks has been done
-		go manager.Timeout(3)
+		wg.Add(1)
+		go manager.Timeout(3, wg)
 		<-manager.Done
 
 		if err == nil {

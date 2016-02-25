@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"sync"
 	"time"
 )
 
@@ -36,13 +37,15 @@ func NewManager(numWorkers int) Manager {
 }
 
 // do monitoring worker thats free or not
-func (m *Manager) DoMonitor() {
+func (m *Manager) DoMonitor(wg *sync.WaitGroup) {
 	for {
 		select {
 		case task := <-m.Tasks:
-			go m.AssignTask(task)
+			wg.Add(1)
+			go m.AssignTask(task, wg)
 		case result := <-m.TimeProcess:
-			go m.InProgress(result)
+			wg.Add(1)
+			go m.InProgress(result, wg)
 		case <-m.Done:
 			m.Done <- true
 			return
@@ -51,10 +54,12 @@ func (m *Manager) DoMonitor() {
 }
 
 // assign task to free worker
-func (m *Manager) AssignTask(task func()) {
+func (m *Manager) AssignTask(task func(), wg *sync.WaitGroup) {
+	defer wg.Done()
 	select {
 	case worker := <-m.FreeWorkers:
-		go worker.Work(task)
+		wg.Add(1)
+		go worker.Work(task, wg)
 	case isDone := <-m.Done:
 		m.Done <- isDone
 		return
@@ -62,12 +67,14 @@ func (m *Manager) AssignTask(task func()) {
 }
 
 // check if a task still in progress to wait it till finish
-func (m *Manager) InProgress(result int64) {
+func (m *Manager) InProgress(result int64, wg *sync.WaitGroup) {
+	defer wg.Done()
 	m.LastProcess = int64(result)
 }
 
 // set the timeout to waiting for tasks execution
-func (m *Manager) Timeout(seconds int) {
+func (m *Manager) Timeout(seconds int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for {
 		if time.Now().Unix()-m.LastProcess > int64(seconds) {
 			m.Done <- true
@@ -79,7 +86,9 @@ func (m *Manager) Timeout(seconds int) {
 }
 
 // do a task for worker
-func (w *Worker) Work(task func()) {
+func (w *Worker) Work(task func(), wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	task()
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w

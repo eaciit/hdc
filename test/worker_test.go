@@ -5,11 +5,13 @@ import (
 	"fmt"
 	w "github.com/eaciit/hdc/worker"
 	"os"
+	"sync"
 	"testing"
 )
 
 // test worker
 func TestWorker(t *testing.T) {
+	var wg sync.WaitGroup
 	file, _ := os.Open("worker_test.txt")
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -22,7 +24,8 @@ func TestWorker(t *testing.T) {
 	}
 
 	// monitoring worker thats free
-	go manager.DoMonitor()
+	wg.Add(1)
+	go manager.DoMonitor(&wg)
 
 	// reading file
 	for scanner.Scan() {
@@ -37,6 +40,9 @@ func TestWorker(t *testing.T) {
 	}
 
 	// waiting for tasks has been done
-	go manager.Timeout(0)
+	wg.Add(1)
+	go manager.Timeout(0, &wg)
 	<-manager.Done
+
+	wg.Wait()
 }
