@@ -288,12 +288,12 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 		scanner := bufio.NewScanner(file)
 		var tempString []string
+		insertValues := ""
 
 		for scanner.Scan() {
 
-			insertValues := ""
-
 			if strings.ToLower(fileType) != "json" {
+				insertValues := ""
 				err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
 
 				if err != nil {
@@ -319,8 +319,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 				log.Println(scanner.Text())
 
 				if len(tempString) > 0 {
-					log.Println(tempString)
-					log.Println(strings.Join(tempString, ","))
+					insertValues := ""
 					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
 
 					log.Println(TableModel)
@@ -345,7 +344,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 				log.Println(insertValues)
 			}
 
-			if insertValues != "" {
+			if insertValues != "" && strings.Contains(insertValues, ",") {
 				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 				_, err = h.fetch(retQuery)
 			}
