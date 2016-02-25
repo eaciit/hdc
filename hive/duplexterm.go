@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	BEE_CLI_STR  = "jdbc:hive2:"
-	CLOSE_SCRIPT = "!quit"
-	BEE_CLOSED   = "(closed)>"
+	BEE_CLI_STR      = "jdbc:hive2:"
+	CLOSE_SCRIPT     = "!quit"
+	BEE_CLOSED       = "(closed)>"
+	TEST_CONN_SCRIPT = "show tables;"
 )
 
 type DuplexTerm struct {
@@ -47,6 +48,16 @@ func (d *DuplexTerm) Open() (e error) {
 		d.Reader = bufio.NewReader(d.Stdout)
 		d.FnReceive = nil
 		e = d.Cmd.Start()
+	} else {
+		e = errorlib.Error("", "", "Open", "The Connection Config not Set")
+	}
+
+	return
+}
+
+func (d *DuplexTerm) TestConnection() (e error) {
+	if d.CmdStr != "" {
+		hr, e = SendInput(TEST_CONN_SCRIPT)
 	} else {
 		e = errorlib.Error("", "", "Open", "The Connection Config not Set")
 	}
