@@ -71,8 +71,8 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 		done := make(chan bool)
 		go func() {
 			res, err = d.process()
-			log.Printf("SendInputFN error: %v", err)
 			if err != nil {
+				d.FnReceive = nil
 				close(done)
 				return
 			}
@@ -100,7 +100,6 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 			done := make(chan bool)
 			go func() {
 				res, err = d.process()
-				log.Printf("SendInputFN error: %v", err)
 				if err != nil {
 					close(done)
 					return
@@ -115,12 +114,14 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 
 func (d *DuplexTerm) process() (result HiveResult, e error) {
 	isHeader := false
+	bread := ""
+
 loop:
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
 
-		bread, e := d.Reader.ReadString('\n')
+		bread, e = d.Reader.ReadString('\n')
 		bread = strings.TrimRight(bread, "\n")
 
 		peek, _ := d.Reader.Peek(14)
@@ -135,7 +136,7 @@ loop:
 		if strings.Contains(bread, BEE_CLOSED) {
 			// the connection is closed/configuration is wrong
 			e = errorlib.Error("", "", "Process Query", "The Connection is Closed, pleace check your connection configuration")
-			log.Printf("errorConnection: %v", e)
+			// log.Printf("errorConnection: %v", e)
 			break loop
 		} else {
 
