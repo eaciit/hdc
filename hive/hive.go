@@ -322,6 +322,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 					insertValues := ""
 					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
 
+					log.Println("aaaaaaaaaaaaaaaaaaaa")
 					log.Println(TableModel)
 
 					if err != nil {
