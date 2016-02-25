@@ -51,6 +51,7 @@ func (m *Manager) DoMonitor(wg *sync.WaitGroup) {
 			return
 		}
 	}
+	wg.Wait()
 }
 
 // assign task to free worker
@@ -90,8 +91,7 @@ func (w *Worker) Work(task func(), wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	task()
+
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w
-
-	wg.Wait()
 }
