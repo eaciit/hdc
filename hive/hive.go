@@ -329,6 +329,8 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 					// 	insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
 					// }
 
+					log.Println(insertValues)
+
 					if i < v.NumField()-1 {
 						insertValues += ", "
 					}
