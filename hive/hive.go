@@ -288,7 +288,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 		scanner := bufio.NewScanner(file)
 		var tempString []string
-		insertValues := ""
 
 		for scanner.Scan() {
 
@@ -352,7 +351,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 					}
 				}
 			}
-
 		}
 
 		if err == nil {
