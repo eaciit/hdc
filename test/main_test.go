@@ -49,7 +49,7 @@ Populate is suitable for short type query that return limited data,
 Exec is suitable for long type query that return massive amount of data and require time to produce it
 Ideally Populate should call Exec as well but already have predefined function on it receiving process
 */
-/*func TestHivePopulate(t *testing.T) {
+func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
@@ -143,7 +143,7 @@ func TestLoadFile(t *testing.T) {
 	}
 	h.Conn.Close()
 	t.Log(retVal)
-}*/
+}
 
 func TestLoadFileWithWorker(t *testing.T) {
 	h.Conn.Open()
@@ -156,6 +156,7 @@ func TestLoadFileWithWorker(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+
 	h.Conn.Close()
 	t.Log(retVal)
 }
