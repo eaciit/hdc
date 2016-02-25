@@ -54,9 +54,10 @@ func TestHivePopulate(t *testing.T) {
 
 	var result []toolkit.M
 
-	h.Conn.Open()
+	e := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
-	e := h.Populate(q, &result)
+	e = h.Populate(q, &result)
 	fatalCheck(t, "Populate", e)
 
 	if len(result) != 5 {
@@ -72,9 +73,10 @@ func TestHiveExec(t *testing.T) {
 	i := 0
 	q := "select * from sample_07 limit 5;"
 
-	h.Conn.Open()
+	e := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
-	e := h.Exec(q, func(x HiveResult) error {
+	e = h.Exec(q, func(x HiveResult) error {
 		i++
 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
 		return nil
@@ -92,12 +94,13 @@ func TestHiveExec(t *testing.T) {
 }
 
 func TestHiveExecMulti(t *testing.T) {
-	h.Conn.Open()
+	e := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
 	var ms1, ms2 []HiveResult
 	q := "select * from sample_07 limit 5"
 
-	e := h.Exec(q, func(x HiveResult) error {
+	e = h.Exec(q, func(x HiveResult) error {
 		ms1 = append(ms1, x)
 		return nil
 	})
@@ -117,7 +120,8 @@ func TestHiveExecMulti(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
 	var Student Students
 
@@ -132,7 +136,8 @@ func TestLoad(t *testing.T) {
 
 //for now, this function works on simple csv file
 func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
 	var Student Students
 
@@ -146,7 +151,8 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
 	var student Students
 
