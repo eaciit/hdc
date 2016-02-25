@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/eaciit/errorlib"
 	"io"
+	// "log"
 	"os/exec"
 	"strings"
 )
@@ -12,6 +13,7 @@ import (
 const (
 	BEE_CLI_STR  = "jdbc:hive2:"
 	CLOSE_SCRIPT = "!quit"
+	BEE_CLOSED   = "(closed)>"
 )
 
 type DuplexTerm struct {
@@ -46,7 +48,7 @@ func (d *DuplexTerm) Open() (e error) {
 		d.FnReceive = nil
 		e = d.Cmd.Start()
 	} else {
-		errorlib.Error("", "", "Open", "The Connection Config not Set")
+		e = errorlib.Error("", "", "Open", "The Connection Config not Set")
 	}
 
 	return
@@ -69,6 +71,11 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 		done := make(chan bool)
 		go func() {
 			res, err = d.process()
+			if err != nil {
+				d.FnReceive = nil
+				close(done)
+				return
+			}
 			done <- true
 		}()
 		iwrite, e := d.Writer.WriteString(input + "\n")
@@ -93,6 +100,10 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 			done := make(chan bool)
 			go func() {
 				res, err = d.process()
+				if err != nil {
+					close(done)
+					return
+				}
 				done <- true
 			}()
 			<-done
@@ -103,11 +114,14 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 
 func (d *DuplexTerm) process() (result HiveResult, e error) {
 	isHeader := false
+	bread := ""
+
+loop:
 	for {
 		peekBefore, _ := d.Reader.Peek(14)
 		peekBeforeStr := string(peekBefore)
 
-		bread, e := d.Reader.ReadString('\n')
+		bread, e = d.Reader.ReadString('\n')
 		bread = strings.TrimRight(bread, "\n")
 
 		peek, _ := d.Reader.Peek(14)
@@ -115,34 +129,41 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 
 		delimiter := "\t"
 
-		if d.OutputType == CSV {
-			delimiter = ","
-		}
+		if strings.Contains(bread, BEE_CLOSED) {
+			// the connection is closed/configuration is wrong
+			e = errorlib.Error("", "", "Process Query", "The Connection is Closed, pleace check your connection configuration")
+			break loop
+		} else {
 
-		if isHeader {
-			hr = HiveResult{}
-			hr.constructHeader(bread, delimiter)
-			isHeader = false
-		} else if !strings.Contains(bread, BEE_CLI_STR) {
-			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-			if d.FnReceive != nil {
-				hr.Result = []string{bread}
-				d.FnReceive(hr)
-			} else {
-				hr.Result = append(hr.Result, bread)
+			if d.OutputType == CSV {
+				delimiter = ","
 			}
-		}
 
-		if strings.Contains(peekBeforeStr, BEE_CLI_STR) {
-			isHeader = true
-		}
-		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-			if d.FnReceive == nil {
-				result = hr
+			if isHeader {
+				hr = HiveResult{}
+				hr.constructHeader(bread, delimiter)
+				isHeader = false
+			} else if !strings.Contains(bread, BEE_CLI_STR) {
+				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+				if d.FnReceive != nil {
+					hr.Result = []string{bread}
+					d.FnReceive(hr)
+				} else {
+					hr.Result = append(hr.Result, bread)
+				}
 			}
-			break
-		}
 
+			if strings.Contains(peekBeforeStr, BEE_CLI_STR) {
+				isHeader = true
+			}
+			if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+				if d.FnReceive == nil {
+					result = hr
+				}
+				break
+			}
+
+		}
 	}
 
 	return

@@ -1,11 +1,19 @@
 package test
 
 import (
+<<<<<<< HEAD
 	"github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	. "github.com/RyanCi/hdc/hive"
 	"log"
+=======
+	. "github.com/eaciit/hdc/hive"
+	"github.com/eaciit/toolkit"
+	// "github.com/frezadev/hdc/hive"
+	//. "github.com/RyanCi/hdc/hive"
+	// "log"
+>>>>>>> 864ed14f7b6cfe00567ce426d4077d5f7d66d5c5
 	"os"
 	"testing"
 )
@@ -54,10 +62,11 @@ func fatalCheck(t *testing.T, what string, e error) {
 
 // 	var result []toolkit.M
 
-// 	h.Conn.Open()
+	// e := h.Conn.Open()
+	// fatalCheck(t, "Populate", e)
 
-// 	e := h.Populate(q, &result)
-// 	fatalCheck(t, "Populate", e)
+	// e = h.Populate(q, &result)
+	// fatalCheck(t, "Populate", e)
 
 // 	if len(result) != 5 {
 // 		t.Logf("Error want %d got %d", 5, len(result))
@@ -72,13 +81,16 @@ func fatalCheck(t *testing.T, what string, e error) {
 // 	i := 0
 // 	q := "select * from sample_07 limit 5;"
 
-// 	h.Conn.Open()
 
-// 	e := h.Exec(q, func(x HiveResult) error {
-// 		i++
-// 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
-// 		return nil
-// 	})
+	// e := h.Conn.Open()
+	// fatalCheck(t, "Populate", e)
+
+	// e = h.Exec(q, func(x HiveResult) error {
+	// 	i++
+	// 	t.Logf("Receiving data: %s", toolkit.JsonString(x))
+	// 	return nil
+	// })
+
 
 // 	if e != nil {
 // 		t.Fatalf("Error exec query: %s", e.Error())
@@ -92,15 +104,16 @@ func fatalCheck(t *testing.T, what string, e error) {
 // }
 
 // func TestHiveExecMulti(t *testing.T) {
-// 	h.Conn.Open()
+// 	e := h.Conn.Open()
+// 	fatalCheck(t, "Populate", e)
 
 // 	var ms1, ms2 []HiveResult
 // 	q := "select * from sample_07 limit 5"
 
-// 	e := h.Exec(q, func(x HiveResult) error {
-// 		ms1 = append(ms1, x)
-// 		return nil
-// 	})
+	// e = h.Exec(q, func(x HiveResult) error {
+	// 	ms1 = append(ms1, x)
+	// 	return nil
+	// })
 
 // 	fatalCheck(t, "HS1 exec", e)
 
@@ -117,7 +130,8 @@ func fatalCheck(t *testing.T, what string, e error) {
 // }
 
 // func TestLoad(t *testing.T) {
-// 	h.Conn.Open()
+// 	err := h.Conn.Open()
+// 	fatalCheck(t, "Populate", e)
 
 // 	var Student Students
 
@@ -132,7 +146,8 @@ func fatalCheck(t *testing.T, what string, e error) {
 
 //for now, this function works on simple csv file
 func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
 	var Student Students
 
@@ -145,18 +160,21 @@ func TestLoadFile(t *testing.T) {
 	t.Log(retVal)
 }
 
+
 // func TestLoadFileWithWorker(t *testing.T) {
-// 	h.Conn.Open()
+// 	err := h.Conn.Open()
+// 	fatalCheck(t, "Populate", e)
 
 // 	var student Students
 
 // 	totalWorker := 10
 // 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
 
+
 // 	if err != nil {
-// 		log.Println(err)
+// 		t.Log(err)
 // 	}
 
 // 	h.Conn.Close()
-// 	log.Println(retVal)
+// 	t.Log(retVal)
 // }
