@@ -3,6 +3,12 @@ package test
 import (
 	. "github.com/eaciit/hdc/hive"
 	"github.com/eaciit/toolkit"
+<<<<<<< HEAD
+=======
+	// . "github.com/frezadev/hdc/hive"
+	//. "github.com/RyanCi/hdc/hive"
+	// "log"
+>>>>>>> ece2cee44845b8861f070ddb35b4ff13f6c647fc
 	"os"
 	"testing"
 )
@@ -39,6 +45,10 @@ func fatalCheck(t *testing.T, what string, e error) {
 
 func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	e := h.Conn.Open()
+	e = h.Conn.TestConnection()
+	h.Conn.Close()
+	fatalCheck(t, "Populate", e)
 }
 
 /* Populate will exec query and immidiately return the value into object

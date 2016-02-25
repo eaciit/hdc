@@ -17,14 +17,14 @@ func TestWorker(t *testing.T) {
 	scanner := bufio.NewScanner(file)
 
 	// initialize manager and workers
-	totalworker := 100
+	totalworker := 1
 	manager := w.NewManager(totalworker)
 	for i := 0; i < totalworker; i++ {
 		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers}
 	}
 
 	// monitoring worker thats free
-	wg.Add(1)
+	wg.Add(2)
 	go manager.DoMonitor(&wg)
 
 	// reading file
@@ -40,9 +40,7 @@ func TestWorker(t *testing.T) {
 	}
 
 	// waiting for tasks has been done
-	wg.Add(1)
-	go manager.Timeout(0, &wg)
-	<-manager.Done
+	go manager.Timeout(1, &wg)
 
-	wg.Wait()
+	<-manager.Done
 }

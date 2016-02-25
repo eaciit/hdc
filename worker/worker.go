@@ -92,4 +92,6 @@ func (w *Worker) Work(task func(), wg *sync.WaitGroup) {
 	task()
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w
+
+	wg.Wait()
 }
