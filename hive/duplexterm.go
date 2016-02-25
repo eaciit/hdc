@@ -13,6 +13,7 @@ import (
 const (
 	BEE_CLI_STR  = "jdbc:hive2:"
 	CLOSE_SCRIPT = "!quit"
+	BEE_CLOSED   = "(closed)>"
 )
 
 type DuplexTerm struct {
@@ -120,36 +121,43 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 		log.Printf("bread: %v\n", bread)
 		log.Printf("peekStr: %v\n", peekStr)
 
-		if d.OutputType == CSV {
-			delimiter = ","
-		}
-
-		if isHeader {
-			hr = HiveResult{}
-			hr.constructHeader(bread, delimiter)
-			isHeader = false
-		} else if !strings.Contains(bread, BEE_CLI_STR) {
-			log.Printf("process before parse: %v  --- %v --- %v --- %v\n", hr.Header, bread, d.OutputType, d.DateFormat)
-			Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
-			if d.FnReceive != nil {
-				hr.Result = []string{bread}
-				d.FnReceive(hr)
-			} else {
-				hr.Result = append(hr.Result, bread)
-			}
-		}
-
-		if strings.Contains(peekBeforeStr, BEE_CLI_STR) {
-			isHeader = true
-		}
-		if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
-			if d.FnReceive == nil {
-				result = hr
-			}
+		if strings.Contains(bread, BEE_CLOSED) {
+			// the connection is closed/configuration is wrong
+			e = errorlib.Error("", "", "Process Query", "The Connection is Closed, pleace check your connection configuration")
 			break
-		}
+		} else {
 
-		log.Println("--------------")
+			if d.OutputType == CSV {
+				delimiter = ","
+			}
+
+			if isHeader {
+				hr = HiveResult{}
+				hr.constructHeader(bread, delimiter)
+				isHeader = false
+			} else if !strings.Contains(bread, BEE_CLI_STR) {
+				log.Printf("process before parse: %v  --- %v --- %v --- %v\n", hr.Header, bread, d.OutputType, d.DateFormat)
+				Parse(hr.Header, bread, &hr.ResultObj, d.OutputType, d.DateFormat)
+				if d.FnReceive != nil {
+					hr.Result = []string{bread}
+					d.FnReceive(hr)
+				} else {
+					hr.Result = append(hr.Result, bread)
+				}
+			}
+
+			if strings.Contains(peekBeforeStr, BEE_CLI_STR) {
+				isHeader = true
+			}
+			if (e != nil && e.Error() == "EOF") || strings.Contains(peekStr, BEE_CLI_STR) {
+				if d.FnReceive == nil {
+					result = hr
+				}
+				break
+			}
+
+			log.Println("--------------")
+		}
 	}
 
 	return
