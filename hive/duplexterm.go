@@ -47,7 +47,7 @@ func (d *DuplexTerm) Open() (e error) {
 		d.FnReceive = nil
 		e = d.Cmd.Start()
 	} else {
-		errorlib.Error("", "", "Open", "The Connection Config not Set")
+		e = errorlib.Error("", "", "Open", "The Connection Config not Set")
 	}
 
 	return
