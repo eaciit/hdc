@@ -313,10 +313,13 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 					}
 				}
 
+				if insertValues != "" {
+					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+					_, err = h.fetch(retQuery)
+				}
+
 			} else {
 				tempString = InspectJson([]string{scanner.Text()})
-
-				log.Println(scanner.Text())
 
 				if len(tempString) > 0 {
 					insertValues := ""
@@ -341,13 +344,13 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 							}
 						}
 					}
-				}
-			}
 
-			if insertValues != "" && strings.Contains(insertValues, ",") {
-				log.Println("bbbbbbbbbbbbbbbbbbbb")
-				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
-				_, err = h.fetch(retQuery)
+					if insertValues != "" && strings.Contains(insertValues, ",") {
+						log.Println("bbbbbbbbbbbbbbbbbbbb")
+						retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+						_, err = h.fetch(retQuery)
+					}
+				}
 			}
 
 		}
