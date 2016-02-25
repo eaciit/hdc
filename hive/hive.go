@@ -319,8 +319,11 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 				log.Println(scanner.Text())
 
 				if len(tempString) > 0 {
+					log.Println(tempString)
 					log.Println(strings.Join(tempString, ","))
 					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
+
+					log.Println(TableModel)
 
 					if err != nil {
 						log.Println(err)
