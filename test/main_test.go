@@ -40,9 +40,9 @@ func fatalCheck(t *testing.T, what string, e error) {
 	}
 }
 
-// func TestHiveConnect(t *testing.T) {
-// 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-// }
+func TestHiveConnect(t *testing.T) {
+	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+}
 
 // /* Populate will exec query and immidiately return the value into object
 // Populate is suitable for short type query that return limited data,
