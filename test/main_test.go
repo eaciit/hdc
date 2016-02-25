@@ -1,19 +1,11 @@
 package test
 
 import (
-<<<<<<< HEAD
 	//"github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
 	//. "github.com/eaciit/hdc/hive"
 	. "github.com/RyanCi/hdc/hive"
 	//"log"
-=======
-	. "github.com/eaciit/hdc/hive"
-	"github.com/eaciit/toolkit"
-	// . "github.com/frezadev/hdc/hive"
-	//. "github.com/RyanCi/hdc/hive"
-	// "log"
->>>>>>> 3756061e0be0b0efccc7e28d7fd114bf9fdd2d25
 	"os"
 	"testing"
 )
