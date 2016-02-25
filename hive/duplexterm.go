@@ -133,6 +133,10 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 			// the connection is closed/configuration is wrong
 			e = errorlib.Error("", "", "Process Query", "The Connection is Closed, pleace check your connection configuration")
 			log.Printf("errorConnection: %v", e)
+			d.FnReceive = nil
+			d.Cmd.Wait()
+			d.Stdin.Close()
+			d.Stdout.Close()
 			break
 		} else {
 
