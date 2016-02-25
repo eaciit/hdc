@@ -27,6 +27,17 @@ type Students struct {
 	Address string
 }
 
+type SportMatch struct {
+	Point       string
+	HomeTeam    string
+	awayTeam    string
+	MarkerImage string
+	Information string
+	Fixture     string
+	Capacity    string
+	Tv          string
+}
+
 func killApp(code int) {
 	if h != nil {
 		h.Conn.Close()
@@ -139,9 +150,13 @@ func TestLoadFile(t *testing.T) {
 	err := h.Conn.Open()
 	fatalCheck(t, "Populate", e)
 
-	var Student Students
+	//var Student Students
+	//test csv
+	//retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
 
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &Student)
+	var SportMatch SportMatch
+	//test json
+	retVal, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
 
 	if err != nil {
 		t.Log(err)
@@ -157,7 +172,7 @@ func TestLoadFile(t *testing.T) {
 // 	var student Students
 
 // 	totalWorker := 10
-// 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
+// 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &student, totalWorker)
 
 // 	if err != nil {
 // 		t.Log(err)

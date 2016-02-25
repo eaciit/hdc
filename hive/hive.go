@@ -176,7 +176,7 @@ func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel inte
 	return retVal, err
 }
 
-func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) Load(TableName, Delimiter, dateFormat string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -220,16 +220,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				if v.Field(i).Type.String() == "string" {
-					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
-				} else if v.Field(i).Type.String() == "int" {
-					temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
-					insertValues += strconv.FormatInt(temp, 10)
-				} else if v.Field(i).Type.String() == "float" {
-					insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
-				} else {
-					insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
-				}
+				insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
 
 				if i < v.NumField()-1 {
 					insertValues += ", "
@@ -250,7 +241,7 @@ func (h *Hive) Load(TableName, Delimiter string, TableModel interface{}) (retVal
 	return retVal, err
 }
 
-func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -296,45 +287,56 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 		}
 
 		scanner := bufio.NewScanner(file)
-
-		//put depatcher here
+		var tempString []string
 
 		for scanner.Scan() {
-			//put worker here
-
-			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
-
-			if err != nil {
-				log.Println(err)
-			}
 
 			insertValues := ""
 
-			var v reflect.Type
-			v = reflect.TypeOf(TableModel).Elem()
+			if strings.ToLower(fileType) != "json" {
+				err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
 
-			if v.Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
+				if err != nil {
+					log.Println(err)
+				}
 
-					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String())
+				var v reflect.Type
+				v = reflect.TypeOf(TableModel).Elem()
 
-					// if v.Field(i).Type.String() == "string" {
-					// 	insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
-					// } else if v.Field(i).Type.String() == "int" {
-					// 	temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
-					// 	insertValues += strconv.FormatInt(temp, 10)
-					// } else if v.Field(i).Type.String() == "float" {
-					// 	insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
-					// } else {
-					// 	insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
-					// }
+				if v.Kind() == reflect.Struct {
+					for i := 0; i < v.NumField(); i++ {
+						insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
 
-					log.Println(insertValues)
-
-					if i < v.NumField()-1 {
-						insertValues += ", "
+						if i < v.NumField()-1 {
+							insertValues += ", "
+						}
 					}
 				}
+
+			} else {
+				tempString = InspectJson([]string{scanner.Text()})
+
+				if len(tempString) > 0 {
+					err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
+
+					if err != nil {
+						log.Println(err)
+					}
+
+					var v reflect.Type
+					v = reflect.TypeOf(TableModel).Elem()
+
+					if v.Kind() == reflect.Struct {
+						for i := 0; i < v.NumField(); i++ {
+							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
+
+							if i < v.NumField()-1 {
+								insertValues += ", "
+							}
+						}
+					}
+				}
+				log.Println(insertValues)
 			}
 
 			if insertValues != "" {
@@ -353,7 +355,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 }
 
 // loading file with worker
-func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -412,7 +414,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		go manager.DoMonitor()
 
 		for scanner.Scan() {
-			err = Parse([]string{}, scanner.Text(), TableModel, "csv", "")
+			err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
 
 			if err != nil {
 				log.Println(err)
@@ -424,16 +426,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 
 			if v.Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
-					if v.Field(i).Type.String() == "string" {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
-					} else if v.Field(i).Type.String() == "int" {
-						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
-						insertValues += strconv.FormatInt(temp, 10)
-					} else if v.Field(i).Type.String() == "float" {
-						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
-					} else {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
-					}
+					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
 
 					if i < v.NumField()-1 {
 						insertValues += ", "
@@ -544,8 +537,10 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	return retVal
 }
 
-func CheckDataType(inputModel reflect.StructField, inputVal string) (output string) {
-	dateFormat := "dd/MM/yyyy"
+func CheckDataType(inputModel reflect.StructField, inputVal, dateFormat string) (output string) {
+	if dateFormat == "" {
+		dateFormat = "dd/MM/yyyy"
+	}
 
 	output = ""
 
