@@ -71,6 +71,10 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 		done := make(chan bool)
 		go func() {
 			res, err = d.process()
+			if err != nil {
+				close(done)
+				return
+			}
 			done <- true
 		}()
 		iwrite, e := d.Writer.WriteString(input + "\n")
@@ -95,6 +99,10 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 			done := make(chan bool)
 			go func() {
 				res, err = d.process()
+				if err != nil {
+					close(done)
+					return
+				}
 				done <- true
 			}()
 			<-done
@@ -124,6 +132,7 @@ func (d *DuplexTerm) process() (result HiveResult, e error) {
 		if strings.Contains(bread, BEE_CLOSED) {
 			// the connection is closed/configuration is wrong
 			e = errorlib.Error("", "", "Process Query", "The Connection is Closed, pleace check your connection configuration")
+			log.Printf("errorConnection: %v", e)
 			break
 		} else {
 
