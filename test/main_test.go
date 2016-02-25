@@ -140,7 +140,7 @@ func TestLoad(t *testing.T) {
 
 	var Student Students
 
-	retVal, err := h.Load("students", "|", &Student)
+	retVal, err := h.Load("students", "|", "dd/MM/yyyy", &Student)
 
 	if err != nil {
 		t.Log(err)
@@ -167,6 +167,7 @@ func TestLoadFile(t *testing.T) {
 	}
 	h.Conn.Close()
 	t.Log(retVal)
+	t.Log(retValSport)
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
