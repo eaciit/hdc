@@ -1,11 +1,11 @@
 package test
 
 import (
-	. "github.com/eaciit/hdc/hive"
 	"github.com/eaciit/toolkit"
-	// . "github.com/frezadev/hdc/hive"
+	//. "github.com/frezadev/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
-	// "log"
+	//"log"
 	"os"
 	"testing"
 )
@@ -25,6 +25,17 @@ type Students struct {
 	Age     int
 	Phone   string
 	Address string
+}
+
+type SportMatch struct {
+	Point       string
+	HomeTeam    string
+	awayTeam    string
+	MarkerImage string
+	Information string
+	Fixture     string
+	Capacity    string
+	Tv          string
 }
 
 func killApp(code int) {
@@ -48,11 +59,11 @@ func TestHiveConnect(t *testing.T) {
 	fatalCheck(t, "Populate", e)
 }
 
-/* Populate will exec query and immidiately return the value into object
-Populate is suitable for short type query that return limited data,
-Exec is suitable for long type query that return massive amount of data and require time to produce it
-Ideally Populate should call Exec as well but already have predefined function on it receiving process
-*/
+// /* Populate will exec query and immidiately return the value into object
+// Populate is suitable for short type query that return limited data,
+// Exec is suitable for long type query that return massive amount of data and require time to produce it
+// Ideally Populate should call Exec as well but already have predefined function on it receiving process
+// */
 func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
@@ -138,14 +149,18 @@ func TestLoad(t *testing.T) {
 	t.Log(retVal)
 }
 
-//for now, this function works on simple csv file
+//this function works on simple csv and json file
 func TestLoadFile(t *testing.T) {
 	err := h.Conn.Open()
 	fatalCheck(t, "Populate", e)
 
 	var Student Students
+	//test csv
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
 
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "txt", &Student)
+	var SportMatch SportMatch
+	//test json
+	retValSport, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
 
 	if err != nil {
 		t.Log(err)
@@ -161,7 +176,7 @@ func TestLoadFileWithWorker(t *testing.T) {
 	var student Students
 
 	totalWorker := 10
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &student, totalWorker)
 
 	if err != nil {
 		t.Log(err)
