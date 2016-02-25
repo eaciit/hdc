@@ -3,6 +3,7 @@ package hive
 import (
 	"bufio"
 	"fmt"
+	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
 	wk "github.com/eaciit/hdc/worker"
 	"github.com/eaciit/toolkit"
@@ -314,16 +315,19 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType string, TableModel interfa
 
 			if v.Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
-					if v.Field(i).Type.String() == "string" {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
-					} else if v.Field(i).Type.String() == "int" {
-						temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
-						insertValues += strconv.FormatInt(temp, 10)
-					} else if v.Field(i).Type.String() == "float" {
-						insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
-					} else {
-						insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
-					}
+
+					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String())
+
+					// if v.Field(i).Type.String() == "string" {
+					// 	insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).String() + "\""
+					// } else if v.Field(i).Type.String() == "int" {
+					// 	temp, _ := strconv.ParseInt(reflect.ValueOf(TableModel).Elem().Field(i).String(), 32, 32)
+					// 	insertValues += strconv.FormatInt(temp, 10)
+					// } else if v.Field(i).Type.String() == "float" {
+					// 	insertValues += strconv.FormatFloat(reflect.ValueOf(TableModel).Elem().Field(i).Float(), 'f', 6, 64)
+					// } else {
+					// 	insertValues += "\"" + reflect.ValueOf(TableModel).Elem().Field(i).Interface().(string) + "\""
+					// }
 
 					if i < v.NumField()-1 {
 						insertValues += ", "
@@ -536,4 +540,42 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 		}
 	}
 	return retVal
+}
+
+func CheckDataType(inputModel reflect.StructField, inputVal string) (output string) {
+	dateFormat := "dd/MM/yyyy"
+
+	output = ""
+
+	switch inputModel.Type.Kind() {
+	case reflect.Int:
+		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		output = strconv.FormatInt(temp, 10)
+	case reflect.Int16:
+		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		output = strconv.FormatInt(temp, 10)
+	case reflect.Int32:
+		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		output = strconv.FormatInt(temp, 10)
+	case reflect.Int64:
+		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		output = strconv.FormatInt(temp, 10)
+	case reflect.Float32:
+		temp, _ := strconv.ParseFloat(inputVal, 32)
+		output = strconv.FormatFloat(temp, 'f', 6, 64)
+	case reflect.Float64:
+		temp, _ := strconv.ParseFloat(inputVal, 32)
+		output = strconv.FormatFloat(temp, 'f', 6, 64)
+	case reflect.Bool:
+		temp, _ := strconv.ParseBool(inputVal)
+		output = strconv.FormatBool(temp)
+	case reflect.String:
+		output += "\"" + inputVal + "\""
+	default:
+		dtype := DetectDataType(inputVal, dateFormat)
+		if dtype == "date" {
+			output = "\"" + cast.Date2String(cast.String2Date(inputVal, dateFormat), dateFormat) + "\""
+		}
+	}
+	return output
 }

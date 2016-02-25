@@ -3,8 +3,8 @@ package test
 import (
 	"github.com/eaciit/toolkit"
 	//. "github.com/frezadev/hdc/hive"
-	. "github.com/eaciit/hdc/hive"
-	//. "github.com/RyanCi/hdc/hive"
+	//. "github.com/eaciit/hdc/hive"
+	. "github.com/RyanCi/hdc/hive"
 	"log"
 	"os"
 	"testing"
@@ -40,95 +40,95 @@ func fatalCheck(t *testing.T, what string, e error) {
 	}
 }
 
-func TestHiveConnect(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-}
+// func TestHiveConnect(t *testing.T) {
+// 	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+// }
 
-/* Populate will exec query and immidiately return the value into object
-Populate is suitable for short type query that return limited data,
-Exec is suitable for long type query that return massive amount of data and require time to produce it
-Ideally Populate should call Exec as well but already have predefined function on it receiving process
-*/
-func TestHivePopulate(t *testing.T) {
-	q := "select * from sample_07 limit 5;"
+// /* Populate will exec query and immidiately return the value into object
+// Populate is suitable for short type query that return limited data,
+// Exec is suitable for long type query that return massive amount of data and require time to produce it
+// Ideally Populate should call Exec as well but already have predefined function on it receiving process
+// */
+// func TestHivePopulate(t *testing.T) {
+// 	q := "select * from sample_07 limit 5;"
 
-	var result []toolkit.M
+// 	var result []toolkit.M
 
-	h.Conn.Open()
+// 	h.Conn.Open()
 
-	e := h.Populate(q, &result)
-	fatalCheck(t, "Populate", e)
+// 	e := h.Populate(q, &result)
+// 	fatalCheck(t, "Populate", e)
 
-	if len(result) != 5 {
-		t.Logf("Error want %d got %d", 5, len(result))
-	}
+// 	if len(result) != 5 {
+// 		t.Logf("Error want %d got %d", 5, len(result))
+// 	}
 
-	t.Logf("Result: \n%s", toolkit.JsonString(result))
+// 	t.Logf("Result: \n%s", toolkit.JsonString(result))
 
-	h.Conn.Close()
-}
+// 	h.Conn.Close()
+// }
 
-func TestHiveExec(t *testing.T) {
-	i := 0
-	q := "select * from sample_07 limit 5;"
+// func TestHiveExec(t *testing.T) {
+// 	i := 0
+// 	q := "select * from sample_07 limit 5;"
 
-	h.Conn.Open()
+// 	h.Conn.Open()
 
-	e := h.Exec(q, func(x HiveResult) error {
-		i++
-		t.Logf("Receiving data: %s", toolkit.JsonString(x))
-		return nil
-	})
+// 	e := h.Exec(q, func(x HiveResult) error {
+// 		i++
+// 		t.Logf("Receiving data: %s", toolkit.JsonString(x))
+// 		return nil
+// 	})
 
-	if e != nil {
-		t.Fatalf("Error exec query: %s", e.Error())
-	}
+// 	if e != nil {
+// 		t.Fatalf("Error exec query: %s", e.Error())
+// 	}
 
-	if i < 5 {
-		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
-	}
+// 	if i < 5 {
+// 		t.Fatalf("Error receive result. Expect %d got %d", 5, i)
+// 	}
 
-	h.Conn.Close()
-}
+// 	h.Conn.Close()
+// }
 
-func TestHiveExecMulti(t *testing.T) {
-	h.Conn.Open()
+// func TestHiveExecMulti(t *testing.T) {
+// 	h.Conn.Open()
 
-	var ms1, ms2 []HiveResult
-	q := "select * from sample_07 limit 5"
+// 	var ms1, ms2 []HiveResult
+// 	q := "select * from sample_07 limit 5"
 
-	e := h.Exec(q, func(x HiveResult) error {
-		ms1 = append(ms1, x)
-		return nil
-	})
+// 	e := h.Exec(q, func(x HiveResult) error {
+// 		ms1 = append(ms1, x)
+// 		return nil
+// 	})
 
-	fatalCheck(t, "HS1 exec", e)
+// 	fatalCheck(t, "HS1 exec", e)
 
-	e = h.Exec(q, func(x HiveResult) error {
-		ms2 = append(ms2, x)
-		return nil
-	})
+// 	e = h.Exec(q, func(x HiveResult) error {
+// 		ms2 = append(ms2, x)
+// 		return nil
+// 	})
 
-	fatalCheck(t, "HS2 Exec", e)
+// 	fatalCheck(t, "HS2 Exec", e)
 
-	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
+// 	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
 
-	h.Conn.Close()
-}
+// 	h.Conn.Close()
+// }
 
-func TestLoad(t *testing.T) {
-	h.Conn.Open()
+// func TestLoad(t *testing.T) {
+// 	h.Conn.Open()
 
-	var Student Students
+// 	var Student Students
 
-	retVal, err := h.Load("students", "|", &Student)
+// 	retVal, err := h.Load("students", "|", &Student)
 
-	if err != nil {
-		t.Log(err)
-	}
-	h.Conn.Close()
-	t.Log(retVal)
-}
+// 	if err != nil {
+// 		t.Log(err)
+// 	}
+// 	h.Conn.Close()
+// 	t.Log(retVal)
+// }
 
 //for now, this function works on simple csv file
 func TestLoadFile(t *testing.T) {
@@ -145,18 +145,18 @@ func TestLoadFile(t *testing.T) {
 	t.Log(retVal)
 }
 
-func TestLoadFileWithWorker(t *testing.T) {
-	h.Conn.Open()
+// func TestLoadFileWithWorker(t *testing.T) {
+// 	h.Conn.Open()
 
-	var student Students
+// 	var student Students
 
-	totalWorker := 10
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
+// 	totalWorker := 10
+// 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "txt", &student, totalWorker)
 
-	if err != nil {
-		log.Println(err)
-	}
+// 	if err != nil {
+// 		log.Println(err)
+// 	}
 
-	h.Conn.Close()
-	log.Println(retVal)
-}
+// 	h.Conn.Close()
+// 	log.Println(retVal)
+// }
