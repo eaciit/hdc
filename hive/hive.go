@@ -341,10 +341,10 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 						}
 					}
 				}
-				log.Println(insertValues)
 			}
 
 			if insertValues != "" && strings.Contains(insertValues, ",") {
+				log.Println(insertValues)
 				retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 				_, err = h.fetch(retQuery)
 			}
