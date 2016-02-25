@@ -282,10 +282,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 		}
 		defer file.Close()
 
-		if err != nil {
-			log.Println(err)
-		}
-
 		scanner := bufio.NewScanner(file)
 		var tempString []string
 
@@ -324,9 +320,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 					insertValues := ""
 					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
 
-					log.Println("aaaaaaaaaaaaaaaaaaaa")
-					log.Println(TableModel)
-
 					if err != nil {
 						log.Println(err)
 					}
@@ -345,7 +338,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 					}
 
 					if insertValues != "" && strings.Contains(insertValues, ",") {
-						log.Println("bbbbbbbbbbbbbbbbbbbb")
 						retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
 						_, err = h.fetch(retQuery)
 					}
