@@ -267,7 +267,7 @@ func InspectJson(ins []string) (out []string) {
 		if JsonPart != "" {
 			in = JsonPart + in
 		}
-		in = strings.Trim(strings.TrimSpace(in), " ,")
+		in = strings.TrimSpace(in)
 		charopen := 0
 		charclose := 0
 		for i, r := range in {
