@@ -107,7 +107,11 @@ func (w *HiveWorker) Work(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	log.Println("Do task ", task.(string))
-	w.Context.fetch(task.(string))
+	query := task.(string)
+	if strings.LastIndex(query, ";") == -1 {
+		query += ";"
+	}
+	w.Context.Conn.SendInput(query)
 
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w
