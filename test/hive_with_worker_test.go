@@ -57,7 +57,7 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
-	h.Conn.Open()
+	//h.Conn.Open()
 
 	var student Students
 
@@ -67,6 +67,6 @@ func TestLoadFileWithWorker(t *testing.T) {
 		log.Println(err)
 	}
 
-	h.Conn.Close()
+	//h.Conn.Close()
 	log.Println(retVal)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
-	wk "github.com/eaciit/hdc/worker"
 	"github.com/eaciit/toolkit"
 	"log"
 	"os"
@@ -406,11 +405,11 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		scanner := bufio.NewScanner(file)
 
 		// initiate dispatcher
-		manager := wk.NewManager(TotalWorker)
+		manager := NewHiveManager(TotalWorker)
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
-			worker := wk.NewWorker(x, <-chan manager.TimeProcess, <-chan manager.FreeWorkers, h)
+			worker := NewHiveWorker(x, <-chan manager.TimeProcess, <-chan manager.FreeWorkers, h)
 			manager.FreeWorkers <- &worker
 		}
 
