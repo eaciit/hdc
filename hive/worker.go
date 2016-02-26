@@ -107,6 +107,10 @@ func (m *HiveManager) EndWorker() {
 func (w *HiveWorker) Work(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	if err := w.Context.Conn.TestConnection(); err != nil {
+		w.Context.Conn.Open()
+	}
+
 	log.Println("Do task ", task.(string))
 	query := task.(string)
 	if strings.LastIndex(query, ";") == -1 {

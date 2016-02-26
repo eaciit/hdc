@@ -411,7 +411,6 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
 			worker := HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, h}
-			worker.Context.Conn.Open()
 			manager.FreeWorkers <- &worker
 		}
 
@@ -476,9 +475,9 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 					}
 				}
 			}
+			mutex.Unlock()
 
 			manager.Tasks <- retQuery
-			mutex.Unlock()
 		}
 
 		// waiting for tasks has been done
