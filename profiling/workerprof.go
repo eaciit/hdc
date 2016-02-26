@@ -1,8 +1,8 @@
 package main
 
 import (
-	. "github.com/frezadev/hdc/hive"
-	// . "github.com/eaciit/hdc/hive"
+	// . "github.com/frezadev/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	"github.com/pkg/profile"
 	"log"
 )
