@@ -560,25 +560,25 @@ func CheckDataType(inputModel reflect.StructField, inputVal interface{}, dateFor
 
 	switch inputModel.Type.Kind() {
 	case reflect.Int:
-		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
+		temp, _ := strconv.ParseInt(strconv.Itoa(inputVal.(int)), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int16:
-		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
+		temp, _ := strconv.ParseInt(strconv.Itoa(inputVal.(int)), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int32:
-		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
+		temp, _ := strconv.ParseInt(strconv.Itoa(inputVal.(int)), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int64:
-		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
+		temp, _ := strconv.ParseInt(strconv.Itoa(inputVal.(int)), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Float32:
-		temp, _ := strconv.ParseFloat(inputVal.(string), 32)
-		output = strconv.FormatFloat(temp, 'f', 3, 64)
+		temp, _ := strconv.ParseFloat(strconv.FormatFloat(inputVal.(float64), 'f', 3, 32), 32)
+		output = strconv.FormatFloat(temp, 'f', 3, 32)
 	case reflect.Float64:
-		temp, _ := strconv.ParseFloat(inputVal.(string), 32)
+		temp, _ := strconv.ParseFloat(strconv.FormatFloat(inputVal.(float64), 'f', 3, 64), 64)
 		output = strconv.FormatFloat(temp, 'f', 3, 64)
 	case reflect.Bool:
-		temp, _ := strconv.ParseBool(inputVal.(string))
+		temp, _ := strconv.ParseBool(strconv.FormatBool(inputVal.(bool)))
 		output = strconv.FormatBool(temp)
 	case reflect.String:
 		output += "\"" + inputVal.(string) + "\""
