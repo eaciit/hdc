@@ -1,6 +1,7 @@
 package hive
 
 import (
+	"log"
 	"sync"
 	"time"
 )
@@ -42,6 +43,7 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 	for {
 		select {
 		case task := <-m.Tasks:
+			log.Println("Preparing do task", task.(string))
 			wg.Add(1)
 			go m.AssignTask(task, wg)
 		case result := <-m.TimeProcess:
@@ -49,6 +51,7 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 			go m.InProgress(result, wg)
 		case <-m.Done:
 			m.Done <- true
+			m.EndWorker()
 			return
 		}
 	}
@@ -60,6 +63,7 @@ func (m *HiveManager) AssignTask(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	select {
 	case worker := <-m.FreeWorkers:
+		log.Println("Assign task to worker", worker.WorkerId)
 		wg.Add(1)
 		go worker.Work(task, wg)
 	case isDone := <-m.Done:
@@ -102,6 +106,7 @@ func (m *HiveManager) EndWorker() {
 func (w *HiveWorker) Work(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	log.Println("Do task ", task.(string))
 	w.Context.fetch(task.(string))
 
 	w.TimeProcess <- time.Now().Unix()
