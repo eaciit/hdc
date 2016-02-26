@@ -2,7 +2,6 @@ package test
 
 import (
 	. "github.com/eaciit/hdc/hive"
-	"log"
 	"os"
 	"testing"
 )
@@ -22,6 +21,17 @@ type Students struct {
 	Age     int
 	Phone   string
 	Address string
+}
+
+type SportMatch struct {
+	Point       string
+	HomeTeam    string
+	AwayTeam    string
+	MarkerImage string
+	Information string
+	Fixture     string
+	Capacity    string
+	Tv          string
 }
 
 func killApp(code int) {
