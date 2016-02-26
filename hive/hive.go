@@ -220,7 +220,7 @@ func (h *Hive) Load(TableName, dateFormat string, TableModel interface{}) (retVa
 
 		if v.Kind() == reflect.Struct {
 			for i := 0; i < v.NumField(); i++ {
-				insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
+				insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
 				if i < v.NumField()-1 {
 					insertValues += ", "
@@ -426,7 +426,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType, dateFormat stri
 
 			if v.Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
-					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
+					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
 					if i < v.NumField()-1 {
 						insertValues += ", "
