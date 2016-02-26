@@ -78,12 +78,12 @@ func TestLoadFileWithWorker(t *testing.T) {
 
 	var Student Students
 	//test csv
-	retVal, err := h.LoadFile("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student)
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student, 3)
 
 	var SportMatch SportMatch
 
 	//test json
-	retValSport, err := h.LoadFile("/home/developer/test json.txt", "sportmatchworker", "json", "dd/MM/yyyy", &SportMatch)
+	retValSport, err := h.LoadFileWithWorker("/home/developer/test json.txt", "sportmatchworker", "json", "dd/MM/yyyy", &SportMatch, 3)
 
 	if err != nil {
 		t.Log(err)
