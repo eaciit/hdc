@@ -356,7 +356,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 // loading file with worker
 func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
 	var wg sync.WaitGroup
-	var mutex = &sync.Mutex{}
+	//var mutex = &sync.Mutex{}
 
 	retVal = "process failed"
 	isMatch := false
@@ -419,7 +419,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		go manager.DoMonitor(&wg)
 
 		for scanner.Scan() {
-			mutex.Lock()
+			//mutex.Lock()
 			retQuery := ""
 			if strings.ToLower(fileType) != "json" {
 				insertValues := ""
@@ -476,7 +476,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 				}
 			}
 			manager.Tasks <- retQuery
-			mutex.Unlock()
+			//mutex.Unlock()
 		}
 
 		// waiting for tasks has been done
