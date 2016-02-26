@@ -310,7 +310,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 				if insertValues != "" {
 					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
-					log.Println(retQuery)
 					_, err = h.fetch(retQuery)
 				}
 
@@ -588,7 +587,6 @@ func CheckDataType(inputModel reflect.StructField, inputVal interface{}, dateFor
 			output = "\"" + cast.Date2String(cast.String2Date(inputVal.(string), dateFormat), dateFormat) + "\""
 		}
 	}
-	log.Println(output)
 
 	return output
 }
