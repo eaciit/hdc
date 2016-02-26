@@ -10,7 +10,7 @@ import (
 // manager model
 type HiveManager struct {
 	FreeWorkers  chan *HiveWorker
-	Tasks        chan interface{}
+	Tasks        chan string
 	Done         chan bool
 	TimeProcess  chan int64
 	LastProcess  int64
@@ -31,7 +31,7 @@ func NewHiveManager(numWorkers int) HiveManager {
 
 	m := HiveManager{}
 	m.FreeWorkers = make(chan *HiveWorker, numWorkers)
-	m.Tasks = make(chan interface{})
+	m.Tasks = make(chan string)
 	m.TimeProcess = make(chan int64)
 	m.TotalTimeOut = totaltimeout
 	m.LastProcess = time.Now().Unix()
@@ -60,7 +60,7 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 }
 
 // assign task to free worker
-func (m *HiveManager) AssignTask(task interface{}, wg *sync.WaitGroup) {
+func (m *HiveManager) AssignTask(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	select {
 	case worker := <-m.FreeWorkers:
@@ -104,15 +104,15 @@ func (m *HiveManager) EndWorker() {
 }
 
 // do a task for worker
-func (w *HiveWorker) Work(task interface{}, wg *sync.WaitGroup) {
+func (w *HiveWorker) Work(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	if err := w.Context.Conn.TestConnection(); err != nil {
 		w.Context.Conn.Open()
 	}
 
-	log.Println("Do task ", task.(string))
-	query := task.(string)
+	log.Println("Do task ", task)
+	query := task
 	if strings.LastIndex(query, ";") == -1 {
 		query += ";"
 	}
