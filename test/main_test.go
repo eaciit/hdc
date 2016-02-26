@@ -140,7 +140,7 @@ func TestLoad(t *testing.T) {
 
 	var Student Students
 
-	retVal, err := h.Load("students", "|", "dd/MM/yyyy", &Student)
+	retVal, err := h.Load("students", "dd/MM/yyyy", &Student)
 
 	if err != nil {
 		t.Log(err)
