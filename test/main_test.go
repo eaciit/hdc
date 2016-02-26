@@ -1,12 +1,11 @@
 package test
 
 import (
-	// "github.com/eaciit/toolkit"
-	. "github.com/frezadev/hdc/hive"
-	// . "github.com/eaciit/hdc/hive"
+	"github.com/eaciit/toolkit"
+	//. "github.com/frezadev/hdc/hive"
+	. "github.com/eaciit/hdc/hive"
 	//. "github.com/RyanCi/hdc/hive"
 	//"log"
-	"github.com/pkg/profile"
 	"os"
 	"testing"
 )
@@ -65,7 +64,7 @@ func TestHiveConnect(t *testing.T) {
 // Exec is suitable for long type query that return massive amount of data and require time to produce it
 // Ideally Populate should call Exec as well but already have predefined function on it receiving process
 // */
-/*func TestHivePopulate(t *testing.T) {
+func TestHivePopulate(t *testing.T) {
 	q := "select * from sample_07 limit 5;"
 
 	var result []toolkit.M
@@ -133,7 +132,7 @@ func TestHiveExecMulti(t *testing.T) {
 	t.Logf("Value of HS1\n%s\n\nValue of HS2\n%s", toolkit.JsonString(ms1), toolkit.JsonString(ms2))
 
 	h.Conn.Close()
-}*/
+}
 
 func TestLoad(t *testing.T) {
 	err := h.Conn.Open()
@@ -152,8 +151,6 @@ func TestLoad(t *testing.T) {
 
 //this function works on simple csv and json file
 func TestLoadFile(t *testing.T) {
-	p := profile.Start(profile.MemProfile)
-
 	err := h.Conn.Open()
 	fatalCheck(t, "Populate", e)
 
@@ -171,13 +168,11 @@ func TestLoadFile(t *testing.T) {
 	h.Conn.Close()
 	t.Log(retVal)
 	t.Log(retValSport)
-
-	p.Stop()
 }
 
-/*func TestLoadFileWithWorker(t *testing.T) {
+func TestLoadFileWithWorker(t *testing.T) {
 	err := h.Conn.Open()
-	fatalCheck(t, "Populate", e)
+	fatalCheck(t, "Populate", err)
 
 	var student Students
 
@@ -190,4 +185,4 @@ func TestLoadFile(t *testing.T) {
 
 	h.Conn.Close()
 	t.Log(retVal)
-}*/
+}
