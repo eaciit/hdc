@@ -52,7 +52,6 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 			go m.InProgress(result, wg)
 		case <-m.Done:
 			m.Done <- true
-			m.EndWorker()
 			return
 		}
 	}
@@ -96,7 +95,9 @@ func (m *HiveManager) EndWorker() {
 	for {
 		select {
 		case worker := <-m.FreeWorkers:
-			worker.Context.Conn.Close()
+			if worker.IsConnOpen {
+				worker.Context.Conn.Close()
+			}
 		default:
 			return
 		}
