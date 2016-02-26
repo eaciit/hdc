@@ -354,7 +354,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 }
 
 // loading file with worker
-func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
 	var wg sync.WaitGroup
 	var mutex = &sync.Mutex{}
 
@@ -409,7 +409,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
-			worker := NewHiveWorker(x, <-chan manager.TimeProcess, <-chan manager.FreeWorkers, h)
+			worker := HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, h}
 			manager.FreeWorkers <- &worker
 		}
 

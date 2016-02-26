@@ -37,18 +37,6 @@ func NewHiveManager(numWorkers int) HiveManager {
 	return m
 }
 
-func NewHiveWorker(id int, timeProcess <-chan int64, freeWorkers <-chan *HiveWorker, ctx *Hive) HiveWorker {
-	wk := HiveWorker{}
-	wk.WorkerId = id
-	wk.TimeProcess <- timeProcess
-	wk.FreeWorkers <- freeWorkers
-	wk.Context = ctx
-
-	wk.Context.Conn.Open()
-
-	return wk
-}
-
 // do monitoring worker thats free or not
 func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 	for {

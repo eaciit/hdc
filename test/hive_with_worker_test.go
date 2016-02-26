@@ -42,31 +42,43 @@ func TestHiveConnect(t *testing.T) {
 }
 
 func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
-	var student Students
+	var Student Students
+	//test csv
+	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
 
-	retVal, err := h.LoadFile("/home/developer/contoh2.txt", "students", "txt", &student)
+	var SportMatch SportMatch
+
+	//test json
+	retValSport, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
 
 	if err != nil {
-		log.Println(err)
+		t.Log(err)
 	}
-
 	h.Conn.Close()
-	log.Println(retVal)
+	t.Log(retVal)
+	t.Log(retValSport)
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
-	//h.Conn.Open()
+	// err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
-	var student Students
+	var Student Students
+	//test csv
+	retVal, err := h.LoadFile("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student)
 
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "students", "txt", &student, 10)
+	var SportMatch SportMatch
+
+	//test json
+	retValSport, err := h.LoadFile("/home/developer/test json.txt", "sportmatchworker", "json", "dd/MM/yyyy", &SportMatch)
 
 	if err != nil {
-		log.Println(err)
+		t.Log(err)
 	}
-
-	//h.Conn.Close()
-	log.Println(retVal)
+	// h.Conn.Close()
+	t.Log(retVal)
+	t.Log(retValSport)
 }
