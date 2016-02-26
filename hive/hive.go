@@ -471,7 +471,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 				if hr.Result != nil {
 					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
 
-					if strings.ToLower(strings.TrimSpace(line[0])) == strings.ToLower(strings.TrimSpace(v.Field(i).Name.String())) {
+					if strings.ToLower(strings.TrimSpace(line[0])) == strings.ToLower(strings.TrimSpace(v.Field(i).Name)) {
 						var tempDataType = ""
 
 						if strings.ToLower(strings.TrimSpace(line[1])) == "double" {
