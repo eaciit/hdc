@@ -159,6 +159,7 @@ func TestLoadFile(t *testing.T) {
 	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
 
 	var SportMatch SportMatch
+
 	//test json
 	retValSport, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
 

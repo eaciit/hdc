@@ -142,41 +142,41 @@ func (h *Hive) Exec(query string, fn FnHiveReceive) (e error) {
 	return
 }
 
-func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
-	retVal = "process failed"
-	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
+// func (h *Hive) ImportHDFS(HDFSPath, TableName, Delimiter string, TableModel interface{}) (retVal string, err error) {
+// 	retVal = "process failed"
+// 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
 
-	if hr.Result == nil {
-		tempQuery := ""
+// 	if hr.Result == nil {
+// 		tempQuery := ""
 
-		var v reflect.Type
-		v = reflect.TypeOf(TableModel).Elem()
+// 		var v reflect.Type
+// 		v = reflect.TypeOf(TableModel).Elem()
 
-		if v.Kind() == reflect.Struct {
-			tempQuery = "create table " + TableName + " ("
-			for i := 0; i < v.NumField(); i++ {
-				if i == (v.NumField() - 1) {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") row format delimited fields terminated by '" + Delimiter + "'"
-				} else {
-					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
-				}
-			}
-			hr, err = h.fetch(tempQuery)
-		}
-	}
+// 		if v.Kind() == reflect.Struct {
+// 			tempQuery = "create table " + TableName + " ("
+// 			for i := 0; i < v.NumField(); i++ {
+// 				if i == (v.NumField() - 1) {
+// 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ") row format delimited fields terminated by '" + Delimiter + "'"
+// 				} else {
+// 					tempQuery += v.Field(i).Name + " " + v.Field(i).Type.String() + ", "
+// 				}
+// 			}
+// 			hr, err = h.fetch(tempQuery)
+// 		}
+// 	}
 
-	if err != nil {
-		hr, err = h.fetch("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
+// 	if err != nil {
+// 		hr, err = h.fetch("load data local inpath '" + HDFSPath + "' overwrite into table " + TableName + ";")
 
-		if err != nil {
-			retVal = "success"
-		}
-	}
+// 		if err != nil {
+// 			retVal = "success"
+// 		}
+// 	}
 
-	return retVal, err
-}
+// 	return retVal, err
+// }
 
-func (h *Hive) Load(TableName, Delimiter, dateFormat string, TableModel interface{}) (retVal string, err error) {
+func (h *Hive) Load(TableName, dateFormat string, TableModel interface{}) (retVal string, err error) {
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -470,21 +470,35 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result != nil {
 					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
-					var tempDataType = ""
 
-					if strings.TrimSpace(line[1]) == "double" {
-						tempDataType = "float"
-					} else if strings.TrimSpace(line[1]) == "varchar(64)" {
-						tempDataType = "string"
+					if strings.ToLower(strings.TrimSpace(line[0])) == strings.ToLower(strings.TrimSpace(v.Field(i).Name.String())) {
+						var tempDataType = ""
+
+						if strings.ToLower(strings.TrimSpace(line[1])) == "double" {
+							tempDataType = "float"
+						} else if strings.ToLower(strings.TrimSpace(line[1])) == "varchar(64)" {
+							tempDataType = "string"
+						} else if strings.ToLower(strings.TrimSpace(line[1])) == "date" {
+							tempDataType = "time"
+						} else {
+							tempDataType = strings.ToLower(strings.TrimSpace(line[1]))
+						}
+
+						if strings.Contains(v.Field(i).Type.String(), tempDataType) {
+							isMatch = true
+						} else {
+							isMatch = false
+							break
+						}
 					} else {
-						tempDataType = strings.TrimSpace(line[1])
-					}
+						// handle new column
+						_, err := h.fetch(QueryBuilder("add column", Tablename, "", TableModel))
 
-					if tempDataType == v.Field(i).Type.String() {
+						if err != nil {
+							break
+						}
+
 						isMatch = true
-					} else {
-						isMatch = false
-						break
 					}
 				} else {
 					// handle new column
