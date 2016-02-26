@@ -172,7 +172,7 @@ func TestLoadFile(t *testing.T) {
 
 func TestLoadFileWithWorker(t *testing.T) {
 	err := h.Conn.Open()
-	fatalCheck(t, "Populate", e)
+	fatalCheck(t, "Populate", err)
 
 	var student Students
 
