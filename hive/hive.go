@@ -491,7 +491,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		}
 	}
 
-	wg.Wait()
+	//wg.Wait()
 
 	return retVal, err
 }
