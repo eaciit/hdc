@@ -30,7 +30,7 @@ type Students struct {
 type SportMatch struct {
 	Point       string
 	HomeTeam    string
-	awayTeam    string
+	AwayTeam    string
 	MarkerImage string
 	Information string
 	Fixture     string
@@ -140,7 +140,7 @@ func TestLoad(t *testing.T) {
 
 	var Student Students
 
-	retVal, err := h.Load("students", "|", "dd/MM/yyyy", &Student)
+	retVal, err := h.Load("students", "dd/MM/yyyy", &Student)
 
 	if err != nil {
 		t.Log(err)
@@ -159,6 +159,7 @@ func TestLoadFile(t *testing.T) {
 	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
 
 	var SportMatch SportMatch
+
 	//test json
 	retValSport, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
 
