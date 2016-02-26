@@ -588,7 +588,7 @@ func CheckDataType(inputModel reflect.StructField, inputVal interface{}, dateFor
 			output = "\"" + cast.Date2String(cast.String2Date(inputVal.(string), dateFormat), dateFormat) + "\""
 		}
 	}
-	log.Println(inputVal.(string) + " " + output)
+	log.Println(inputVal + " " + output)
 
 	return output
 }
