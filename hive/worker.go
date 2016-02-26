@@ -55,7 +55,6 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 			return
 		}
 	}
-	wg.Wait()
 }
 
 // assign task to free worker
