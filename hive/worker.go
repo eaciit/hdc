@@ -106,6 +106,8 @@ func (m *HiveManager) EndWorker() {
 func (w *HiveWorker) Work(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
+	log.Printf("jancuk %#v", w)
+
 	if err := w.Context.Conn.TestConnection(); err != nil {
 		w.Context.Conn.Open()
 	}
