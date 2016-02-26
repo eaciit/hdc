@@ -1,15 +1,16 @@
-package worker
+package hive
 
 import (
-	_ "github.com/eaciit/hdc/hive"
+	"log"
+	"strings"
 	"sync"
 	"time"
 )
 
 // manager model
-type Manager struct {
-	FreeWorkers  chan *Worker
-	Tasks        chan interface{}
+type HiveManager struct {
+	FreeWorkers  chan *HiveWorker
+	Tasks        chan string
 	Done         chan bool
 	TimeProcess  chan int64
 	LastProcess  int64
@@ -17,20 +18,21 @@ type Manager struct {
 }
 
 // worker model
-type Worker struct {
+type HiveWorker struct {
 	WorkerId    int
 	TimeProcess chan int64
-	FreeWorkers chan *Worker
+	FreeWorkers chan *HiveWorker
 	Context     *Hive
+	IsConnOpen  bool
 }
 
 // initiate new manager
-func NewManager(numWorkers int) Manager {
-	var totaltimeout int64 = 10
+func NewHiveManager(numWorkers int) HiveManager {
+	var totaltimeout int64 = 3
 
-	m := Manager{}
-	m.FreeWorkers = make(chan *Worker, numWorkers)
-	m.Tasks = make(chan interface{})
+	m := HiveManager{}
+	m.FreeWorkers = make(chan *HiveWorker, numWorkers)
+	m.Tasks = make(chan string)
 	m.TimeProcess = make(chan int64)
 	m.TotalTimeOut = totaltimeout
 	m.LastProcess = time.Now().Unix()
@@ -38,20 +40,8 @@ func NewManager(numWorkers int) Manager {
 	return m
 }
 
-func NewWorker(id int, timeProcess <-chan int64, freeWorkers <-chan *Worker, ctx *Hive) Worker {
-	wk := Worker{}
-	wk.WorkerId = id
-	wk.TimeProcess <- timeProcess
-	wk.FreeWorkers <- freeWorkers
-	wk.Context = ctx
-
-	wk.Context.Conn.Open()
-
-	return wk
-}
-
 // do monitoring worker thats free or not
-func (m *Manager) DoMonitor(wg *sync.WaitGroup) {
+func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 	for {
 		select {
 		case task := <-m.Tasks:
@@ -65,14 +55,14 @@ func (m *Manager) DoMonitor(wg *sync.WaitGroup) {
 			return
 		}
 	}
-	wg.Wait()
 }
 
 // assign task to free worker
-func (m *Manager) AssignTask(task interface{}, wg *sync.WaitGroup) {
+func (m *HiveManager) AssignTask(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	select {
 	case worker := <-m.FreeWorkers:
+		log.Println("Assign task to worker", worker.WorkerId)
 		wg.Add(1)
 		go worker.Work(task, wg)
 	case isDone := <-m.Done:
@@ -82,13 +72,13 @@ func (m *Manager) AssignTask(task interface{}, wg *sync.WaitGroup) {
 }
 
 // check if a task still in progress to wait it till finish
-func (m *Manager) InProgress(result int64, wg *sync.WaitGroup) {
+func (m *HiveManager) InProgress(result int64, wg *sync.WaitGroup) {
 	defer wg.Done()
 	m.LastProcess = int64(result)
 }
 
 // set the timeout to waiting for tasks execution
-func (m *Manager) Timeout(seconds int, wg *sync.WaitGroup) {
+func (m *HiveManager) Timeout(seconds int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for {
 		if time.Now().Unix()-m.LastProcess > int64(seconds) {
@@ -100,11 +90,13 @@ func (m *Manager) Timeout(seconds int, wg *sync.WaitGroup) {
 	}
 }
 
-func (m *Manager) EndWorker() {
+func (m *HiveManager) EndWorker() {
 	for {
 		select {
-		case worker <- m.FreeWorkers:
-			worker.Context.Conn.Close()
+		case worker := <-m.FreeWorkers:
+			if worker.IsConnOpen {
+				worker.Context.Conn.Close()
+			}
 		default:
 			return
 		}
@@ -112,10 +104,20 @@ func (m *Manager) EndWorker() {
 }
 
 // do a task for worker
-func (w *Worker) Work(task interface{}, wg *sync.WaitGroup) {
+func (w *HiveWorker) Work(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	w.Context.fetch(task.(string))
+	if !w.IsConnOpen {
+		w.Context.Conn.Open()
+		w.IsConnOpen = true
+	}
+
+	log.Println("Do task ", task)
+	query := task
+	if strings.LastIndex(query, ";") == -1 {
+		query += ";"
+	}
+	w.Context.Conn.SendInput(query)
 
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w

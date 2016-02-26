@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/eaciit/cast"
 	"github.com/eaciit/errorlib"
-	wk "github.com/eaciit/hdc/worker"
 	"github.com/eaciit/toolkit"
 	"log"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 const (
@@ -354,7 +354,10 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 }
 
 // loading file with worker
-func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
+	var wg sync.WaitGroup
+	//var mutex = &sync.Mutex{}
+
 	retVal = "process failed"
 	isMatch := false
 	hr, err := h.fetch("select '1' from " + TableName + " limit 1;")
@@ -400,55 +403,96 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType, dateFormat stri
 		}
 
 		scanner := bufio.NewScanner(file)
+		var tempString []string
 
 		// initiate dispatcher
-		manager := wk.NewManager(TotalWorker)
+		manager := NewHiveManager(TotalWorker)
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
-			manager.FreeWorkers <- &wk.Worker{x, manager.TimeProcess, manager.FreeWorkers}
+			wh := HiveConfig(h.Server, h.DBName, h.User, h.Password, "")
+			manager.FreeWorkers <- &HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, wh, false}
 		}
 
 		// monitoring worker whos free
-		go manager.DoMonitor()
+		wg.Add(1)
+		go manager.DoMonitor(&wg)
 
 		for scanner.Scan() {
-			err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
+			mutex.Lock()
+			textLine := scanner.Text()
+			mutex.Unlock()
+			retQuery := ""
+			if strings.ToLower(fileType) != "json" {
+				insertValues := ""
+				err = Parse([]string{}, textLine, TableModel, fileType, dateFormat)
 
-			if err != nil {
-				log.Println(err)
-			}
-			insertValues := ""
+				if err != nil {
+					log.Println(err)
+				}
 
-			var v reflect.Type
-			v = reflect.TypeOf(TableModel).Elem()
+				var v reflect.Type
+				v = reflect.TypeOf(TableModel).Elem()
 
-			if v.Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
-					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
+				if v.Kind() == reflect.Struct {
+					for i := 0; i < v.NumField(); i++ {
+						insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
-					if i < v.NumField()-1 {
-						insertValues += ", "
+						if i < v.NumField()-1 {
+							insertValues += ", "
+						}
+					}
+				}
+
+				if insertValues != "" {
+					retQuery = QueryBuilder("insert", TableName, insertValues, TableModel)
+				}
+
+			} else {
+				tempString = InspectJson([]string{textLine})
+
+				if len(tempString) > 0 {
+					insertValues := ""
+					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
+
+					if err != nil {
+						log.Println(err)
+					}
+
+					var v reflect.Type
+					v = reflect.TypeOf(TableModel).Elem()
+
+					if v.Kind() == reflect.Struct {
+						for i := 0; i < v.NumField(); i++ {
+							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
+
+							if i < v.NumField()-1 {
+								insertValues += ", "
+							}
+						}
+					}
+
+					if insertValues != "" && strings.Contains(insertValues, ",") {
+						retQuery = QueryBuilder("insert", TableName, insertValues, TableModel)
 					}
 				}
 			}
-
-			manager.Tasks <- func() {
-				if insertValues != "" {
-					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
-					_, err = h.fetch(retQuery)
-				}
-			}
+			manager.Tasks <- retQuery
 		}
 
 		// waiting for tasks has been done
-		go manager.Timeout(3)
+		wg.Add(1)
+		go manager.Timeout(3, &wg)
 		<-manager.Done
 
 		if err == nil {
 			retVal = "success"
 		}
+
+		manager.EndWorker()
 	}
+
+	wg.Wait()
 
 	return retVal, err
 }
@@ -469,6 +513,7 @@ func (h *Hive) CheckDataStructure(Tablename string, TableModel interface{}) (isM
 
 			for i := 0; i < v.NumField(); i++ {
 				if hr.Result != nil {
+					log.Printf("------- %d    %d\n", len(hr.Result), i)
 					line := strings.Split(strings.Replace(hr.Result[i], "'", "", -1), "\t")
 
 					if strings.ToLower(strings.TrimSpace(line[0])) == strings.ToLower(strings.TrimSpace(v.Field(i).Name)) {

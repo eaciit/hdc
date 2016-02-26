@@ -2,7 +2,6 @@ package test
 
 import (
 	. "github.com/eaciit/hdc/hive"
-	"log"
 	"os"
 	"testing"
 )
@@ -24,6 +23,17 @@ type Students struct {
 	Address string
 }
 
+type SportMatch struct {
+	Point       string
+	HomeTeam    string
+	AwayTeam    string
+	MarkerImage string
+	Information string
+	Fixture     string
+	Capacity    string
+	Tv          string
+}
+
 func killApp(code int) {
 	if h != nil {
 		h.Conn.Close()
@@ -38,35 +48,25 @@ func fatalCheck(t *testing.T, what string, e error) {
 }
 
 func TestHiveConnect(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
-}
-
-func TestLoadFile(t *testing.T) {
-	h.Conn.Open()
-
-	var student Students
-
-	retVal, err := h.LoadFile("/home/developer/contoh2.txt", "students", "txt", &student)
-
-	if err != nil {
-		log.Println(err)
-	}
-
-	h.Conn.Close()
-	log.Println(retVal)
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
-	h.Conn.Open()
+	err := h.Conn.Open()
+	fatalCheck(t, "Populate", e)
 
-	var student Students
+	//test csv
+	var Student Students
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student, 3)
+	t.Log(retVal)
 
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "students", "txt", &student, 10)
+	//test json
+	//var SportMatch SportMatch
+	//retValSport, err := h.LoadFileWithWorker("/home/developer/test json.txt", "sportmatchworker", "json", "dd/MM/yyyy", &SportMatch, 3)
+	//t.Log(retValSport)
 
 	if err != nil {
-		log.Println(err)
+		t.Log(err)
 	}
-
 	h.Conn.Close()
-	log.Println(retVal)
 }
