@@ -30,7 +30,7 @@ type Students struct {
 type SportMatch struct {
 	Point       string
 	HomeTeam    string
-	awayTeam    string
+	AwayTeam    string
 	MarkerImage string
 	Information string
 	Fixture     string
