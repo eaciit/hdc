@@ -330,7 +330,6 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 					if v.Kind() == reflect.Struct {
 						for i := 0; i < v.NumField(); i++ {
-							log.Println(TableModel)
 							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
 							if i < v.NumField()-1 {
