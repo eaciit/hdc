@@ -3,7 +3,8 @@ package worker
 import (
 	"bufio"
 	"fmt"
-	w "github.com/eaciit/hdc/worker"
+	_ "github.com/masmeka/hdc/hive"
+	w "github.com/masmeka/hdc/worker"
 	"os"
 	"sync"
 	"testing"
@@ -11,6 +12,8 @@ import (
 
 // test worker
 func TestWorker(t *testing.T) {
+	ctx := Context{&dctx}
+
 	var wg sync.WaitGroup
 	file, _ := os.Open("worker_test.txt")
 	defer file.Close()
@@ -20,7 +23,7 @@ func TestWorker(t *testing.T) {
 	totalworker := 100
 	manager := w.NewManager(totalworker)
 	for i := 0; i < totalworker; i++ {
-		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers}
+		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers, ctx}
 	}
 
 	// monitoring worker thats free
@@ -33,14 +36,14 @@ func TestWorker(t *testing.T) {
 		data := scanner.Text()
 
 		// send task to free worker
-		manager.Tasks <- func() {
-			// do something here
-			fmt.Println(data)
-		}
+		manager.Tasks <- data
 	}
 
 	// waiting for tasks has been done
 	wg.Add(1)
 	go manager.Timeout(1, &wg)
 	<-manager.Done
+
+	fwk := <-manager.FreeWorkers
+	fwk.Conn.Close()
 }

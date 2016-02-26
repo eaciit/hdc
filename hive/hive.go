@@ -357,6 +357,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 // loading file with worker
 func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
 	var wg sync.WaitGroup
+	var mutex = &sync.Mutex{}
 
 	retVal = "process failed"
 	isMatch := false
@@ -409,9 +410,8 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
-			worker := wk.Worker{x, manager.TimeProcess, manager.FreeWorkers, h}
+			worker := wk.NewWorker(x, <-chan manager.TimeProcess, <-chan manager.FreeWorkers, h)
 			manager.FreeWorkers <- &worker
-			worker.Duplex.Conn.Open()
 		}
 
 		// monitoring worker whos free
@@ -419,39 +419,73 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, TableMod
 		go manager.DoMonitor(&wg)
 
 		for scanner.Scan() {
-			err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
+			mutex.Lock()
+			retQuery := ""
+			if strings.ToLower(fileType) != "json" {
+				insertValues := ""
+				err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
 
-			if err != nil {
-				log.Println(err)
-			}
-			insertValues := ""
+				if err != nil {
+					log.Println(err)
+				}
 
-			var v reflect.Type
-			v = reflect.TypeOf(TableModel).Elem()
+				var v reflect.Type
+				v = reflect.TypeOf(TableModel).Elem()
 
-			if v.Kind() == reflect.Struct {
-				for i := 0; i < v.NumField(); i++ {
-					insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
+				if v.Kind() == reflect.Struct {
+					for i := 0; i < v.NumField(); i++ {
+						insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
-					if i < v.NumField()-1 {
-						insertValues += ", "
+						if i < v.NumField()-1 {
+							insertValues += ", "
+						}
+					}
+				}
+
+				if insertValues != "" {
+					retQuery = QueryBuilder("insert", TableName, insertValues, TableModel)
+				}
+
+			} else {
+				tempString = InspectJson([]string{scanner.Text()})
+
+				if len(tempString) > 0 {
+					insertValues := ""
+					err = Parse([]string{}, strings.Join(tempString, ","), TableModel, fileType, dateFormat)
+
+					if err != nil {
+						log.Println(err)
+					}
+
+					var v reflect.Type
+					v = reflect.TypeOf(TableModel).Elem()
+
+					if v.Kind() == reflect.Struct {
+						for i := 0; i < v.NumField(); i++ {
+							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
+
+							if i < v.NumField()-1 {
+								insertValues += ", "
+							}
+						}
+					}
+
+					if insertValues != "" && strings.Contains(insertValues, ",") {
+						retQuery = QueryBuilder("insert", TableName, insertValues, TableModel)
 					}
 				}
 			}
 
-			retQuery := ""
-			if insertValues != "" && strings.Contains(insertValues, ",") {
-				retQuery = QueryBuilder("insert", TableName, insertValues, TableModel)
-				//_, err = h.fetch(retQuery)
-			}
-
 			manager.Tasks <- retQuery
+			mutex.Unlock()
 		}
 
 		// waiting for tasks has been done
 		wg.Add(1)
 		go manager.Timeout(3, &wg)
 		<-manager.Done
+
+		manager.EndWorker()
 
 		if err == nil {
 			retVal = "success"

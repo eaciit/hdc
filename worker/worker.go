@@ -1,6 +1,7 @@
 package worker
 
 import (
+	_ "github.com/eaciit/hdc/hive"
 	"sync"
 	"time"
 )
@@ -8,7 +9,7 @@ import (
 // manager model
 type Manager struct {
 	FreeWorkers  chan *Worker
-	Tasks        chan func()
+	Tasks        chan interface{}
 	Done         chan bool
 	TimeProcess  chan int64
 	LastProcess  int64
@@ -20,6 +21,7 @@ type Worker struct {
 	WorkerId    int
 	TimeProcess chan int64
 	FreeWorkers chan *Worker
+	Context     *Hive
 }
 
 // initiate new manager
@@ -28,12 +30,24 @@ func NewManager(numWorkers int) Manager {
 
 	m := Manager{}
 	m.FreeWorkers = make(chan *Worker, numWorkers)
-	m.Tasks = make(chan func())
+	m.Tasks = make(chan interface{})
 	m.TimeProcess = make(chan int64)
 	m.TotalTimeOut = totaltimeout
 	m.LastProcess = time.Now().Unix()
 	m.Done = make(chan bool, 1)
 	return m
+}
+
+func NewWorker(id int, timeProcess <-chan int64, freeWorkers <-chan *Worker, ctx *Hive) Worker {
+	wk := Worker{}
+	wk.WorkerId = id
+	wk.TimeProcess <- timeProcess
+	wk.FreeWorkers <- freeWorkers
+	wk.Context = ctx
+
+	wk.Context.Conn.Open()
+
+	return wk
 }
 
 // do monitoring worker thats free or not
@@ -55,7 +69,7 @@ func (m *Manager) DoMonitor(wg *sync.WaitGroup) {
 }
 
 // assign task to free worker
-func (m *Manager) AssignTask(task func(), wg *sync.WaitGroup) {
+func (m *Manager) AssignTask(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 	select {
 	case worker := <-m.FreeWorkers:
@@ -86,11 +100,22 @@ func (m *Manager) Timeout(seconds int, wg *sync.WaitGroup) {
 	}
 }
 
+func (m *Manager) EndWorker() {
+	for {
+		select {
+		case worker <- m.FreeWorkers:
+			worker.Context.Conn.Close()
+		default:
+			return
+		}
+	}
+}
+
 // do a task for worker
-func (w *Worker) Work(task func(), wg *sync.WaitGroup) {
+func (w *Worker) Work(task interface{}, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	task()
+	w.Context.fetch(task.(string))
 
 	w.TimeProcess <- time.Now().Unix()
 	w.FreeWorkers <- w
