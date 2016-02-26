@@ -411,7 +411,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
 			wh := HiveConfig(h.Server, h.DBName, h.User, h.Password, "")
-			manager.FreeWorkers <- &HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, wh}
+			manager.FreeWorkers <- &HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, wh, false}
 		}
 
 		// monitoring worker whos free

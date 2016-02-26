@@ -23,6 +23,7 @@ type HiveWorker struct {
 	TimeProcess chan int64
 	FreeWorkers chan *HiveWorker
 	Context     *Hive
+	IsConnOpen  bool
 }
 
 // initiate new manager
@@ -106,11 +107,9 @@ func (m *HiveManager) EndWorker() {
 func (w *HiveWorker) Work(task string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	log.Printf("tempik %#v\n", w.Context)
-	log.Printf("jancuk %#v\n", w.Context.Conn)
-
-	if err := w.Context.Conn.TestConnection(); err != nil {
+	if !w.IsConnOpen {
 		w.Context.Conn.Open()
+		w.IsConnOpen = true
 	}
 
 	log.Println("Do task ", task)
