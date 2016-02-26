@@ -48,7 +48,7 @@ func fatalCheck(t *testing.T, what string, e error) {
 }
 
 func TestHiveConnect(t *testing.T) {
-	h = HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
+	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 }
 
 func TestLoadFile(t *testing.T) {
