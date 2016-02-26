@@ -90,7 +90,7 @@ func (m *HiveManager) Timeout(seconds int, wg *sync.WaitGroup) {
 func (m *HiveManager) EndWorker() {
 	for {
 		select {
-		case worker <- m.FreeWorkers:
+		case worker := <-m.FreeWorkers:
 			worker.Context.Conn.Close()
 		default:
 			return

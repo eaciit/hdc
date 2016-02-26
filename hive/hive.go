@@ -403,6 +403,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		}
 
 		scanner := bufio.NewScanner(file)
+		var tempString []string
 
 		// initiate dispatcher
 		manager := NewHiveManager(TotalWorker)
