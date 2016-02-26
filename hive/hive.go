@@ -419,11 +419,13 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		go manager.DoMonitor(&wg)
 
 		for scanner.Scan() {
-			//mutex.Lock()
+			mutex.Lock()
+			textLine := scanner.Text()
+			mutex.Unlock()
 			retQuery := ""
 			if strings.ToLower(fileType) != "json" {
 				insertValues := ""
-				err = Parse([]string{}, scanner.Text(), TableModel, fileType, dateFormat)
+				err = Parse([]string{}, textLine, TableModel, fileType, dateFormat)
 
 				if err != nil {
 					log.Println(err)
@@ -447,7 +449,7 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 				}
 
 			} else {
-				tempString = InspectJson([]string{scanner.Text()})
+				tempString = InspectJson([]string{textLine})
 
 				if len(tempString) > 0 {
 					insertValues := ""
@@ -476,7 +478,6 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 				}
 			}
 			manager.Tasks <- retQuery
-			//mutex.Unlock()
 		}
 
 		// waiting for tasks has been done
@@ -484,14 +485,14 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		go manager.Timeout(3, &wg)
 		<-manager.Done
 
-		manager.EndWorker()
-
 		if err == nil {
 			retVal = "success"
 		}
+
+		manager.EndWorker()
 	}
 
-	//wg.Wait()
+	wg.Wait()
 
 	return retVal, err
 }

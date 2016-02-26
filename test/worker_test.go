@@ -3,8 +3,7 @@ package worker
 import (
 	"bufio"
 	"fmt"
-	_ "github.com/masmeka/hdc/hive"
-	w "github.com/masmeka/hdc/worker"
+	_ "github.com/eaciit/hdc/hive"
 	"os"
 	"sync"
 	"testing"
@@ -12,7 +11,7 @@ import (
 
 // test worker
 func TestWorker(t *testing.T) {
-	ctx := Context{&dctx}
+	h := HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 
 	var wg sync.WaitGroup
 	file, _ := os.Open("worker_test.txt")
@@ -21,9 +20,9 @@ func TestWorker(t *testing.T) {
 
 	// initialize manager and workers
 	totalworker := 100
-	manager := w.NewManager(totalworker)
+	manager := NewHiveManager(totalworker)
 	for i := 0; i < totalworker; i++ {
-		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers, ctx}
+		manager.FreeWorkers <- &w.Worker{i, manager.TimeProcess, manager.FreeWorkers, h, false}
 	}
 
 	// monitoring worker thats free

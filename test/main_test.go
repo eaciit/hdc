@@ -173,17 +173,14 @@ func TestLoadFile(t *testing.T) {
 
 func TestLoadFileWithWorker(t *testing.T) {
 	err := h.Conn.Open()
-	fatalCheck(t, "Populate", err)
+	fatalCheck(t, "Populate", e)
 
-	var student Students
-
-	totalWorker := 10
-	retVal, err := h.LoadFileWithWorker("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &student, totalWorker)
+	var Student Students
+	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student, 3)
+	t.Log(retVal)
 
 	if err != nil {
 		t.Log(err)
 	}
-
 	h.Conn.Close()
-	t.Log(retVal)
 }

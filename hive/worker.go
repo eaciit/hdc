@@ -28,7 +28,7 @@ type HiveWorker struct {
 
 // initiate new manager
 func NewHiveManager(numWorkers int) HiveManager {
-	var totaltimeout int64 = 10
+	var totaltimeout int64 = 3
 
 	m := HiveManager{}
 	m.FreeWorkers = make(chan *HiveWorker, numWorkers)

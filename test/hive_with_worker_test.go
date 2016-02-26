@@ -51,44 +51,22 @@ func TestHiveConnect(t *testing.T) {
 	h = HiveConfig("192.168.0.223:10000", "default", "developer", "b1gD@T@", "")
 }
 
-func TestLoadFile(t *testing.T) {
-	err := h.Conn.Open()
-	fatalCheck(t, "Populate", e)
-
-	var Student Students
-	//test csv
-	retVal, err := h.LoadFile("/home/developer/contoh.txt", "students", "csv", "dd/MM/yyyy", &Student)
-
-	var SportMatch SportMatch
-
-	//test json
-	retValSport, err := h.LoadFile("/home/developer/test json.txt", "SportMatch", "json", "dd/MM/yyyy", &SportMatch)
-
-	if err != nil {
-		t.Log(err)
-	}
-	h.Conn.Close()
-	t.Log(retVal)
-	t.Log(retValSport)
-}
-
 func TestLoadFileWithWorker(t *testing.T) {
 	err := h.Conn.Open()
 	fatalCheck(t, "Populate", e)
 
-	var Student Students
 	//test csv
+	var Student Students
 	retVal, err := h.LoadFileWithWorker("/home/developer/contoh2.txt", "studentworker", "csv", "dd/MM/yyyy", &Student, 3)
-
-	//var SportMatch SportMatch
+	t.Log(retVal)
 
 	//test json
+	//var SportMatch SportMatch
 	//retValSport, err := h.LoadFileWithWorker("/home/developer/test json.txt", "sportmatchworker", "json", "dd/MM/yyyy", &SportMatch, 3)
+	//t.Log(retValSport)
 
 	if err != nil {
 		t.Log(err)
 	}
 	h.Conn.Close()
-	t.Log(retVal)
-	//t.Log(retValSport)
 }
