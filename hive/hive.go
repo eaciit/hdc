@@ -475,9 +475,8 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 					}
 				}
 			}
-			mutex.Unlock()
-
 			manager.Tasks <- retQuery
+			mutex.Unlock()
 		}
 
 		// waiting for tasks has been done
