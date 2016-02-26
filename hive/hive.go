@@ -408,10 +408,9 @@ func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateForm
 		// initiate dispatcher
 		manager := NewHiveManager(TotalWorker)
 
-		var wh *Hive
 		// initiate workers
 		for x := 0; x < TotalWorker; x++ {
-			wh = HiveConfig(h.Server, h.DBName, h.User, h.Password, "")
+			wh := HiveConfig(h.Server, h.DBName, h.User, h.Password, "")
 			manager.FreeWorkers <- &HiveWorker{x, manager.TimeProcess, manager.FreeWorkers, wh}
 		}
 
