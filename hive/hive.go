@@ -310,6 +310,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 				if insertValues != "" {
 					retQuery := QueryBuilder("insert", TableName, insertValues, TableModel)
+					log.Println(retQuery)
 					_, err = h.fetch(retQuery)
 				}
 
@@ -329,7 +330,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 
 					if v.Kind() == reflect.Struct {
 						for i := 0; i < v.NumField(); i++ {
-							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).String(), dateFormat)
+							insertValues += CheckDataType(v.Field(i), reflect.ValueOf(TableModel).Elem().Field(i).Interface(), dateFormat)
 
 							if i < v.NumField()-1 {
 								insertValues += ", "
@@ -550,7 +551,7 @@ func QueryBuilder(clause, tablename, input string, TableModel interface{}) (retV
 	return retVal
 }
 
-func CheckDataType(inputModel reflect.StructField, inputVal, dateFormat string) (output string) {
+func CheckDataType(inputModel reflect.StructField, inputVal interface{}, dateFormat string) (output string) {
 	if dateFormat == "" {
 		dateFormat = "dd/MM/yyyy"
 	}
@@ -559,33 +560,35 @@ func CheckDataType(inputModel reflect.StructField, inputVal, dateFormat string) 
 
 	switch inputModel.Type.Kind() {
 	case reflect.Int:
-		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int16:
-		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int32:
-		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Int64:
-		temp, _ := strconv.ParseInt(inputVal, 32, 32)
+		temp, _ := strconv.ParseInt(inputVal.(string), 10, 32)
 		output = strconv.FormatInt(temp, 10)
 	case reflect.Float32:
-		temp, _ := strconv.ParseFloat(inputVal, 32)
-		output = strconv.FormatFloat(temp, 'f', 6, 64)
+		temp, _ := strconv.ParseFloat(inputVal.(string), 32)
+		output = strconv.FormatFloat(temp, 'f', 3, 64)
 	case reflect.Float64:
-		temp, _ := strconv.ParseFloat(inputVal, 32)
-		output = strconv.FormatFloat(temp, 'f', 6, 64)
+		temp, _ := strconv.ParseFloat(inputVal.(string), 32)
+		output = strconv.FormatFloat(temp, 'f', 3, 64)
 	case reflect.Bool:
-		temp, _ := strconv.ParseBool(inputVal)
+		temp, _ := strconv.ParseBool(inputVal.(string))
 		output = strconv.FormatBool(temp)
 	case reflect.String:
-		output += "\"" + inputVal + "\""
+		output += "\"" + inputVal.(string) + "\""
 	default:
-		dtype := DetectDataType(inputVal, dateFormat)
+		dtype := DetectDataType(inputVal.(string), dateFormat)
 		if dtype == "date" {
-			output = "\"" + cast.Date2String(cast.String2Date(inputVal, dateFormat), dateFormat) + "\""
+			output = "\"" + cast.Date2String(cast.String2Date(inputVal.(string), dateFormat), dateFormat) + "\""
 		}
 	}
+	log.Println(inputVal.(string) + " " + output)
+
 	return output
 }
