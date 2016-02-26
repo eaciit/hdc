@@ -73,7 +73,7 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadFileWithWorker(t *testing.T) {
-	// err := h.Conn.Open()
+	err := h.Conn.Open()
 	fatalCheck(t, "Populate", e)
 
 	var Student Students
@@ -88,7 +88,7 @@ func TestLoadFileWithWorker(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
-	// h.Conn.Close()
+	h.Conn.Close()
 	t.Log(retVal)
 	t.Log(retValSport)
 }

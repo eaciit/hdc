@@ -44,7 +44,6 @@ func (m *HiveManager) DoMonitor(wg *sync.WaitGroup) {
 	for {
 		select {
 		case task := <-m.Tasks:
-			log.Println("Preparing do task", task.(string))
 			wg.Add(1)
 			go m.AssignTask(task, wg)
 		case result := <-m.TimeProcess:
