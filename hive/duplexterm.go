@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/eaciit/errorlib"
 	"io"
-	"log"
+	// "log"
 	"os/exec"
 	"strings"
 )
