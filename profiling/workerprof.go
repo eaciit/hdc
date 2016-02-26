@@ -21,7 +21,7 @@ func fatalCheck(what string, e error) {
 }
 
 func main() {
-	defer profile.Start(profile.CPUProfile).Stop()
+	defer profile.Start(profile.CPUProfile, profile.MemProfile, profile.BlockProfile).Stop()
 
 	h := HiveConfig("192.168.0.223:10000", "default", "hdfs", "", "")
 	err := h.Conn.Open()
