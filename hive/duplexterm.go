@@ -89,7 +89,6 @@ func (d *DuplexTerm) SendInput(input string) (res HiveResult, err error) {
 			}
 			done <- true
 		}()
-		log.Printf("gathel %#v\n", d.Writer)
 		iwrite, e := d.Writer.WriteString(input + "\n")
 		err = e
 		if iwrite == 0 {
