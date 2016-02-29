@@ -178,6 +178,20 @@ func (h *WebHdfs) SetOwner(path string, owner string, group string) error {
 	return nil
 }
 
-func (h *WebHdfs) SetPermission(path string, user string) error {
+func (h *WebHdfs) SetPermission(path string, permission string) error {
+	if permission == "" {
+		permission = "755"
+	}
+
+	parms := map[string]string{}
+	parms["permission"] = permission
+
+	r, e := h.call("PUT", path, OP_SETPERMISSION, parms)
+	if e != nil {
+		return e
+	}
+	if r.StatusCode != 200 {
+		return errors.New("Invalid Response Header on OP_SETOWNER: " + r.Status)
+	}
 	return nil
 }
