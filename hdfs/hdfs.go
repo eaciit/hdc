@@ -144,7 +144,7 @@ func (h *WebHdfs) callPayload(calltype, path, op string, filename string, parms 
 func handleRespond(r *http.Response) (*HdfsData, error) {
 	hdata := new(HdfsData)
 	data, e := ioutil.ReadAll(r.Body)
-	log.Println(r.Header.Get(""))
+	log.Println(string(r.Header.Get("")))
 	defer r.Body.Close()
 	if e != nil {
 		return hdata, e
