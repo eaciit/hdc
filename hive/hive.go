@@ -356,7 +356,7 @@ func (h *Hive) LoadFile(FilePath, TableName, fileType, dateFormat string, TableM
 // loading file with worker
 func (h *Hive) LoadFileWithWorker(FilePath, TableName, fileType string, dateFormat string, TableModel interface{}, TotalWorker int) (retVal string, err error) {
 	var wg sync.WaitGroup
-	//var mutex = &sync.Mutex{}
+	var mutex = &sync.Mutex{}
 
 	retVal = "process failed"
 	isMatch := false
