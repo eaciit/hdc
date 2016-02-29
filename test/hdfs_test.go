@@ -64,7 +64,7 @@ func TestChangeOwner(t *testing.T) {
 
 func TestPutFile(t *testing.T) {
 	//e = h.Put("d://test.txt", "/user/ariefdarmawan/inbox/test.txt", "", nil)
-	e = h.Put("~/test.txt", "/user/ariefdarmawan/inbox/test.txt", "", nil)
+	e = h.Put("/home/developer/test.txt", "/user/ariefdarmawan/inbox/test.txt", "", nil)
 	if e != nil {
 		t.Error(e.Error())
 	}
