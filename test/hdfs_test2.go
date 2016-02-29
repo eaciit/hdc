@@ -27,7 +27,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	list, err := h.List("/")
+	list, err := h.List("http://192.168.0.223:50070/")
 	if err != nil {
 		t.Fatal(err.Error())
 		defer killApp(1000)
