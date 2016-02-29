@@ -3,6 +3,7 @@ package hdfs
 import (
 	"fmt"
 	. "github.com/eaciit/hdc/hdfs"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -23,6 +24,15 @@ func TestConnect(t *testing.T) {
 	}
 	h.Config.TimeOut = 2 * time.Millisecond
 	h.Config.PoolSize = 100
+}
+
+func TestList(t *testing.T) {
+	list, err := h.List("/")
+	if err != nil {
+		t.Fatal(err.Error())
+		defer killApp(1000)
+	}
+	log.Println(list)
 }
 
 func TestDelete(t *testing.T) {
