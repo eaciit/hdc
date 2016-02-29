@@ -27,9 +27,11 @@ func TestConnect(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	list, err := h.List("http://192.168.0.223:50070/")
-	if err != nil {
-		t.Fatal(err.Error())
+	h, e = NewWebHdfs(NewHdfsConfig("http://192.168.0.223:50070", "hdfs"))
+	log.Println(h)
+	list, e := h.List("http://192.168.0.223:50070/")
+	if e != nil {
+		t.Fatal(e.Error())
 		defer killApp(1000)
 	}
 	log.Println(list)
