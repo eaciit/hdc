@@ -2,7 +2,7 @@ package hdfs
 
 import (
 	"fmt"
-	. "github.com/eaciit/hdc/hdfs"
+	. "github.com/eaciit/RyanCi/hdfs"
 	"os"
 	"testing"
 	"time"
