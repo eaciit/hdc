@@ -206,7 +206,7 @@ func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 
 	var fullpath string
 
-	if string(path[len(path)]) == "/" {
+	if string(path[len(path)-1]) == "/" {
 		fullpath = path + filename
 	} else {
 		fullpath = path + "/" + filename
