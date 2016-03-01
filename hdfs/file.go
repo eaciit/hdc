@@ -214,7 +214,7 @@ func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 
 	log.Println(fullpath)
 
-	r, e := h.callPayload("PUT", path, OP_CREATE, filename, parms)
+	r, e := h.call("POST", fullpath, OP_CREATE, parms)
 	if e != nil {
 		return e
 	}
