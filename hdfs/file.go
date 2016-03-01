@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -207,7 +206,7 @@ func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 
 	var fullpath string
 
-	if path[len(path)] == "/" {
+	if string(path[len(path)]) == "/" {
 		fullpath = path + filename
 	} else {
 		fullpath = path + "/" + filename
