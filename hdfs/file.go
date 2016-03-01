@@ -4,7 +4,7 @@ import (
 	"errors"
 	//"fmt"
 	"io/ioutil"
-	//"log"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -211,6 +211,8 @@ func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 	} else {
 		fullpath = path + "/" + filename
 	}
+
+	log.Println(fullpath)
 
 	r, e := h.call("PUT", fullpath, OP_CREATE, parms)
 	if e != nil {
