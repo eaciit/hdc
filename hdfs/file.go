@@ -196,6 +196,7 @@ func (h *WebHdfs) SetPermission(path string, permission string) error {
 	return nil
 }
 
+/*
 func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 	if permission == "" {
 		permission = "755"
@@ -223,3 +224,4 @@ func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
 	}
 	return nil
 }
+*/
