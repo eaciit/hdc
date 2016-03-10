@@ -4,7 +4,7 @@ import (
 	"errors"
 	//"fmt"
 	"io/ioutil"
-	//"log"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -191,7 +191,37 @@ func (h *WebHdfs) SetPermission(path string, permission string) error {
 		return e
 	}
 	if r.StatusCode != 200 {
-		return errors.New("Invalid Response Header on OP_SETOWNER: " + r.Status)
+		return errors.New("Invalid Response Header on OP_SETPERMISSION: " + r.Status)
 	}
 	return nil
 }
+
+/*
+func (h *WebHdfs) CreateNewFile(path, filename, permission string) error {
+	if permission == "" {
+		permission = "755"
+	}
+
+	parms := map[string]string{}
+	parms["permission"] = permission
+
+	var fullpath string
+
+	if string(path[len(path)-1]) == "/" {
+		fullpath = path + filename
+	} else {
+		fullpath = path + "/" + filename
+	}
+
+	log.Println(fullpath)
+
+	r, e := h.call("PUT", fullpath, OP_CREATE, parms)
+	if e != nil {
+		return e
+	}
+	if r.StatusCode != 200 {
+		return errors.New("Invalid Response Header on OP_CREATE: " + r.Status)
+	}
+	return nil
+}
+*/
