@@ -4,7 +4,7 @@ import (
 	"errors"
 	//"fmt"
 	"io/ioutil"
-	"log"
+	//"log"
 	"os"
 	"path/filepath"
 	"strconv"
