@@ -86,6 +86,7 @@ func TestSetPermission(t *testing.T) {
 	}
 }
 
+/*
 func TestCreateNewFile(t *testing.T) {
 	fmt.Println(os.Getenv("HOME"))
 	e = h.CreateNewFile("/user/ariefdarmawan/inbox/", "text2.txt", "755")
@@ -93,3 +94,4 @@ func TestCreateNewFile(t *testing.T) {
 		t.Error(e.Error())
 	}
 }
+*/
