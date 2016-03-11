@@ -115,7 +115,8 @@ func (h *Hive) Populate(query string, m interface{}) (e error) {
 }
 
 func (h *Hive) fetch(query string) (hr HiveResult, e error) {
-	if strings.LastIndex(query, ";") == -1 {
+
+	if query[len(query)-1:] != ";" {
 		query += ";"
 	}
 
@@ -132,7 +133,7 @@ func (h *Hive) Exec(query string, fn FnHiveReceive) (e error) {
 		delimiter = ","
 	}
 
-	if !strings.HasPrefix(query, ";") {
+	if query[len(query)-1:] != ";" {
 		query += ";"
 	}
 
