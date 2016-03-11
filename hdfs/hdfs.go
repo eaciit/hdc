@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"strings"
 	"time"
+	//"fmt"
 )
 
 // Constant
@@ -177,7 +178,7 @@ func (h *WebHdfs) callPayload(calltype, path, op string, filename string, parms 
 	defer payload.Close()
 
 	timeout := time.Duration(5 * time.Second)
-	req, err := http.NewRequest(calltype, url, nil)
+	req, err := http.NewRequest(calltype, url, payload)
 	client := http.Client{
 		Timeout: timeout,
 	}

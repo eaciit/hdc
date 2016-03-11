@@ -5,9 +5,11 @@ import (
 	//"fmt"
 	"io/ioutil"
 	//"log"
+	"github.com/eaciit/colony-core/v0"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -64,7 +66,7 @@ func mergeMapString(source map[string]string, adds map[string]string) map[string
 	return source
 }
 
-func (h *WebHdfs) Put(localfile string, destination string, permission string, parms map[string]string) error {
+func (h *WebHdfs) Put(localfile string, destination string, permission string, parms map[string]string, server *colonycore.Server) error {
 	if permission == "" {
 		permission = "755"
 	}
@@ -78,6 +80,14 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	}
 
 	location := r.Header["Location"][0]
+	if server != nil {
+		for _, alias := range server.HostAlias {
+			if strings.Contains(strings.Split(location, ":")[1], alias.HostName) {
+				location = strings.Replace(location, alias.HostName, alias.IP, 1)
+				break
+			}
+		}
+	}
 
 	r, err = h.callPayload("PUT", location, OP_CREATE, localfile, nil)
 	if err != nil {

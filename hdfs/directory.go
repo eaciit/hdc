@@ -3,6 +3,7 @@ package hdfs
 import (
 	//"encoding/json"
 	//"errors"
+	"github.com/eaciit/colony-core/v0"
 	"io/ioutil"
 	//"os"
 	//"fmt"
@@ -49,7 +50,7 @@ func (h *WebHdfs) MakeDirs(paths []string, permission string) map[string]error {
 	return es
 }
 
-func (h *WebHdfs) PutDir(dirname string, destination string) (error, map[string]error) {
+func (h *WebHdfs) PutDir(dirname string, destination string, server *colonycore.Server) (error, map[string]error) {
 	fileinfos, err := ioutil.ReadDir(dirname)
 	if err != nil {
 		return err, nil
@@ -62,7 +63,7 @@ func (h *WebHdfs) PutDir(dirname string, destination string) (error, map[string]
 	}
 
 	if len(filenames) > 0 {
-		es := h.Puts(filenames, destination, "755", nil)
+		es := h.Puts(filenames, destination, "755", nil, server)
 		return nil, es
 	}
 
