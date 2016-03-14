@@ -13,8 +13,8 @@ import (
 	"sync"
 )
 
-func (h *WebHdfs) GetToLocal(path string, destination string, permission string) error {
-	d, err := h.Get(path)
+func (h *WebHdfs) GetToLocal(path string, destination string, permission string, server *colonycore.Server) error {
+	d, err := h.Get(path, server)
 	if err != nil {
 		return err
 	}
@@ -29,16 +29,38 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string)
 	return nil
 }
 
-func (h *WebHdfs) Get(path string) ([]byte, error) {
+func (h *WebHdfs) Get(path string, server *colonycore.Server) ([]byte, error) {
 	r, err := h.call("GET", path, OP_OPEN, nil)
+	isRedirected := false
 	if err != nil {
-		return nil, err
+		if strings.Contains(strings.ToLower(err.Error()), "no such host is known") {
+			isRedirected = true
+		} else {
+			return nil, err
+		}
 	}
-	if r.StatusCode != 307 {
-		return nil, errors.New("Invalid Response Header on OP_OPEN: " + r.Status)
+	if r != nil {
+		if r.StatusCode != 307 {
+			return nil, errors.New("Invalid Response Header on OP_OPEN: " + r.Status)
+		}
 	}
 
-	location := r.Header["Location"][0]
+	location := ""
+	if isRedirected {
+		location = "http:" + strings.Split(err.Error(), ":")[1] + ":" + strings.Split(err.Error(), ":")[2] + ":" + strings.Split(err.Error(), ":")[3]
+	} else {
+		location = r.Header["Location"][0]
+	}
+
+	if server != nil {
+		for _, alias := range server.HostAlias {
+			if strings.Contains(strings.Split(location, ":")[1], alias.HostName) {
+				location = strings.Replace(location, alias.HostName, alias.IP, 1)
+				break
+			}
+		}
+	}
+
 	r, err = h.call("GET", location, OP_OPEN, nil)
 	if err != nil {
 		return nil, err
@@ -88,7 +110,6 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 			}
 		}
 	}
-
 	r, err = h.callPayload("PUT", location, OP_CREATE, localfile, nil)
 	if err != nil {
 		return err
@@ -99,7 +120,7 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	return nil
 }
 
-func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string) map[string]error {
+func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string, server *colonycore.Server) map[string]error {
 	var es map[string]error
 	if permission == "" {
 		permission = "755"
@@ -126,7 +147,7 @@ func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission stri
 					iprocessing = iprocessing + 1
 					_, filename := filepath.Split(path)
 					newfilename := filepath.Join(destinationFolder, filename)
-					e := h.Put(path, newfilename, permission, parms)
+					e := h.Put(path, newfilename, permission, parms, server)
 					//var e error
 					if e != nil {
 						if es == nil {
