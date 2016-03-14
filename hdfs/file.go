@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-func (h *WebHdfs) GetToLocal(path string, destination string, permission string) error {
+func (h *WebHdfs) GetToLocal(path string, destination string, permission string, server *colonycore.Server) error {
 	d, err := h.Get(path)
 	if err != nil {
 		return err
@@ -21,6 +21,16 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string)
 	if permission == "" {
 		permission = "755"
 	}
+
+	if server != nil {
+		for _, alias := range server.HostAlias {
+			if strings.Contains(strings.Split(destination, ":")[1], alias.HostName) {
+				destination = strings.Replace(destination, alias.HostName, alias.IP, 1)
+				break
+			}
+		}
+	}
+
 	iperm, _ := strconv.Atoi(permission)
 	err = ioutil.WriteFile(destination, d, os.FileMode(iperm))
 	if err != nil {
@@ -99,7 +109,7 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	return nil
 }
 
-func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string) map[string]error {
+func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string, server *colonycore.Server) map[string]error {
 	var es map[string]error
 	if permission == "" {
 		permission = "755"
@@ -126,7 +136,7 @@ func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission stri
 					iprocessing = iprocessing + 1
 					_, filename := filepath.Split(path)
 					newfilename := filepath.Join(destinationFolder, filename)
-					e := h.Put(path, newfilename, permission, parms)
+					e := h.Put(path, newfilename, permission, parms, server)
 					//var e error
 					if e != nil {
 						if es == nil {
