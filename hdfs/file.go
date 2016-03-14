@@ -21,6 +21,16 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string,
 	if permission == "" {
 		permission = "755"
 	}
+
+	if server != nil {
+		for _, alias := range server.HostAlias {
+			if strings.Contains(strings.Split(destination, ":")[1], alias.HostName) {
+				destination = strings.Replace(destination, alias.HostName, alias.IP, 1)
+				break
+			}
+		}
+	}
+
 	iperm, _ := strconv.Atoi(permission)
 	err = ioutil.WriteFile(destination, d, os.FileMode(iperm))
 	if err != nil {
