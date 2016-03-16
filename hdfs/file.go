@@ -24,7 +24,7 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string,
 
 	if server != nil {
 		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(destination, ":")[1], alias.HostName) {
+			if strings.Contains(strings.Split(destination, "webhdfs")[0], alias.HostName) {
 				destination = strings.Replace(destination, alias.HostName, alias.IP, 1)
 				break
 			}
@@ -43,7 +43,7 @@ func (h *WebHdfs) Get(path string, server *colonycore.Server) ([]byte, error) {
 	r, err := h.call("GET", path, OP_OPEN, nil)
 	isRedirected := false
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "no such host is known") {
+		if strings.Contains(strings.ToLower(err.Error()), "no such host") {
 			isRedirected = true
 		} else {
 			return nil, err
@@ -64,7 +64,7 @@ func (h *WebHdfs) Get(path string, server *colonycore.Server) ([]byte, error) {
 
 	if server != nil {
 		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(location, ":")[1], alias.HostName) {
+			if strings.Contains(strings.Split(location, "webhdfs")[0], alias.HostName) {
 				location = strings.Replace(location, alias.HostName, alias.IP, 1)
 				break
 			}
@@ -114,7 +114,7 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	location := r.Header["Location"][0]
 	if server != nil {
 		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(location, ":")[1], alias.HostName) {
+			if strings.Contains(strings.Split(location, "webhdfs")[0], alias.HostName) {
 				location = strings.Replace(location, alias.HostName, alias.IP, 1)
 				break
 			}
