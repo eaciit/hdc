@@ -3,6 +3,7 @@ package hdfs
 import (
 	"encoding/json"
 	"errors"
+	"github.com/eaciit/toolkit"
 	"io/ioutil"
 	"log"
 	"net"
@@ -205,4 +206,22 @@ func handleRespond(r *http.Response) (*HdfsData, error) {
 		return hdata, errors.New(hdata.RemoteException.Message)
 	}
 	return hdata, nil
+}
+
+func parseHostAlias(what string, raw interface{}) string {
+	hostAliases := []struct {
+		IP       string `json:"ip", bson:"ip"`
+		HostName string `json:"hostName", bson:"hostName"`
+	}{}
+
+	toolkit.Unjson(toolkit.Jsonify(raw), &hostAliases)
+
+	for _, alias := range hostAliases {
+		if strings.Contains(strings.Split(what, "webhdfs")[0], alias.HostName) {
+			what = strings.Replace(what, alias.HostName, alias.IP, 1)
+			break
+		}
+	}
+
+	return what
 }
