@@ -5,7 +5,6 @@ import (
 	//"fmt"
 	"io/ioutil"
 	//"log"
-	"github.com/eaciit/colony-core/v0"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -13,8 +12,8 @@ import (
 	"sync"
 )
 
-func (h *WebHdfs) GetToLocal(path string, destination string, permission string, server *colonycore.Server) error {
-	d, err := h.Get(path, server)
+func (h *WebHdfs) GetToLocal(path string, destination string, permission string, hostAlias interface{}) error {
+	d, err := h.Get(path, hostAlias)
 	if err != nil {
 		return err
 	}
@@ -22,14 +21,7 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string,
 		permission = "755"
 	}
 
-	if server != nil {
-		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(destination, "webhdfs")[0], alias.HostName) {
-				destination = strings.Replace(destination, alias.HostName, alias.IP, 1)
-				break
-			}
-		}
-	}
+	destination = parseHostAlias(destination, hostAlias)
 
 	iperm, _ := strconv.Atoi(permission)
 	err = ioutil.WriteFile(destination, d, os.FileMode(iperm))
@@ -39,7 +31,7 @@ func (h *WebHdfs) GetToLocal(path string, destination string, permission string,
 	return nil
 }
 
-func (h *WebHdfs) Get(path string, server *colonycore.Server) ([]byte, error) {
+func (h *WebHdfs) Get(path string, hostAlias interface{}) ([]byte, error) {
 	r, err := h.call("GET", path, OP_OPEN, nil)
 	isRedirected := false
 	if err != nil {
@@ -62,14 +54,7 @@ func (h *WebHdfs) Get(path string, server *colonycore.Server) ([]byte, error) {
 		location = r.Header["Location"][0]
 	}
 
-	if server != nil {
-		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(location, "webhdfs")[0], alias.HostName) {
-				location = strings.Replace(location, alias.HostName, alias.IP, 1)
-				break
-			}
-		}
-	}
+	location = parseHostAlias(location, hostAlias)
 
 	r, err = h.call("GET", location, OP_OPEN, nil)
 	if err != nil {
@@ -98,7 +83,7 @@ func mergeMapString(source map[string]string, adds map[string]string) map[string
 	return source
 }
 
-func (h *WebHdfs) Put(localfile string, destination string, permission string, parms map[string]string, server *colonycore.Server) error {
+func (h *WebHdfs) Put(localfile string, destination string, permission string, parms map[string]string, hostAlias interface{}) error {
 	if permission == "" {
 		permission = "755"
 	}
@@ -112,14 +97,8 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	}
 
 	location := r.Header["Location"][0]
-	if server != nil {
-		for _, alias := range server.HostAlias {
-			if strings.Contains(strings.Split(location, "webhdfs")[0], alias.HostName) {
-				location = strings.Replace(location, alias.HostName, alias.IP, 1)
-				break
-			}
-		}
-	}
+	location = parseHostAlias(location, hostAlias)
+
 	r, err = h.callPayload("PUT", location, OP_CREATE, localfile, nil)
 	if err != nil {
 		return err
@@ -130,7 +109,7 @@ func (h *WebHdfs) Put(localfile string, destination string, permission string, p
 	return nil
 }
 
-func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string, server *colonycore.Server) map[string]error {
+func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission string, parms map[string]string, hostAlias interface{}) map[string]error {
 	var es map[string]error
 	if permission == "" {
 		permission = "755"
@@ -157,7 +136,7 @@ func (h *WebHdfs) Puts(paths []string, destinationFolder string, permission stri
 					iprocessing = iprocessing + 1
 					_, filename := filepath.Split(path)
 					newfilename := filepath.Join(destinationFolder, filename)
-					e := h.Put(path, newfilename, permission, parms, server)
+					e := h.Put(path, newfilename, permission, parms, hostAlias)
 					//var e error
 					if e != nil {
 						if es == nil {
